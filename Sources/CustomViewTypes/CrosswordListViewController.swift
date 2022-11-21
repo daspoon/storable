@@ -6,7 +6,7 @@ import UIKit
 import CoreData
 
 
-class CrosswordListViewController : UITableViewController, TabBarCompatible
+public class CrosswordListViewController : UITableViewController, TabBarCompatible
   {
     struct CellConfiguration : GenericTableCellConfiguration
       {
@@ -59,7 +59,7 @@ class CrosswordListViewController : UITableViewController, TabBarCompatible
 
     // UIViewController
 
-    override func viewDidLoad()
+    public override func viewDidLoad()
       {
         super.viewDidLoad()
 
@@ -76,11 +76,11 @@ class CrosswordListViewController : UITableViewController, TabBarCompatible
 
     // UITableViewDataSource
 
-    override func tableView(_ sender: UITableView, numberOfRowsInSection i: Int) -> Int
+    public override func tableView(_ sender: UITableView, numberOfRowsInSection i: Int) -> Int
       { fetchedResultsController.sections![i].numberOfObjects }
 
 
-    override func tableView(_ sender: UITableView, cellForRowAt path: IndexPath) -> UITableViewCell
+    public override func tableView(_ sender: UITableView, cellForRowAt path: IndexPath) -> UITableViewCell
       {
         let cell = sender.dequeueReusableCell(of: CrosswordCell.self, withIdentifier: "cell")
         cell.content = fetchedResultsController.object(at: path)
@@ -91,7 +91,7 @@ class CrosswordListViewController : UITableViewController, TabBarCompatible
 
     // UITableViewDelegate
 
-    override func tableView(_ tableView: UITableView, willSelectRowAt path: IndexPath) -> IndexPath?
+    public override func tableView(_ tableView: UITableView, willSelectRowAt path: IndexPath) -> IndexPath?
       {
         guard let cell = tableView.cellForRow(at: path), cell.isSelected else { return path }
         tableView.deselectRow(at: path, animated: true)
@@ -100,19 +100,19 @@ class CrosswordListViewController : UITableViewController, TabBarCompatible
       }
 
 
-    override func tableView(_ sender: UITableView, didSelectRowAt path: IndexPath)
+    public override func tableView(_ sender: UITableView, didSelectRowAt path: IndexPath)
       { sender.setExpansionState(true, forCellAt: path) }
 
 
-    override func tableView(_ sender: UITableView, didDeselectRowAt path: IndexPath)
+    public override func tableView(_ sender: UITableView, didDeselectRowAt path: IndexPath)
       { sender.setExpansionState(false, forCellAt: path) }
 
 
     // TabBarCompatible
 
-    var tabBarTitle : String
+    public var tabBarTitle : String
       { "Crosswords" }
 
-    var tabBarImage : UIImage?
+    public var tabBarImage : UIImage?
       { UIImage(systemName: "newspaper") }
   }

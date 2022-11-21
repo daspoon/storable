@@ -6,7 +6,7 @@ import UIKit
 import CoreData
 
 
-class QuizViewController : UITableViewController, TabBarCompatible
+public class QuizViewController : UITableViewController, TabBarCompatible
   {
     struct QuizCellConfiguration : GenericTableCellConfiguration
       {
@@ -40,13 +40,13 @@ class QuizViewController : UITableViewController, TabBarCompatible
     private var fetchedResultsController : NSFetchedResultsController<Quiz>!
 
 
-    init()
+    public init()
       { super.init(style: .insetGrouped) }
 
 
     // UIViewController
 
-    override func viewDidLoad()
+    public override func viewDidLoad()
       {
         super.viewDidLoad()
 
@@ -64,19 +64,19 @@ class QuizViewController : UITableViewController, TabBarCompatible
 
     // UITableViewDataSource
 
-    override func numberOfSections(in sender: UITableView) -> Int
+    public override func numberOfSections(in sender: UITableView) -> Int
       { fetchedResultsController.sections?.count ?? 0 }
 
 
-    override func tableView(_ sender: UITableView, titleForHeaderInSection i: Int) -> String?
+    public override func tableView(_ sender: UITableView, titleForHeaderInSection i: Int) -> String?
       { Quiz.longMonthNames[i] }
 
 
-    override func tableView(_ sender: UITableView, numberOfRowsInSection i: Int) -> Int
+    public override func tableView(_ sender: UITableView, numberOfRowsInSection i: Int) -> Int
       { fetchedResultsController.sections?[i].numberOfObjects ?? 0 }
 
 
-    override func tableView(_ sender: UITableView, cellForRowAt path: IndexPath) -> UITableViewCell
+    public override func tableView(_ sender: UITableView, cellForRowAt path: IndexPath) -> UITableViewCell
       {
         let cell = sender.dequeueReusableCell(of: QuizCell.self, withIdentifier: "cell")
         cell.content = fetchedResultsController.object(at: path)
@@ -85,17 +85,17 @@ class QuizViewController : UITableViewController, TabBarCompatible
       }
 
 
-    override func sectionIndexTitles(for sender: UITableView) -> [String]?
+    public override func sectionIndexTitles(for sender: UITableView) -> [String]?
       { Quiz.shortMonthNames }
 
 
-    override func tableView(_ sender: UITableView, sectionForSectionIndexTitle title: String, at index: Int) -> Int
+    public override func tableView(_ sender: UITableView, sectionForSectionIndexTitle title: String, at index: Int) -> Int
       { index }
 
 
     // UITableViewDelegate
 
-    override func tableView(_ sender: UITableView, willSelectRowAt path: IndexPath) -> IndexPath?
+    public override func tableView(_ sender: UITableView, willSelectRowAt path: IndexPath) -> IndexPath?
       {
         guard let cell = tableView.cellForRow(at: path), cell.isSelected else { return path }
         sender.deselectRow(at: path, animated: true)
@@ -104,21 +104,21 @@ class QuizViewController : UITableViewController, TabBarCompatible
       }
 
 
-    override func tableView(_ sender: UITableView, didSelectRowAt path: IndexPath)
+    public override func tableView(_ sender: UITableView, didSelectRowAt path: IndexPath)
       { sender.setExpansionState(true, forCellAt: path) }
 
 
-    override func tableView(_ sender: UITableView, didDeselectRowAt path: IndexPath)
+    public override func tableView(_ sender: UITableView, didDeselectRowAt path: IndexPath)
       { sender.setExpansionState(false, forCellAt: path) }
 
 
     // TabBarCompatible
 
-    var tabBarTitle : String
+    public var tabBarTitle : String
       { "Tests" }
 
 
-    var tabBarImage : UIImage?
+    public var tabBarImage : UIImage?
       { UIImage(systemName: "pencil") }
 
 

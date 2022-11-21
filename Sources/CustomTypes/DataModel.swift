@@ -7,10 +7,14 @@ import Combine
 import CoreData
 
 
-class DataModel
+public class DataModel
   {
-    static var shared : DataModel = DataModel()
+    public enum GameType { case p5r, smt5 }
 
+    public private(set) static var shared : DataModel!
+    private static let semaphore = DispatchSemaphore(value: 1)
+
+    let gameType : GameType
     let managedObjectModel : NSManagedObjectModel
     let managedObjectContext : NSManagedObjectContext
 
@@ -18,8 +22,13 @@ class DataModel
     var observation : AnyCancellable!
 
 
-    private init()
+    public init(gameType t: GameType)
       {
+        Self.semaphore.wait()
+        precondition(Self.shared == nil)
+
+        gameType = t
+
         do {
           // Get the object model
           guard let modelURL = Bundle.module.url(forResource: "DataModel", withExtension: "momd") else { throw NSError(failureReason: "failed to find DataModel") }
@@ -63,6 +72,9 @@ class DataModel
         }
 
         observation = NotificationCenter.default.publisher(for: .dataStoreNeedsSave, object: nil).sink { self.save($0) }
+
+        Self.shared = self
+        Self.semaphore.signal()
       }
 
 
@@ -237,45 +249,45 @@ class DataModel
           }
         }
 
-#if false
-        log("defining enemies...")
-        let enemy_data = try bundle.loadJSON("enemy-data", ofType: [String: [String: Any]].self)
-        for (name, info) in enemy_data {
-          _ = try Enemy(name: name, attributes: info, context: context)
-        }
+        if case .p5r = gameType {
+          log("defining enemies...")
+          let enemy_data = try bundle.loadJSON("enemy-data", ofType: [String: [String: Any]].self)
+          for (name, info) in enemy_data {
+            _ = try Enemy(name: name, attributes: info, context: context)
+          }
 
-        log("defining confidants...")
-        let confidant_data = try bundle.loadJSON("confidant-info", ofType: [String: [String: Any]].self)
-        for (name, info) in confidant_data {
-          _ = try Confidant(for: name, info: info, context: context)
-        }
+          log("defining confidants...")
+          let confidant_data = try bundle.loadJSON("confidant-info", ofType: [String: [String: Any]].self)
+          for (name, info) in confidant_data {
+            _ = try Confidant(for: name, info: info, context: context)
+          }
 
-        log("defining gifts...")
-        let entityForGiftEffect = try context.entity(for: GiftEffect.self)
-        let gift_data = try bundle.loadJSON("gift-info", ofType: [String: Any].self)
-        let recipientRaceNames = try gift_data.requiredValue(of: [String].self, for: "recipients")
-        for (name, info) in try gift_data.requiredValue(of: [String: [String: Any]].self, for: "gifts") {
-          guard name != "" else { continue }
-          let gift = try Gift(name: name, info: info, context: context)
-          for (i, bonus) in (try info.requiredValue(of: [Int].self, for: "bonuses")).enumerated() {
-            guard bonus > 0, let confidant = try context.confidantForRace(named: recipientRaceNames[i]) else { continue }
-            let giftEffect = GiftEffect(entity: entityForGiftEffect, insertInto: managedObjectContext)
-            giftEffect.gift = gift
-            giftEffect.confidant = confidant
-            giftEffect.bonus = bonus
+          log("defining gifts...")
+          let entityForGiftEffect = try context.entity(for: GiftEffect.self)
+          let gift_data = try bundle.loadJSON("gift-info", ofType: [String: Any].self)
+          let recipientRaceNames = try gift_data.requiredValue(of: [String].self, for: "recipients")
+          for (name, info) in try gift_data.requiredValue(of: [String: [String: Any]].self, for: "gifts") {
+            guard name != "" else { continue }
+            let gift = try Gift(name: name, info: info, context: context)
+            for (i, bonus) in (try info.requiredValue(of: [Int].self, for: "bonuses")).enumerated() {
+              guard bonus > 0, let confidant = try context.confidantForRace(named: recipientRaceNames[i]) else { continue }
+              let giftEffect = GiftEffect(entity: entityForGiftEffect, insertInto: managedObjectContext)
+              giftEffect.gift = gift
+              giftEffect.confidant = confidant
+              giftEffect.bonus = bonus
+            }
+          }
+
+          log("defining test questions...")
+          for (key, info) in try bundle.loadJSON("classroom-info", ofType: [String: [[String: Any]]].self) {
+            _ = try Quiz(dateKey: key, info: info, context: context)
+          }
+
+          log("defining crossword puzzles...")
+          for info in try bundle.loadJSON("crossword-info", ofType: [[String: Any]].self) {
+            _ = try Crossword(info: info, context: context)
           }
         }
-
-        log("defining test questions...")
-        for (key, info) in try bundle.loadJSON("classroom-info", ofType: [String: [[String: Any]]].self) {
-          _ = try Quiz(dateKey: key, info: info, context: context)
-        }
-
-        log("defining crossword puzzles...")
-        for info in try bundle.loadJSON("crossword-info", ofType: [[String: Any]].self) {
-          _ = try Crossword(info: info, context: context)
-        }
-#endif
 
         log("saving data store")
         try managedObjectContext.save()

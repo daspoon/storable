@@ -6,7 +6,7 @@ import UIKit
 import CoreData
 
 
-class EnemyListViewController : UITableViewController, NSFetchedResultsControllerDelegate, UISearchResultsUpdating
+public class EnemyListViewController : UITableViewController, NSFetchedResultsControllerDelegate, UISearchResultsUpdating
   {
     var fetchedResultsController : NSFetchedResultsController<Enemy>!
 
@@ -29,7 +29,7 @@ class EnemyListViewController : UITableViewController, NSFetchedResultsControlle
 
     // UIViewController
 
-    override func viewDidLoad()
+    public override func viewDidLoad()
       {
         super.viewDidLoad()
 
@@ -52,15 +52,15 @@ class EnemyListViewController : UITableViewController, NSFetchedResultsControlle
 
     // UITableViewDataSource
 
-    override func numberOfSections(in sender: UITableView) -> Int
+    public override func numberOfSections(in sender: UITableView) -> Int
       { 1 }
 
 
-    override func tableView(_ sender: UITableView, numberOfRowsInSection i: Int) -> Int
+    public override func tableView(_ sender: UITableView, numberOfRowsInSection i: Int) -> Int
       { fetchedResultsController.sections![i].numberOfObjects }
 
 
-    override func tableView(_ sender: UITableView, cellForRowAt path: IndexPath) -> UITableViewCell
+    public override func tableView(_ sender: UITableView, cellForRowAt path: IndexPath) -> UITableViewCell
       {
         let cell = sender.dequeueReusableCell(of: KeyValueDisclosureCell.self, withIdentifier: "enemyCell")
         let enemy = fetchedResultsController.object(at: path)
@@ -71,7 +71,7 @@ class EnemyListViewController : UITableViewController, NSFetchedResultsControlle
 
     // UITableViewDelegate
 
-    override func tableView(_ sender: UITableView, didSelectRowAt path: IndexPath)
+    public override func tableView(_ sender: UITableView, didSelectRowAt path: IndexPath)
       {
         navigationController?.pushViewController(EnemyViewController(enemies: fetchedResultsController.fetchedObjects!, selectedIndex: path.row), animated: true)
       }
@@ -79,16 +79,16 @@ class EnemyListViewController : UITableViewController, NSFetchedResultsControlle
 
     // UISearchResultsUpdating
 
-    func updateSearchResults(for searchController: UISearchController)
+    public func updateSearchResults(for searchController: UISearchController)
       { updateTable(searchText: searchController.searchBar.text ?? "") }
   }
 
 
 extension EnemyListViewController : TabBarCompatible
   {
-    var tabBarTitle : String
+    public var tabBarTitle : String
       { "Enemies" }
 
-    var tabBarImage : UIImage?
+    public var tabBarImage : UIImage?
       { UIImage(systemName: "theatermasks") }
   }

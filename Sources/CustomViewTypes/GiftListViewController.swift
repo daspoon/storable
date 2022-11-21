@@ -6,14 +6,14 @@ import UIKit
 import CoreData
 
 
-class GiftListViewController : UITableViewController, TabBarCompatible
+public class GiftListViewController : UITableViewController, TabBarCompatible
   {
     var fetchedResultsController : NSFetchedResultsController<Gift>!
 
 
     // UIViewController
 
-    override func viewDidLoad()
+    public override func viewDidLoad()
       {
         navigationItem.title = "Gifts"
 
@@ -26,11 +26,11 @@ class GiftListViewController : UITableViewController, TabBarCompatible
 
     // UITableViewDataSource
 
-    override func tableView(_ sender: UITableView, numberOfRowsInSection i: Int) -> Int
+    public override func tableView(_ sender: UITableView, numberOfRowsInSection i: Int) -> Int
       { fetchedResultsController.fetchedObjects!.count }
 
 
-    override func tableView(_ sender: UITableView, cellForRowAt path: IndexPath) -> UITableViewCell
+    public override func tableView(_ sender: UITableView, cellForRowAt path: IndexPath) -> UITableViewCell
       {
         let cell = sender.dequeueReusableCell(of: KeyValueDisclosureCell.self, withIdentifier: "cell")
         let gift = fetchedResultsController.object(at: path)
@@ -41,7 +41,7 @@ class GiftListViewController : UITableViewController, TabBarCompatible
 
     // UITableViewDelegate
 
-    override func tableView(_ sender: UITableView, didSelectRowAt path: IndexPath)
+    public override func tableView(_ sender: UITableView, didSelectRowAt path: IndexPath)
       {
         navigationController?.pushViewController(GiftViewController(gift: fetchedResultsController.object(at: path)), animated: true)
       }
@@ -49,9 +49,9 @@ class GiftListViewController : UITableViewController, TabBarCompatible
 
     // TabBarCompatible
 
-    var tabBarTitle : String
+    public var tabBarTitle : String
       { "Gifts" }
 
-    var tabBarImage : UIImage?
+    public var tabBarImage : UIImage?
       { UIImage(systemName: "gift") }
   }
