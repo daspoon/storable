@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="21512" systemVersion="22A379" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="Arcana" representedClassName="Arcana" syncable="YES">
+        <attribute name="name" attributeType="String"/>
+        <relationship name="confidant" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Confidant" inverseName="arcanum" inverseEntity="Confidant"/>
+        <relationship name="forwardFusions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="RaceFusion" inverseName="inputs" inverseEntity="RaceFusion"/>
+        <relationship name="members" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Persona" inverseName="arcana" inverseEntity="Persona"/>
+        <relationship name="reverseFusions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="RaceFusion" inverseName="output" inverseEntity="RaceFusion"/>
+    </entity>
+    <entity name="Combatant" representedClassName="Combatant" isAbstract="YES" syncable="YES">
+        <attribute name="baseStatData" attributeType="Binary"/>
+        <attribute name="level" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="name" attributeType="String"/>
+        <attribute name="resists" attributeType="String"/>
+        <relationship name="skillGrants" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="SkillGrant" inverseName="wielder" inverseEntity="SkillGrant"/>
+    </entity>
+    <entity name="Confidant" representedClassName="Confidant" syncable="YES">
+        <attribute name="advancementData" attributeType="Binary"/>
+        <attribute name="hangoutData" attributeType="Binary"/>
+        <attribute name="location" optional="YES" attributeType="String"/>
+        <attribute name="name" attributeType="String"/>
+        <attribute name="talentData" attributeType="Binary"/>
+        <attribute name="unlock" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="arcanum" maxCount="1" deletionRule="Nullify" destinationEntity="Arcana" inverseName="confidant" inverseEntity="Arcana"/>
+        <relationship name="giftEffects" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="GiftEffect" inverseName="confidant" inverseEntity="GiftEffect"/>
+        <relationship name="gifts" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Gift" inverseName="recipient" inverseEntity="Gift"/>
+        <relationship name="persona" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Persona" inverseName="confidant" inverseEntity="Persona"/>
+    </entity>
+    <entity name="Configuration" representedClassName="Configuration" syncable="YES">
+        <attribute name="affinityElems" optional="YES" attributeType="String"/>
+        <attribute name="baseStats" attributeType="String"/>
+        <attribute name="gameDate" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="resistElems" attributeType="String"/>
+        <attribute name="resistNames" attributeType="String"/>
+        <attribute name="skillElems" attributeType="String"/>
+    </entity>
+    <entity name="Crossword" representedClassName="Crossword" syncable="YES">
+        <attribute name="answer" attributeType="String"/>
+        <attribute name="index" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="question" attributeType="String"/>
+    </entity>
+    <entity name="Enemy" representedClassName="Enemy" parentEntity="Combatant" syncable="YES">
+        <attribute name="areas" optional="YES" attributeType="String"/>
+        <attribute name="armor" optional="YES" attributeType="String"/>
+        <attribute name="card" optional="YES" attributeType="String"/>
+        <attribute name="drops" optional="YES" attributeType="String"/>
+        <attribute name="material" optional="YES" attributeType="String"/>
+        <attribute name="persona" optional="YES" attributeType="String"/>
+        <attribute name="race" optional="YES" attributeType="String"/>
+        <attribute name="trait" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="Fusion" representedClassName="Fusion" syncable="YES">
+        <attribute name="kind" attributeType="Integer 64" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="maxInputLevel" attributeType="Integer 16" usesScalarValueType="YES"/>
+        <attribute name="minInputLevel" attributeType="Integer 16" usesScalarValueType="YES"/>
+        <relationship name="inputs" toMany="YES" deletionRule="Nullify" destinationEntity="Persona" inverseName="fusionsToConsume" inverseEntity="Persona"/>
+        <relationship name="output" maxCount="1" deletionRule="Nullify" destinationEntity="Persona" inverseName="fusionsToProduce" inverseEntity="Persona"/>
+    </entity>
+    <entity name="Gift" representedClassName="Gift" syncable="YES">
+        <attribute name="area" attributeType="String"/>
+        <attribute name="name" attributeType="String"/>
+        <attribute name="price" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="store" attributeType="String"/>
+        <relationship name="effects" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="GiftEffect" inverseName="gift" inverseEntity="GiftEffect"/>
+        <relationship name="recipient" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Confidant" inverseName="gifts" inverseEntity="Confidant"/>
+    </entity>
+    <entity name="GiftEffect" representedClassName="GiftEffect" syncable="YES">
+        <attribute name="bonus" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="confidant" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Confidant" inverseName="giftEffects" inverseEntity="Confidant"/>
+        <relationship name="gift" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Gift" inverseName="effects" inverseEntity="Gift"/>
+    </entity>
+    <entity name="Itemization" representedClassName="Itemization" syncable="YES">
+        <attribute name="itemName" optional="YES" attributeType="String"/>
+        <attribute name="kind" attributeType="Integer 16" usesScalarValueType="YES"/>
+        <attribute name="rare" attributeType="Boolean" usesScalarValueType="YES"/>
+        <relationship name="persona" maxCount="1" deletionRule="Nullify" destinationEntity="Persona" inverseName="itemizations" inverseEntity="Persona"/>
+        <relationship name="skill" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Skill" inverseName="itemization" inverseEntity="Skill"/>
+    </entity>
+    <entity name="Persona" representedClassName="Persona" parentEntity="Combatant" syncable="YES">
+        <attribute name="accessible" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="captured" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="category" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="index" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="inherits" optional="YES" attributeType="String"/>
+        <relationship name="arcana" maxCount="1" deletionRule="Nullify" destinationEntity="Arcana" inverseName="members" inverseEntity="Arcana"/>
+        <relationship name="confidant" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Confidant" inverseName="persona" inverseEntity="Confidant"/>
+        <relationship name="fusionsToConsume" toMany="YES" deletionRule="Nullify" destinationEntity="Fusion" inverseName="inputs" inverseEntity="Fusion"/>
+        <relationship name="fusionsToProduce" toMany="YES" deletionRule="Nullify" destinationEntity="Fusion" inverseName="output" inverseEntity="Fusion"/>
+        <relationship name="itemizations" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Itemization" inverseName="persona" inverseEntity="Itemization"/>
+        <relationship name="trait" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Skill" inverseName="bearer" inverseEntity="Skill"/>
+    </entity>
+    <entity name="Quiz" representedClassName="Quiz" syncable="YES">
+        <attribute name="day" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="itemsData" attributeType="Binary"/>
+        <attribute name="month" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+    </entity>
+    <entity name="RaceFusion" representedClassName="RaceFusion" syncable="YES">
+        <attribute name="index" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="inputs" toMany="YES" deletionRule="Nullify" destinationEntity="Arcana" inverseName="forwardFusions" inverseEntity="Arcana"/>
+        <relationship name="output" maxCount="1" deletionRule="Nullify" destinationEntity="Arcana" inverseName="reverseFusions" inverseEntity="Arcana"/>
+    </entity>
+    <entity name="Skill" representedClassName="Skill" syncable="YES">
+        <attribute name="card" optional="YES" attributeType="String"/>
+        <attribute name="cost" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="effect" attributeType="String"/>
+        <attribute name="element" attributeType="String"/>
+        <attribute name="name" attributeType="String"/>
+        <attribute name="talk" optional="YES" attributeType="String"/>
+        <attribute name="unique" optional="YES" attributeType="String"/>
+        <relationship name="bearer" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Persona" inverseName="trait" inverseEntity="Persona"/>
+        <relationship name="grants" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="SkillGrant" inverseName="skill" inverseEntity="SkillGrant"/>
+        <relationship name="itemization" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Itemization" inverseName="skill" inverseEntity="Itemization"/>
+    </entity>
+    <entity name="SkillGrant" representedClassName="SkillGrant" syncable="YES">
+        <attribute name="level" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="skill" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Skill" inverseName="grants" inverseEntity="Skill"/>
+        <relationship name="wielder" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Combatant" inverseName="skillGrants" inverseEntity="Combatant"/>
+    </entity>
+</model>
