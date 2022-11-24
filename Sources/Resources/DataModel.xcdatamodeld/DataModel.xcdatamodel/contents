@@ -105,7 +105,6 @@
         <attribute name="effect" attributeType="String"/>
         <attribute name="element" attributeType="String"/>
         <attribute name="name" attributeType="String"/>
-        <attribute name="talk" optional="YES" attributeType="String"/>
         <attribute name="unique" optional="YES" attributeType="String"/>
         <relationship name="bearer" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Persona" inverseName="trait" inverseEntity="Persona"/>
         <relationship name="grants" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="SkillGrant" inverseName="skill" inverseEntity="SkillGrant"/>

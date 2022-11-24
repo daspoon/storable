@@ -16,7 +16,6 @@ class Skill : NSManagedObject, Named
       // the name of the persona to which this skill is unique
 
     @NSManaged var card : String?
-    @NSManaged var talk : String?
     @NSManaged var grants : Set<SkillGrant>
     @NSManaged var bearer : Persona?
     @NSManaged var itemizations : Set<Itemization>
@@ -32,7 +31,6 @@ class Skill : NSManagedObject, Named
         self.cost = try attributes.optionalValue(for: "cost") ?? 0
         self.unique = try attributes.optionalValue(for: "unique")
         self.card = try attributes.optionalValue(for: "card")
-        self.talk = try attributes.optionalValue(for: "talk")
       }
 
 
