@@ -35,7 +35,7 @@ class SearchContext<Model: NSManagedObject>
         fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [searchText != "" ? NSPredicate(format: "%K CONTAINS[cd] \"\(searchText)\"", searchKey) : nil].compactMap({$0}) + additionalPredicates)
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: searchKey, ascending: ascending)] + additionalSortDescriptors
 
-        let fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: DataModel.shared.managedObjectContext, sectionNameKeyPath: nil, cacheName: nil)
+        let fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: managedObjectContext, sectionNameKeyPath: nil, cacheName: nil)
 
         do { try fetchedResultsController.performFetch() }
         catch let error {
