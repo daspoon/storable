@@ -6,14 +6,12 @@ import UIKit
 import CoreData
 
 
-class SkillViewController : UITableViewController
+class SkillViewController<Model: GameModel> : ObjectViewController<Model.Skill>
   {
     enum Section : Int, CaseIterable
       {
-        case description = 0
-        case personas = 1
-        case enemies = 2
-        case itemization = 3
+        case description
+        case grants
       }
 
 
@@ -34,7 +32,7 @@ class SkillViewController : UITableViewController
     typealias DescriptionCell = GenericTableCell<DescriptionCellConfiguration>
 
 
-    struct PersonaGrantCellConfiguration : GenericTableCellConfiguration
+    struct GrantCellConfiguration : GenericTableCellConfiguration
       {
         let nameLabel = createLabel()
         let arcanaLabel = createSecondaryLabel()
@@ -43,39 +41,30 @@ class SkillViewController : UITableViewController
         var contentSubview : UIView
           { UIStackView(axis: .horizontal, spacing: 0, arrangedSubviews: [nameLabel, arcanaLabel, UIView(), levelLabel]) }
 
-        func update(_ cell: GenericTableCell<Self>, for grant: SkillGrant)
+        func update(_ cell: GenericTableCell<Self>, for grant: Model.SkillGrant)
           {
-            let persona = grant.wielder as! Persona
-            nameLabel.text = persona.name
-            arcanaLabel.text = ", \(persona.arcana.name) \(persona.level)"
+            let demon = grant.demon
+            nameLabel.text = demon.name
+            arcanaLabel.text = ", \(demon.race.name) \(demon.level)"
             levelLabel.text = grant.level > 0 ? "level \(grant.level)" : ""
           }
       }
 
-    typealias PersonaCell = GenericTableCell<PersonaGrantCellConfiguration>
+    typealias GrantCell = GenericTableCell<GrantCellConfiguration>
 
 
-    let skill : Skill
-
-    private var grantFetchedResultsController : NSFetchedResultsController<SkillGrant>!
-    private var itemizationFetchedResultsController : NSFetchedResultsController<Itemization>!
-    private var personaGrants : [SkillGrant] = []
-    private var enemyGrants : [SkillGrant] = []
+    private var grantFetchedResultsController : NSFetchedResultsController<Model.SkillGrant>!
 
 
     private let cellInfoBySection : [Section: (cellClass: UITableViewCell.Type, identifier: String)] = [
       .description: (DescriptionCell.self, "description"),
-      .personas: (PersonaCell.self, "personas"),
-      .enemies: (KeyValueCell.self, "enemies"),
-      .itemization: (KeyValueCell.self, "itemization"),
+      .grants: (GrantCell.self, "grants"),
     ]
 
 
-    init(skill s: Skill)
+    init(skill s: Model.Skill, managedObjectContext c: NSManagedObjectContext)
       {
-        skill = s
-
-        super.init(style: .insetGrouped)
+        super.init(subject: s, managedObjectContext: c)
       }
 
 
@@ -85,22 +74,13 @@ class SkillViewController : UITableViewController
       {
         super.viewDidLoad()
 
-        navigationItem.titleView = UILabel(title: skill.name, subtitle: [skill.element.description, skill.formattedCost].compactMap({$0}).joined(separator: ", "))
+        navigationItem.titleView = UILabel(title: subject.name, subtitle: [subject.type.name, subject.cost.description].compactMap({$0}).joined(separator: ", "))
 
-        let grantFetchRequest = DataModel.fetchRequest(for: SkillGrant.self)
-        grantFetchRequest.sortDescriptors = NSSortDescriptor.with(keyPaths: ["wielder.level", "wielder.name"], ascending: true)
-        grantFetchRequest.predicate = NSPredicate(format: "skill == %@", skill)
-        grantFetchedResultsController = NSFetchedResultsController<SkillGrant>(fetchRequest: grantFetchRequest, managedObjectContext: DataModel.shared.managedObjectContext, sectionNameKeyPath: nil, cacheName: nil)
+        let grantFetchRequest = fetchRequest(for: Model.SkillGrant.self)
+        grantFetchRequest.sortDescriptors = NSSortDescriptor.with(keyPaths: ["demon.level", "demon.name"], ascending: true)
+        grantFetchRequest.predicate = NSPredicate(format: "skill == %@", subject)
+        grantFetchedResultsController = NSFetchedResultsController<Model.SkillGrant>(fetchRequest: grantFetchRequest, managedObjectContext: managedObjectContext, sectionNameKeyPath: nil, cacheName: nil)
         try! grantFetchedResultsController.performFetch()
-
-        personaGrants = grantFetchedResultsController.fetchedObjects!.filter {$0.wielder is Persona}
-        enemyGrants = grantFetchedResultsController.fetchedObjects!.filter {$0.wielder is Enemy}
-
-        let itemizationFetchRequest = DataModel.fetchRequest(for: Itemization.self)
-        itemizationFetchRequest.sortDescriptors = NSSortDescriptor.with(keyPaths: ["persona.name"])
-        itemizationFetchRequest.predicate = NSPredicate(format: "skill == %@", skill)
-        itemizationFetchedResultsController = NSFetchedResultsController<Itemization>(fetchRequest: itemizationFetchRequest, managedObjectContext: DataModel.shared.managedObjectContext, sectionNameKeyPath: nil, cacheName: nil)
-        try! itemizationFetchedResultsController.performFetch()
 
         for info in cellInfoBySection.values {
           tableView.register(info.cellClass, forCellReuseIdentifier: info.identifier)
@@ -120,12 +100,8 @@ class SkillViewController : UITableViewController
         switch section {
           case .description :
             return 1
-          case .personas :
-            return personaGrants.count
-          case .enemies :
-            return enemyGrants.count
-          case .itemization :
-            return itemizationFetchedResultsController.sections![0].numberOfObjects
+          case .grants :
+            return grantFetchedResultsController.fetchedObjects?.count ?? 0
         }
       }
 
@@ -138,21 +114,11 @@ class SkillViewController : UITableViewController
         switch section {
           case .description :
             let cell = sender.dequeueReusableCell(of: DescriptionCell.self, withIdentifier: cellId)
-            cell.content = skill.effect
+            cell.content = subject.effect
             return cell
-          case .personas :
-            let cell = sender.dequeueReusableCell(of: PersonaCell.self, withIdentifier: cellId)
-            cell.content = personaGrants[path.row]
-            return cell
-          case .enemies :
-            let cell = sender.dequeueReusableCell(of: KeyValueCell.self, withIdentifier: cellId)
-            let grant = enemyGrants[path.row]
-            cell.key = grant.wielder.name
-            return cell
-          case .itemization :
-            let cell = sender.dequeueReusableCell(of: KeyValueCell.self, withIdentifier: cellId)
-            let itemization = itemizationFetchedResultsController.fetchedObjects![path.row]
-            cell.keyAndValue = (key: itemization.persona.name, value: itemization.rare ? "rare" : "")
+          case .grants :
+            let cell = sender.dequeueReusableCell(of: GrantCell.self, withIdentifier: cellId)
+            cell.content = grantFetchedResultsController.fetchedObjects?[path.row]
             return cell
         }
       }

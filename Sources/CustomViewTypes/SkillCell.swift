@@ -5,10 +5,10 @@
 import UIKit
 
 
-typealias SkillCell = GenericTableCell<SkillCellConfiguration>
+typealias SkillCell<Model: GameModel> = GenericTableCell<SkillCellConfiguration<Model>>
 
 
-struct SkillCellConfiguration : GenericTableCellConfiguration
+struct SkillCellConfiguration<Model: GameModel> : GenericTableCellConfiguration
   {
     struct Option : OptionSet
       {
@@ -34,10 +34,10 @@ struct SkillCellConfiguration : GenericTableCellConfiguration
       }
 
 
-    func update(_ cell: GenericTableCell<Self>, for state: (skill: Skill, options: [Option]))
+    func update(_ cell: GenericTableCell<Self>, for state: (skill: Model.Skill, options: [Option]))
       {
         nameLabel.text = state.skill.name
-        rightLabel.text = [(state.options.contains(.type) ? state.skill.element : nil), (state.options.contains(.cost) ? state.skill.formattedCost : nil)].compactMap({$0}).joined(separator: ", ")
+        rightLabel.text = [(state.options.contains(.type) ? state.skill.type.name : nil), (state.options.contains(.cost) ? state.skill.cost.description : nil)].compactMap({$0}).joined(separator: ", ")
         effectLabel.text = state.options.contains(.effect) ? state.skill.effect : ""
         effectLabel.isHidden = state.options.contains(.effect) == false
       }

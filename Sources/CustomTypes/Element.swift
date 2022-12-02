@@ -1,7 +1,0 @@
-/*
-
-*/
-
-
-typealias Element = String
-

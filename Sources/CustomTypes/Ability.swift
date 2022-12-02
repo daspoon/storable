@@ -1,6 +1,0 @@
-/*
-
-*/
-
-
-typealias Ability = String

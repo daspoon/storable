@@ -8,7 +8,7 @@ import UIKit
 import CoreData
 
 
-public class SkillListViewController : UITableViewController, UISearchResultsUpdating, TabBarCompatible
+public class SkillListViewController<Model: GameModel> : ObjectListViewController<Model.Skill>, UISearchResultsUpdating, TabBarCompatible
   {
     enum SortMode : Int, CaseIterable
       {
@@ -24,10 +24,7 @@ public class SkillListViewController : UITableViewController, UISearchResultsUpd
       }
 
 
-
     var sortMode : SortMode = .type
-
-    var fetchedResultsController : NSFetchedResultsController<Skill>!
 
     var searchController : UISearchController!
 
@@ -42,14 +39,14 @@ public class SkillListViewController : UITableViewController, UISearchResultsUpd
             config = ("element", "element", ["element", "cost", "name"])
         }
 
-        let fetchRequest = DataModel.fetchRequest(for: Skill.self)
+        let fetchRequest = fetchRequest(for: Model.Skill.self)
         fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
           NSPredicate(format: "unique = nil"),
           searchText != "" ? NSPredicate(format: "%K CONTAINS[cd] \"\(searchText)\"", config.searchKey, searchText) : nil,
         ].compactMap {$0})
         fetchRequest.sortDescriptors = config.sortKeys.map { NSSortDescriptor(key: $0, ascending: true) }
 
-        fetchedResultsController = NSFetchedResultsController<Skill>(fetchRequest: fetchRequest, managedObjectContext: DataModel.shared.managedObjectContext, sectionNameKeyPath: config.sectionKey, cacheName: nil)
+        fetchedResultsController = NSFetchedResultsController<Model.Skill>(fetchRequest: fetchRequest, managedObjectContext: managedObjectContext, sectionNameKeyPath: config.sectionKey, cacheName: nil)
         try! fetchedResultsController.performFetch()
 
         tableView.reloadData()
@@ -88,7 +85,7 @@ public class SkillListViewController : UITableViewController, UISearchResultsUpd
         segmentedControl.selectedSegmentIndex = sortMode.rawValue
         navigationItem.rightBarButtonItem = UIBarButtonItem(customView: segmentedControl)
 
-        tableView.register(SkillCell.self, forCellReuseIdentifier: "skillCell")
+        tableView.register(SkillCell<Model>.self, forCellReuseIdentifier: "skillCell")
 
         updateTable()
       }
@@ -106,7 +103,7 @@ public class SkillListViewController : UITableViewController, UISearchResultsUpd
 
     public override func tableView(_ sender: UITableView, cellForRowAt path: IndexPath) -> UITableViewCell
       {
-        let cell = sender.dequeueReusableCell(of: SkillCell.self, withIdentifier: "skillCell")
+        let cell = sender.dequeueReusableCell(of: SkillCell<Model>.self, withIdentifier: "skillCell")
         let skill = fetchedResultsController.object(at: path)
         cell.content = (skill, sortMode == .name ? [.type] : [])
         return cell
@@ -121,7 +118,8 @@ public class SkillListViewController : UITableViewController, UISearchResultsUpd
 
     public override func tableView(_ sender: UITableView, didSelectRowAt path: IndexPath)
       {
-        navigationController?.pushViewController(SkillViewController(skill: fetchedResultsController.object(at: path)), animated: true)
+        let skill = fetchedResultsController.object(at: path)
+        navigationController?.pushViewController(SkillViewController<Model>(skill: skill, managedObjectContext: managedObjectContext), animated: true)
       }
 
 

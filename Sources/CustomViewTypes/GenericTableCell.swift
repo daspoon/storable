@@ -86,6 +86,14 @@ extension GenericTableCellConfiguration
     static func createMultilineLabel(font f: UIFont = labelFont, color c: UIColor = labelColor) -> UILabel
       { UILabel {$0.numberOfLines = 0; $0.font = f; $0.textColor = c} }
 
+    static func createIcon(with spec: IconSpec, size: CGSize = .init(width: 20, height: 20)) -> UIImageView
+      {
+        let imageView = UIImageView(image: spec.icon)
+        imageView.requiredConstraint(on: .width).constant = size.width
+        imageView.requiredConstraint(on: .height).constant = size.height
+        return imageView
+      }
+
     static func createIcon(imageName: String, highlightedImageName: String? = nil, size: CGSize = .init(width: 20, height: 20), tintColor: UIColor = .tintColor) -> UIImageView
       {
         guard let image = UIImage(systemName: imageName) else { preconditionFailure("unknown image name: \(imageName)") }

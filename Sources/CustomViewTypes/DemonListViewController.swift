@@ -6,7 +6,7 @@ import UIKit
 import CoreData
 
 
-public class PersonaListViewController : UITableViewController, UISearchResultsUpdating, TabBarCompatible
+public class DemonListViewController<Model: GameModel> : ObjectListViewController<Model.Demon>, UISearchResultsUpdating, TabBarCompatible
   {
     enum SortMode : Int, CaseIterable
       {
@@ -22,13 +22,7 @@ public class PersonaListViewController : UITableViewController, UISearchResultsU
       }
 
 
-    var fetchedResultsController : NSFetchedResultsController<Persona>!
-
     var sortMode : SortMode = .byLevel
-
-
-    func demon(at path: IndexPath) -> Persona
-      { fetchedResultsController.object(at: path) }
 
 
     func updateTable(searchText: String = "", ascending: Bool = true)
@@ -41,7 +35,7 @@ public class PersonaListViewController : UITableViewController, UISearchResultsU
             config = ("arcana.name", "arcana.name", ["arcana.name", "level"])
         }
 
-        let fetchRequest = DataModel.fetchRequest(for: Persona.self)
+        let fetchRequest = fetchRequest(for: Model.Demon.self)
         fetchRequest.sortDescriptors = config.sortKeys.map { NSSortDescriptor(key: $0, ascending: true) }
         fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
           NSPredicate(format: "not arcana.name ENDSWITH[cd] \" P\""),
@@ -49,7 +43,7 @@ public class PersonaListViewController : UITableViewController, UISearchResultsU
           searchText != "" ? NSPredicate(format: "%K CONTAINS[cd] \"" + (searchText) + "\"", config.searchKey) : nil,
         ].compactMap {$0})
 
-        fetchedResultsController = NSFetchedResultsController<Persona>(fetchRequest: fetchRequest, managedObjectContext: DataModel.shared.managedObjectContext, sectionNameKeyPath: config.sectionKey, cacheName: nil);
+        fetchedResultsController = NSFetchedResultsController<Model.Demon>(fetchRequest: fetchRequest, managedObjectContext: managedObjectContext, sectionNameKeyPath: config.sectionKey, cacheName: nil);
 
         do {
           try fetchedResultsController.performFetch()
@@ -81,7 +75,7 @@ public class PersonaListViewController : UITableViewController, UISearchResultsU
 
         title = tabBarTitle
 
-        tableView.register(PersonaListCell.self, forCellReuseIdentifier: "cell")
+        tableView.register(DemonCell<Model>.self, forCellReuseIdentifier: "cell")
 
         let searchController = UISearchController(searchResultsController: nil)
         searchController.searchResultsUpdater = self
@@ -112,8 +106,8 @@ public class PersonaListViewController : UITableViewController, UISearchResultsU
 
     public override func tableView(_ sender: UITableView, cellForRowAt path: IndexPath) -> UITableViewCell
       {
-        let cell = sender.dequeueReusableCell(of: PersonaListCell.self, withIdentifier: "cell")
-        cell.content = (persona: demon(at: path), options: sortMode == .byLevel ? [.showDisclosure, .showArcana] : [.showDisclosure])
+        let cell = sender.dequeueReusableCell(of: DemonCell<Model>.self, withIdentifier: "cell")
+        cell.content = (demon: object(at: path), options: sortMode == .byLevel ? [.showDisclosure, .showRace] : [.showDisclosure])
         return cell
       }
 
@@ -126,7 +120,7 @@ public class PersonaListViewController : UITableViewController, UISearchResultsU
 
     public override func tableView(_ sender: UITableView, didSelectRowAt path: IndexPath)
       {
-        let detailViewController = PersonaViewController(persona: fetchedResultsController.object(at: path))
+        let detailViewController = DemonViewController<Model>(demon: fetchedResultsController.object(at: path), managedObjectContext: managedObjectContext)
 
         navigationController?.pushViewController(detailViewController, animated: true)
       }
@@ -134,7 +128,7 @@ public class PersonaListViewController : UITableViewController, UISearchResultsU
 
     public override func tableView(_ sender: UITableView, trailingSwipeActionsConfigurationForRowAt path: IndexPath) -> UISwipeActionsConfiguration?
       {
-        let demon = demon(at: path)
+        let demon = object(at: path)
         guard demon.captured else { return nil }
 
         return .init(actions: [.init(style: .destructive, title: "Reset") { (action, view, completion) in

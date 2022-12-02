@@ -5,7 +5,9 @@
 import UIKit
 
 
-class PersonaListCell : GenericTableCell<PersonaListCell.Configuration>
+/// DemonCell is used to present a brief summary of a demon in a table view cell.
+/// 
+class DemonCell<Model: GameModel> : GenericTableCell<DemonCell.Configuration>
   {
     struct Configuration : GenericTableCellConfiguration
       {
@@ -15,11 +17,11 @@ class PersonaListCell : GenericTableCell<PersonaListCell.Configuration>
             init(rawValue v: UInt)
               { rawValue = v }
 
-            static let showArcana     = Self(rawValue: 1 << 0)
-            static let showDisclosure = Self(rawValue: 1 << 1)
+            static var showRace : Options { Self(rawValue: 1 << 0) }
+            static var showDisclosure : Options { Self(rawValue: 1 << 1) }
           }
 
-        static let registryImage = UIImage(systemName: "book")!
+        static var registryImage : UIImage { UIImage(systemName: "book")! }
 
         let nameLabel = createLabel()
         let descriptionLabel = createSecondaryLabel()
@@ -32,11 +34,11 @@ class PersonaListCell : GenericTableCell<PersonaListCell.Configuration>
         var contentSubview : UIView
           { UIStackView(axis: .horizontal, spacing: 0, arrangedSubviews: [nameLabel, descriptionLabel, UIView(), compendiumButton]) }
 
-        func update(_ cell: GenericTableCell<Self>, for content: (persona: Persona, options: Options))
+        func update(_ cell: GenericTableCell<Self>, for content: (demon: Model.Demon, options: Options))
           {
-            nameLabel.text = content.persona.name
-            descriptionLabel.text = "," + (content.options.contains(.showArcana) ? " \(content.persona.arcana.name)" : "") + " \(content.persona.level)"
-            compendiumButton.tintColor = content.persona.captured ? .registeredColor : .unregisteredColor
+            nameLabel.text = content.demon.name
+            descriptionLabel.text = "," + (content.options.contains(.showRace) ? " \(content.demon.race.name)" : "") + " \(content.demon.level)"
+            compendiumButton.tintColor = content.demon.captured ? .registeredColor : .unregisteredColor
 
             cell.accessoryType = content.options.contains(.showDisclosure) ? .disclosureIndicator : .none
           }
@@ -45,9 +47,9 @@ class PersonaListCell : GenericTableCell<PersonaListCell.Configuration>
 
     @objc func capture(_ sender: UIButton)
       {
-        guard let content, !content.persona.captured else { return }
-        content.persona.captured = true
-        configuration.compendiumButton.tintColor = content.persona.captured ? .registeredColor : .unregisteredColor
+        guard let content, !content.demon.captured else { return }
+        content.demon.captured = true
+        configuration.compendiumButton.tintColor = content.demon.captured ? .registeredColor : .unregisteredColor
         NotificationCenter.default.post(name: .dataStoreNeedsSave, object: nil)
       }
 

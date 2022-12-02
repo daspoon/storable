@@ -9,9 +9,10 @@ let package = Package(
         .library(name: "Compendium", targets: ["Compendium"]),
     ],
     dependencies: [
+      .package(path: "../Schema"),
     ],
     targets: [
-        .target(name: "Compendium", dependencies: [], path: "Sources"),
+        .target(name: "Compendium", dependencies: [.product(name: "Schema", package: "Schema")], path: "Sources"),
         .testTarget(name: "CompendiumTests", dependencies: ["Compendium"], path: "Tests"),
     ]
 )

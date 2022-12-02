@@ -6,7 +6,7 @@ import UIKit
 import CoreData
 
 
-public class FusionTableViewController : UITableViewController, UISearchBarDelegate, UISearchResultsUpdating, TabBarCompatible
+public class FusionTableViewController<Game: GameModel> : ObjectListViewController<Game.RaceFusion>, UISearchBarDelegate, UISearchResultsUpdating, TabBarCompatible
   {
     struct SearchScope : OptionSet
       {
@@ -15,9 +15,9 @@ public class FusionTableViewController : UITableViewController, UISearchBarDeleg
         init(rawValue v: Int)
           { rawValue = v }
 
-        static let output = Self(rawValue: 1)
-        static let input = Self(rawValue: 2)
-        static let any = Self(rawValue: 3)
+        static var output : Self { .init(rawValue: 1) }
+        static var input : Self { .init(rawValue: 2) }
+        static var any : Self { .init(rawValue: 3) }
 
         init(index i: Int)
           { precondition((0 ..< 3).contains(i)); rawValue = i + 1 }
@@ -27,21 +27,20 @@ public class FusionTableViewController : UITableViewController, UISearchBarDeleg
       }
 
 
-    var fetchedResultsController : NSFetchedResultsController<RaceFusion>!
     var searchController : UISearchController!
     var searchScope : SearchScope = .output
 
 
     func updateTable(searchText: String = "")
       {
-        let fetchRequest = DataModel.fetchRequest(for: RaceFusion.self)
+        let fetchRequest = fetchRequest(for: Game.RaceFusion.self)
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "output.name", ascending: true), NSSortDescriptor(key: "index", ascending: true)]
         fetchRequest.predicate = searchText == "" ? nil : NSCompoundPredicate(orPredicateWithSubpredicates: [
           searchScope.contains(.output) ? NSPredicate(format: "output.name CONTAINS[cd] \"" + (searchText) + "\"") : nil,
           searchScope.contains(.input) ? NSPredicate(format: "ANY inputs.name CONTAINS[cd] \"" + (searchText) + "\"") : nil,
         ].compactMap({$0}))
 
-        fetchedResultsController = NSFetchedResultsController<RaceFusion>(fetchRequest: fetchRequest, managedObjectContext: DataModel.shared.managedObjectContext, sectionNameKeyPath: "output.name", cacheName: nil)
+        fetchedResultsController = NSFetchedResultsController<Game.RaceFusion>(fetchRequest: fetchRequest, managedObjectContext: managedObjectContext, sectionNameKeyPath: "output.name", cacheName: nil)
 
         do {
           try fetchedResultsController.performFetch()
