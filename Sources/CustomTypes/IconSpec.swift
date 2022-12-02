@@ -6,7 +6,7 @@ import UIKit
 import Schema
 
 
-public struct IconSpec : JSONTransformable
+public struct IconSpec : Ingestible
   {
     public enum Source : String { case system, bundle }
 
