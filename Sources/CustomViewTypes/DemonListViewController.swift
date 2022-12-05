@@ -4,6 +4,7 @@
 
 import UIKit
 import CoreData
+import Schema
 
 
 public class DemonListViewController<Model: GameModel> : ObjectListViewController<Model.Demon>, UISearchResultsUpdating, TabBarCompatible

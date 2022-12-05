@@ -6,6 +6,7 @@
 
 import UIKit
 import CoreData
+import Schema
 
 
 public class SkillListViewController<Model: GameModel> : ObjectListViewController<Model.Skill>, UISearchResultsUpdating, TabBarCompatible

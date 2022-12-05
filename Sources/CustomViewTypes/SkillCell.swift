@@ -3,6 +3,7 @@
 */
 
 import UIKit
+import Schema
 
 
 typealias SkillCell<Model: GameModel> = GenericTableCell<SkillCellConfiguration<Model>>

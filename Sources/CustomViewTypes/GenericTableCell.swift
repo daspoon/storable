@@ -3,6 +3,7 @@
 */
 
 import UIKit
+import Schema
 
 
 public protocol GenericTableCellConfiguration

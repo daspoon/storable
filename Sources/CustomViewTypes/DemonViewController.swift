@@ -4,6 +4,7 @@
 
 import CoreData
 import UIKit
+import Schema
 
 
 class DemonViewController<Model: GameModel> : ObjectViewController<Model.Demon>

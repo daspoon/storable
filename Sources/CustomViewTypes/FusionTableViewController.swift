@@ -4,6 +4,7 @@
 
 import UIKit
 import CoreData
+import Schema
 
 
 public class FusionTableViewController<Game: GameModel> : ObjectListViewController<Game.RaceFusion>, UISearchBarDelegate, UISearchResultsUpdating, TabBarCompatible

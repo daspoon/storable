@@ -4,6 +4,7 @@
 
 import UIKit
 import CoreData
+import Schema
 
 
 class SkillViewController<Model: GameModel> : ObjectViewController<Model.Skill>

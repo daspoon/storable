@@ -3,6 +3,7 @@
 */
 
 import UIKit
+import Schema
 
 
 /// DemonCell is used to present a brief summary of a demon in a table view cell.
