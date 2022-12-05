@@ -2,26 +2,17 @@
 
 */
 
-import Foundation
-
 
 extension String
   {
-    public func removingPrefix(_ prefix: String) -> String
-      {
-        guard let range = self.range(of: prefix, options:.anchored) else { return self }
-        return String(self[range.upperBound ..< self.endIndex])
-      }
+    public static func space(_ n: Int) -> String
+      { .init(repeating: " ", count: n) }
 
-    public func removingSuffix(_ suffix: String) -> String
-      {
-        guard let range = self.range(of: suffix, options: [.anchored, .backwards]) else { return self }
-        return String(self[startIndex ..< range.lowerBound])
-      }
+    /// Return an approximate plural form by appending "s"
+    var pluralized : String
+      { self + "s" }
 
-    public func replacingCharactersIn(_ nsrange: NSRange, with replacement: String) -> String
-      {
-        guard let range = Range(nsrange, in: self) else { preconditionFailure("invalid argument") }
-        return String(self[..<range.lowerBound]) + replacement + String(self[range.upperBound...])
-      }
+    /// Return an approximate camel-cased form by lowercasing the first character.
+    var camelCased : String
+      { String(prefix(1)).lowercased() + String(dropFirst(1)) }
   }

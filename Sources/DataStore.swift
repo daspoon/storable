@@ -1,0 +1,76 @@
+/*
+
+*/
+
+import CoreData
+
+
+public typealias ObjectInfo = (entityDescription: NSEntityDescription, managedObjectClass: Object.Type)
+//(model: Entity, entityDescription: NSEntityDescription, managedObjectClass: Object.Type)
+
+
+public class DataStore
+  {
+    let schema : Schema
+    let managedObjectModel : NSManagedObjectModel
+    let managedObjectContext : NSManagedObjectContext
+
+    public private(set) static var shared : DataStore!
+    private static let semaphore = DispatchSemaphore(value: 1)
+
+
+    public init(schema s: Schema, dataSource: DataSource, reset: Bool) throws
+      {
+        Self.semaphore.wait()
+        precondition(Self.shared == nil)
+
+        // Construct the managed object model and the mapping of entity names to info required for instance creation.
+        let mom = try s.createManagedObjectModel()
+        let objectInfo = Dictionary(uniqueKeysWithValues: s.entitiesByName.map { (name, model) in
+          (name, ObjectInfo(entityDescription: mom.entitiesByName[model.name]!, managedObjectClass: Object.self)) // TODO: custom class determined by model
+        })
+
+        schema = s
+        managedObjectModel = mom
+
+        // Create the persistent store coordinator
+        let persistentStoreCoordinator = NSPersistentStoreCoordinator(managedObjectModel: managedObjectModel)
+
+        // Determine the location of the data store
+        let applicationDocumentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).last!
+        let dataStoreURL = URL(string: "dataStore.sqlite", relativeTo: applicationDocumentsURL)!
+
+        // Optionally delete the data store (for debugging)
+        if reset && FileManager.default.fileExists(atPath: dataStoreURL.path) {
+          try FileManager.default.removeItem(at: dataStoreURL)
+        }
+
+        // Open the data store, migrating if necessary
+        _ = try persistentStoreCoordinator.addPersistentStore(ofType: NSSQLiteStoreType, configurationName: nil, at: dataStoreURL, options: [
+          NSMigratePersistentStoresAutomaticallyOption: true,
+          NSInferMappingModelAutomaticallyOption: true,
+        ])
+
+        // Create and configure the managed object context
+        managedObjectContext = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
+        managedObjectContext.persistentStoreCoordinator = persistentStoreCoordinator
+
+        // Retrieve the configuration if one exists; otherwise trigger ingestion from the data source.
+        var configurations = try managedObjectContext.fetch(NSFetchRequest<Object>(entityName: schema.configurationEntityName))
+        switch configurations.count {
+          case 1 :
+            break
+          case 0 :
+            try IngestContext.populate(managedObjectContext: managedObjectContext, objectInfo: objectInfo, dataSource: dataSource)
+            configurations = try managedObjectContext.fetch(NSFetchRequest<Object>(entityName: schema.configurationEntityName))
+            guard configurations.count == 1 else {
+              throw Exception("inconsistency after ingestion: \(configurations.count) configurations detected")
+            }
+          default :
+            throw Exception("inconsistency on initialization: \(configurations.count) configurations detected")
+        }
+
+        Self.shared = self
+        Self.semaphore.signal()
+      }
+  }
