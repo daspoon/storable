@@ -2,6 +2,8 @@
 
 */
 
+import CoreData
+
 
 /// Represents a managed object attribute.
 public struct Attribute : Property
@@ -41,6 +43,13 @@ public struct Attribute : Property
       {
         guard case .optional = type else { return false }
         return true
+      }
+
+
+    public var coreDataStorageType : NSAttributeDescription.AttributeType
+      {
+        guard case .native(let storageType) = type else { return .binaryData }
+        return storageType.coreDataAttributeType
       }
 
 

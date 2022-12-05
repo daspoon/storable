@@ -9,7 +9,7 @@ import CoreData
 public indirect enum AttributeType
   {
     /// Native types supported by CoreData
-    case native(NSAttributeDescription.AttributeType)
+    case native(StorageType)
 
     /// Custom value types defined by the configuration.
     case customEnum(EnumTypeSpec)
@@ -39,8 +39,8 @@ public indirect enum AttributeType
         var resultingType : Self
 
         if let name = scanner.scanIdentifier() {
-          if let code = NSAttributeDescription.AttributeType(swiftTypeName: name) {
-            resultingType = .native(code)
+          if let storageType = StorageType(swiftTypeName: name) {
+            resultingType = .native(storageType)
           }
           else if let referencedType = environment[name] {
             guard let customType = referencedType as? EnumTypeSpec else { throw Exception("unsupported custom attribute type '\(name)'") }
@@ -73,21 +73,12 @@ public indirect enum AttributeType
       }
 
 
-    /// Return the CoreData attribute type for storage.
-    public var storageType : NSAttributeDescription.AttributeType
-      {
-        guard case .native(let code) = self else { return .binaryData }
-        return code
-      }
-
-
     /// Return the corresponding Swift type expression as a string.
     public var swiftTypeExpression : String
       {
         switch self {
           case .native(let code) :
-            guard let name = code.swiftTypeName else { preconditionFailure("missing swiftTypeName for '\(code)'") }
-            return name
+            return code.swiftTypeName
           case .customEnum(let enumType) :
             return enumType.name
           case .optional(let type) :
