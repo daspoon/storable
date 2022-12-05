@@ -70,13 +70,19 @@ extension Entity : TypeSpec
       }
 
 
-    public var swiftText : String
+    public func generateSwiftText(for modelName: String) -> String
       {
         """
-        public class \(name) : Object {
-          \(attributes.map({$0.swiftText}).joined(separator: "\n" + .space(2)))
-          \(relationships.map({$0.swiftText}).joined(separator: "\n" + .space(2)))
+        public class \(name) : Object\(requiredProtocolName.map {", " + $0} ?? "")
+        {
+          typealias Game = \(modelName)
+          \(attributes.map({$0.generateSwiftText(for: modelName)}).joined(separator: "\n" + .space(2)))
+          \(relationships.map({$0.generateSwiftText(for: modelName)}).joined(separator: "\n" + .space(2)))
         }
         """
       }
+
+
+    var requiredProtocolName : String?
+      { ["Race", "Demon", "Skill", "SkillGrant", "RaceFusion"].contains(name) ? name + "Model" : nil }
   }

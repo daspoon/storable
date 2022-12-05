@@ -111,7 +111,7 @@ public struct Relationship : Property
       }
 
 
-    public var swiftText : String
+    public func generateSwiftText(for modelName: String) -> String
       {
         """
         @NSManaged var \(name) : \({
