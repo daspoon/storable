@@ -14,6 +14,9 @@ public enum IngestKey
 
     /// The data value is a dictionary and the property value is the specified element of that dictionary.
     case element(String)
+
+    /// The property is not ingested.
+    case none
   }
 
 
@@ -25,6 +28,7 @@ extension IngestKey : CustomStringConvertible
           case .name : return "<name>"
           case .value : return "<value>"
           case .element(let key) : return key
+          case .none : return "<none>"
         }
       }
   }
@@ -39,6 +43,8 @@ extension IngestKey : Ingestible
             self = .name
           case "<value>" :
             self = .value
+          case "<none>" :
+            self = .none
           default :
             self = .element(string)
         }

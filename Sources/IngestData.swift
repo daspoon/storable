@@ -31,6 +31,8 @@ public struct IngestData
           case .element(let key) :
             guard let dict = json as? [String: Any] else { return nil }
             return dict[key]
+          case .none :
+            preconditionFailure("unexpected case")
         }
       }
   }
