@@ -15,14 +15,14 @@ public struct Attribute : Property
     public let type : AttributeType
 
     /// The key used to extract the property value from the ingest data provided on object initialization.
-    public let ingestKey : IngestKey
+    public let ingestKey : IngestKey?
 
 
-    public init(name x: String, type t: AttributeType, ingestKey k: IngestKey? = nil)
+    public init(name x: String, type t: AttributeType, ingestKey k: IngestKey?)
       {
         name = x
         type = t
-        ingestKey = k ?? .element(x)
+        ingestKey = k
       }
 
 
@@ -35,7 +35,7 @@ public struct Attribute : Property
           return try AttributeType(with: string, in: environment)
         }
 
-        ingestKey = try info.optionalValue(for: "ingestKey") ?? .element(name)
+        ingestKey = try .init(with: info["ingestKey"], for: name)
       }
 
 

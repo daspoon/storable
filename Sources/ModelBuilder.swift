@@ -35,19 +35,36 @@ public struct ModelBuilder
             case "enum" :
               spec = try EnumTypeSpec(name: name, json: info, in: environment)
             case "object" :
-              spec = try ObjectTypeSpec(name: name, json: info, in: environment)
+              let entity = try ObjectTypeSpec(name: name, json: info, in: environment)
+              spec = entity
             default :
               throw Exception("unsupported type kind '\(kind)'")
           }
           environment[name] = spec
         }
 
-        // Add the implied inverse relationships -- TODO: this is greatly simplified if Entity is a class
+        // Create a list of the implied inverse relationships.
+        var inversePairs : [(entity: Entity, relationship: Relationship)] = []
         for entity in environment.values.compactMap({$0 as? Entity}) {
           for relationship in entity.relationships {
-            guard let relatedEntity = environment[relationship.relatedEntityName] as? Entity else { throw Exception("unknown entity name '\(relationship.relatedEntityName)") }
-            try relatedEntity.addInverse(of: relationship, on: entity)
+            guard let target = environment[relationship.relatedEntityName] as? Entity else { throw Exception("unknown entity name '\(relationship.relatedEntityName)") }
+            let inverse = Relationship(
+              name: relationship.inverseName,
+              arity: relationship.inverseArity,
+              deleteRule: relationship.inverseDeleteRule,
+              relatedEntityName: entity.name,
+              inverseName: relationship.name,
+              inverseArity: relationship.arity,
+              inverseDeleteRule: relationship.deleteRule,
+              ingest: nil
+            )
+            inversePairs += [(target, inverse)]
           }
+        }
+
+        // Add those implied relationships to the target entity.
+        for (entity, relationship) in inversePairs {
+          try entity.addProperty(relationship)
         }
       }
 

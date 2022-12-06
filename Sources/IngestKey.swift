@@ -14,9 +14,6 @@ public enum IngestKey
 
     /// The data value is a dictionary and the property value is the specified element of that dictionary.
     case element(String)
-
-    /// The property is not ingested.
-    case none
   }
 
 
@@ -28,25 +25,32 @@ extension IngestKey : CustomStringConvertible
           case .name : return "<name>"
           case .value : return "<value>"
           case .element(let key) : return key
-          case .none : return "<none>"
         }
       }
   }
 
 
-extension IngestKey : Ingestible
+extension IngestKey
   {
-    public init(json string: String) throws
+    /// Attempt to convert a JSON value, which must be either a String or nil, to an IngestKey. A nil argument indicates the ingestKey is unspecified and so defaults
+    /// to .element(name),  meaning we ingest the property using its name;  a "<none>" argument indicates the ingestKey is nil, meaning the property is not ingested.
+    init?(with json: Any?, for propertyName: String) throws
       {
-        switch string {
-          case "<name>" :
-            self = .name
-          case "<value>" :
-            self = .value
-          case "<none>" :
-            self = .none
-          default :
-            self = .element(string)
+        if let json {
+          guard let string = json as? String else { throw Exception("expecting string value or null") }
+          switch string {
+            case "<none>" :
+              return nil
+            case "<name>" :
+              self = .name
+            case "<value>" :
+              self = .value
+            default :
+              self = .element(string)
+          }
+        }
+        else {
+          self = .element(propertyName)
         }
       }
   }

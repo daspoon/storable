@@ -38,7 +38,7 @@ public final class Entity : TypeSpec
         self.identity = try dict.requiredValue(for: "identity")
 
         if case .name = identity {
-          try addProperty(Attribute(name: "name", type: .native(.string)))
+          try addProperty(Attribute(name: "name", type: .native(.string), ingestKey: .element("name")))
         }
 
         for (attname, info) in try dict.optionalValue(of: [String: [String: Any]].self, for: "attributes") ?? [:] {
@@ -64,22 +64,6 @@ public final class Entity : TypeSpec
         guard properties[property.name] == nil else { throw Exception("multiple definitions for property '\(property.name)'") }
 
         properties[property.name] = property
-      }
-
-
-    func addInverse(of relationship: Relationship, on other: Entity) throws
-      {
-        try addProperty(Relationship(
-          name: relationship.inverseName,
-          arity: relationship.inverseArity,
-          ingestKey: .none,
-          ingestMode: .reference,
-          deleteRule: relationship.inverseDeleteRule,
-          relatedEntityName: other.name,
-          inverseName: relationship.name,
-          inverseArity: relationship.arity,
-          inverseDeleteRule: relationship.deleteRule
-        ))
       }
 
 

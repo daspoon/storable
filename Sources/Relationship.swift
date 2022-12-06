@@ -20,12 +20,6 @@ public struct Relationship : Property
     /// The effect which deleting the host object has on the related object.
     public let deleteRule : DeleteRule
 
-    /// The key used to extract the ingested value from the info dictionary provided on object initialization.
-    public let ingestKey : IngestKey
-
-    /// The ingestMode determines how the related objects are obtained from the ingested value: 'reference' indicates the ingested value is the name of an independently created object, and  'create' indicates the ingested value is the JSON data required to create the related object(s).
-    public let ingestMode : IngestMode
-
     /// The name of the related entity.
     public let relatedEntityName : String
 
@@ -38,19 +32,22 @@ public struct Relationship : Property
     /// The effect which deleting the related object has on the host object.
     public let inverseDeleteRule : DeleteRule
 
+    /// Determines how related objects are obtained from the ingest value, if any, provided on object initialization: a mode of 'reference' indicates that ingested values name existing objects;
+    /// a mode of 'create' indicates ingested values are JSON data used to create the related objects. Nil indicates the relation is not ingested.
+    public let ingest: (key: IngestKey, mode: IngestMode)?
+
 
     /// Initialize a new instance.
-    public init(name: String, arity: Arity, ingestKey: IngestKey, ingestMode: IngestMode, ingestName: String? = nil, deleteRule: DeleteRule, relatedEntityName: String, inverseName: String, inverseArity: Arity, inverseDeleteRule: DeleteRule)
+    public init(name: String, arity: Arity, deleteRule: DeleteRule, relatedEntityName: String, inverseName: String, inverseArity: Arity, inverseDeleteRule: DeleteRule, ingest: (key: IngestKey, mode: IngestMode)?)
       {
         self.name = name
         self.arity = arity
-        self.ingestMode = ingestMode
-        self.ingestKey = ingestKey
         self.deleteRule = deleteRule
         self.relatedEntityName = relatedEntityName
         self.inverseName = inverseName
         self.inverseArity = inverseArity
         self.inverseDeleteRule = inverseDeleteRule
+        self.ingest = ingest
       }
 
 
@@ -63,23 +60,12 @@ public struct Relationship : Property
         relatedEntityName = try info.requiredValue(for: "relatedType")
         inverseName = try info.requiredValue(for: "inverseName")
 
-        // The default ingest key is the relation name.
-        ingestKey = try info.optionalValue(for: "ingestKey") ?? .element(name)
-
         // The default delete rule depends on the arity.
         switch (try info.optionalValue(of: DeleteRule.self, for: "deleteRule"), arity) {
           case (.some(let r), _) : deleteRule = r
           case (.none, .toOne) : deleteRule = .nullify
           case (.none, .toMany) : deleteRule = .cascade
           case (.none, .optionalToOne) : deleteRule = .nullify
-        }
-
-        // The default ingest mode depends on the arity.
-        switch (try info.optionalValue(of: IngestMode.self, for: "ingestMode"), arity) {
-          case (.some(let m), _) : ingestMode = m
-          case (.none, .toOne) : ingestMode = .reference
-          case (.none, .toMany) : ingestMode = .create
-          case (.none, .optionalToOne) : ingestMode = .reference
         }
 
         // The default inverse arity depends on the arity.
@@ -97,6 +83,21 @@ public struct Relationship : Property
           case (.none, .toMany) : inverseDeleteRule = .nullify
           case (.none, .optionalToOne) : inverseDeleteRule = .nullify
         }
+
+        // The default ingest key is the relation name, but the default mode depends on the arity.
+        if let key = try IngestKey(with: info["ingestKey"], for: "name") {
+          switch (try info.optionalValue(of: IngestMode.self, for: "ingestMode"), arity) {
+            case (.some(let mode), _) :
+              ingest = (key, mode)
+            case (.none, .toMany) :
+              ingest = (key, .create)
+            case (.none, .toOne), (.none, .optionalToOne) :
+              ingest = (key, .reference)
+          }
+        }
+        else {
+          ingest = nil
+        }
       }
 
 
@@ -109,6 +110,10 @@ public struct Relationship : Property
             return false
         }
       }
+
+
+    public var ingestKey : IngestKey?
+      { ingest?.key }
 
 
     public func generateSwiftText(for modelName: String) -> String

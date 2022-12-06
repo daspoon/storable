@@ -22,12 +22,12 @@ open class Object : NSManagedObject
             case relate(relatedEntityName: String, arity: Relationship.Arity, ingestMode: Relationship.IngestMode)
           }
 
-        public init(_ name: String, optional o: Bool = false, ingestKey k: IngestKey? = nil, ingestAction a: IngestAction)
+        public init(_ name: String, ingestKey k: IngestKey, ingestAction a: IngestAction, optional o: Bool)
           {
             propertyName = name
-            optional = o
-            ingestKey = k ?? .element(name)
+            ingestKey = k
             ingestAction = a
+            optional = o
           }
       }
 
