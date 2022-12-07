@@ -67,4 +67,20 @@ public enum StorageType
           case .string : return .string
         }
       }
+
+    public func createNSObject(from json: Any) throws -> NSObject
+      {
+        switch self {
+          case .bool   : return try NSNumber(value: throwingCast(json, as: Bool.self))
+          case .data   : return try throwingCast(json, as: Data.self) as NSData
+          case .date   : return try throwingCast(json, as: Date.self) as NSDate
+          case .double : return try NSNumber(value: throwingCast(json, as: Double.self))
+          case .float  : return try NSNumber(value: throwingCast(json, as: Float.self))
+          case .int    : return try NSNumber(value: throwingCast(json, as: Int.self))
+          case .int16  : return try NSNumber(value: throwingCast(json, as: Int16.self))
+          case .int32  : return try NSNumber(value: throwingCast(json, as: Int32.self))
+          case .int64  : return try NSNumber(value: throwingCast(json, as: Int64.self))
+          case .string : return try throwingCast(json, as: String.self) as NSString
+        }
+      }
   }

@@ -112,11 +112,7 @@ public struct Relationship : Property
       }
 
 
-    public var ingestKey : IngestKey?
-      { ingest?.key }
-
-
-    public func generateSwiftText(for modelName: String) -> String
+    public func generateSwiftDeclaration() -> String
       {
         """
         @NSManaged var \(name) : \({
@@ -127,6 +123,13 @@ public struct Relationship : Property
           }
         }())
         """
+      }
+
+
+    public func generateSwiftIngestDescriptor() -> String?
+      {
+        guard let ingest else { return nil }
+        return ".init(\"\(name)\", ingestKey: \(ingest.key.swiftText), ingestAction: .relate(relatedEntityName: \"\(relatedEntityName)\", arity: .\(arity.rawValue), ingestMode: .\(ingest.mode.rawValue)), optional: \(optional))"
       }
   }
 

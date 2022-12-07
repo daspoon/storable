@@ -11,6 +11,9 @@ public protocol Property
     /// Indicates whether or not a property value is required on ingest. Required.
     var optional : Bool { get }
 
-    /// The key used to extract the property value from the ingest data provided on object initialization, with nil indicating the property is not assigned on ingestion. Required.
-    var ingestKey : IngestKey? { get }
+    /// Return the Swift source used to declare the property.
+    func generateSwiftDeclaration() -> String
+
+    /// Return the Swift source used to create the property ingest descriptor, iff the property is ingested.
+    func generateSwiftIngestDescriptor() -> String?
   }

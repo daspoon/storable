@@ -84,8 +84,10 @@ public final class Entity : TypeSpec
         public class \(name) : Object\(requiredProtocolName.map {", " + $0} ?? "")
         {
           typealias Game = \(modelName)
-          \(attributes.map({$0.generateSwiftText(for: modelName)}).joined(separator: "\n" + .space(2)))
-          \(relationships.map({$0.generateSwiftText(for: modelName)}).joined(separator: "\n" + .space(2)))
+          \(properties.map({$1.generateSwiftDeclaration()}).joined(separator: "\n" + .space(2)))
+          let propertyIngestDescriptors : [PropertyIngestDescriptor] = [
+            \(properties.compactMap({$1.generateSwiftIngestDescriptor()}).joined(separator: ",\n" + .space(4)))
+          ]
         }
         """
       }

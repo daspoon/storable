@@ -53,8 +53,23 @@ public struct Attribute : Property
       }
 
 
-    public func generateSwiftText(for modelName: String) -> String
+    public func generateSwiftDeclaration() -> String
       {
         "@\(type.swiftPropertyWrapper) var \(name) : \(type.swiftTypeExpression)"
+      }
+
+
+    public func generateSwiftIngestDescriptor() -> String?
+      {
+        guard let ingestKey else { return nil }
+
+        let closureBodyText : String
+        switch type {
+          case .native(let storageType) :
+            closureBodyText = "try StorageType.\(storageType).createNSObject(from: $0)"
+          default :
+            closureBodyText = "try \(type.swiftTypeExpression).createNSData(from: $0)"
+        }
+        return ".init(\"\(name)\", ingestKey: \(ingestKey.swiftText), ingestAction: .assign({\(closureBodyText)}), optional: \(optional))"
       }
   }

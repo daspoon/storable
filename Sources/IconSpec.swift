@@ -5,7 +5,7 @@
 
 public struct IconSpec : Ingestible
   {
-    public enum Source : String { case system, bundle }
+    public enum Source : String, Codable { case system, bundle }
 
     public let name : String
     public let source : Source

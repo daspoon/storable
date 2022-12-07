@@ -74,6 +74,7 @@ public struct ModelBuilder
         """
         // Generated code, do not modify...
 
+        import Foundation
         import Compendium
 
         struct \(modelName) : GameModel {

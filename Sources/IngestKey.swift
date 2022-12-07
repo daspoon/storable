@@ -53,4 +53,13 @@ extension IngestKey
           self = .element(propertyName)
         }
       }
+
+    var swiftText : String
+      {
+        switch self {
+          case .name : return ".name"
+          case .value : return ".value"
+          case .element(let key) : return ".element(\"\(key)\")"
+        }
+      }
   }
