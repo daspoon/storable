@@ -45,7 +45,7 @@ public final class EntitySpec : TypeSpec
       {
         """
         Entity(\(name).self, identity: .\(identity), properties: [
-          \(properties.values.map({$0.generatePropertyDefinition()}).joined(separator: ",\n"))
+          \(properties.values.compactMap({$0.generatePropertyDefinition()}).joined(separator: ",\n"))
         ])
         """
       }

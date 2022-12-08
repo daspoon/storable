@@ -48,7 +48,7 @@ public struct ModelBuilder
         for entity in environment.values.compactMap({$0 as? EntitySpec}) {
           for relationship in entity.properties.values.compactMap({$0 as? RelationshipSpec}) {
             guard let relatedEntity = environment[relationship.relatedEntityName] as? EntitySpec else { throw Exception("unknown entity name '\(relationship.relatedEntityName)") }
-            let inverseRelationship = RelationshipSpec(relationship: relationship.relationship.inverse(for: entity.name))
+            let inverseRelationship = RelationshipSpec(inverseOf: relationship, on: entity)
             impliedEntityRelationships += [(relatedEntity, inverseRelationship)]
           }
         }

@@ -40,7 +40,7 @@ public struct AttributeSpec : PropertySpec
       }
 
 
-    public func generatePropertyDefinition() -> String
+    public func generatePropertyDefinition() -> String?
       {
         "Attribute(\"\(name)\", \(type.isNative ? "nativeType" : "codableType"): \(type).self, ingestKey: .\(ingestKey))"
       }

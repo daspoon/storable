@@ -7,11 +7,13 @@
 public struct RelationshipSpec : PropertySpec
   {
     let relationship : Relationship
+    let isInverse : Bool
 
 
-    public init(relationship r: Relationship)
+    public init(inverseOf other: RelationshipSpec, on entity: EntitySpec)
       {
-        relationship = r
+        relationship = other.relationship.inverse(for: entity.name)
+        isInverse = true
       }
 
 
@@ -38,6 +40,7 @@ public struct RelationshipSpec : PropertySpec
           ingestKey: ingestKey,
           ingestMode: ingestMode
         )
+        isInverse = false
       }
 
 
@@ -67,8 +70,9 @@ public struct RelationshipSpec : PropertySpec
       }
 
 
-    public func generatePropertyDefinition() -> String
+    public func generatePropertyDefinition() -> String?
       {
-        "Relationship(\"\(name)\", arity: .\(relationship.arity), relatedEntityName: \"\(relationship.relatedEntityName)\", inverseName: \"\(relationship.inverseName)\", deleteRule: .\(relationship.deleteRule), inverseArity: .\(relationship.inverseArity), inverseDeleteRule: .\(relationship.inverseDeleteRule), ingestKey: .\(relationship.ingestKey), ingestMode: .\(relationship.ingestMode))"
+        guard isInverse == false else { return nil }
+        return "Relationship(\"\(name)\", arity: .\(relationship.arity), relatedEntityName: \"\(relationship.relatedEntityName)\", inverseName: \"\(relationship.inverseName)\", deleteRule: .\(relationship.deleteRule), inverseArity: .\(relationship.inverseArity), inverseDeleteRule: .\(relationship.inverseDeleteRule), ingestKey: .\(relationship.ingestKey), ingestMode: .\(relationship.ingestMode))"
       }
   }

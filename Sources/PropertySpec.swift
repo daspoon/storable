@@ -17,5 +17,5 @@ public protocol PropertySpec
     func generatePropertyDeclaration() -> String
 
     /// Return the text used to define the property in the Swift schema definition.
-    func generatePropertyDefinition() -> String
+    func generatePropertyDefinition() -> String?
   }
