@@ -36,7 +36,7 @@ public struct Schema
           entityDescription.managedObjectClassName = NSStringFromClass(entity.managedObjectClass)
           // Initialize the entity's attributes
           entityDescription.properties = entity.attributes.map { attribute in
-            NSAttributeDescription(name: attribute.name, type: attribute.coreDataStorageType, isOptional: attribute.optional)
+            NSAttributeDescription(name: attribute.name, type: attribute.coreDataStorageType, isOptional: attribute.allowsNilValue)
           }
           // Conditionally add a string-valued attribute for the object identifier.
           if let identityName = entity.identityAttributeName {

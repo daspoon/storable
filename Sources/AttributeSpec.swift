@@ -28,12 +28,6 @@ public struct AttributeSpec : PropertySpec
       }
 
 
-    public var optional : Bool
-      {
-        false // TODO: ...
-      }
-
-
     public func generatePropertyDeclaration() -> String
       {
         "@\(type.swiftPropertyWrapper) var \(name) : \(type)"

@@ -71,7 +71,11 @@ public struct Relationship : Property
       }
 
 
-    public var optional : Bool
+    public var defaultIngestValue : NSObject?
+      { nil }
+
+
+    public var allowsNilValue : Bool
       {
         switch arity {
           case .optionalToOne, .toMany :

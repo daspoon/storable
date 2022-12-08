@@ -52,10 +52,6 @@ public struct RelationshipSpec : PropertySpec
       { relationship.name }
 
 
-    public var optional : Bool
-      { relationship.optional }
-
-
     public func generatePropertyDeclaration() -> String
       {
         """

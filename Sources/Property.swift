@@ -10,9 +10,12 @@ public protocol Property
     /// The name of the model property. Required.
     var name : String { get }
 
-    /// Indicates whether or not the property value is ingested. Required.
+    /// Indicates how the associated value is obtained from object ingest data. Required.
     var ingestKey : IngestKey { get }
 
-    /// Indicates whether or not a property value is required on ingest. Required.
-    var optional : Bool { get }
+    /// The default value to be persisted when no value is provided on ingest. Required.
+    var defaultIngestValue : NSObject? { get }
+
+    /// Indicates whether or not the persisted value can be nil. Required.
+    var allowsNilValue : Bool { get }
   }
