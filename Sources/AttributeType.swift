@@ -6,7 +6,7 @@ import CoreData
 
 
 /// Represents a Swift type which is supported for managed object attributes.
-public indirect enum AttributeType
+public indirect enum AttributeType : CustomStringConvertible
   {
     /// Native types supported by CoreData
     case native(StorageType)
@@ -74,7 +74,7 @@ public indirect enum AttributeType
 
 
     /// Return the corresponding Swift type expression as a string.
-    public var swiftTypeExpression : String
+    public var description : String
       {
         switch self {
           case .native(let code) :
@@ -82,12 +82,20 @@ public indirect enum AttributeType
           case .customEnum(let enumType) :
             return enumType.name
           case .optional(let type) :
-            return type.swiftTypeExpression + "?"
+            return type.description + "?"
           case .array(let elementType) :
-            return "[" + elementType.swiftTypeExpression + "]"
+            return "[" + elementType.description + "]"
           case .dictionary(let elementType) :
-            return "[String: " + elementType.swiftTypeExpression + "]"
+            return "[String: " + elementType.description + "]"
         }
+      }
+
+
+    /// Return true if the type is supported directly by CoreData.
+    public var isNative : Bool
+      {
+        guard case .native = self else { return false }
+        return true
       }
 
 

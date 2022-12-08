@@ -7,16 +7,16 @@
 public struct IngestData
   {
     /// The dictionary key associted with the json data.
-    public let name : String?
+    public let key : String?
 
     /// The specified json data.
-    public let json : Any
+    public let value : Any
 
 
-    public init(key: String? = nil, value: Any)
+    public init(key k: String? = nil, value v: Any)
       {
-        name = key
-        json = value
+        key = k
+        value = v
       }
 
 
@@ -24,13 +24,15 @@ public struct IngestData
     public subscript (_ ingestKey: IngestKey) -> Any?
       {
         switch ingestKey {
-          case .name :
-            return name
+          case .key :
+            return key
           case .value :
-            return json
-          case .element(let key) :
-            guard let dict = json as? [String: Any] else { return nil }
-            return dict[key]
+            return value
+          case .element(let name) :
+            guard let dict = value as? [String: Any] else { return nil }
+            return dict[name]
+          case .ignore :
+            return nil
         }
       }
   }

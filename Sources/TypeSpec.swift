@@ -10,6 +10,4 @@ public protocol TypeSpec
     var name : String { get }
 
     init(name: String, json: Input, in environment: [String: any TypeSpec]) throws
-
-    func generateTypeDefinition(for modelName: String) -> String
   }

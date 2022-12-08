@@ -12,7 +12,7 @@ public struct AttributeSpec : PropertySpec
     public let type : AttributeType
 
     /// The key used to extract the property value from the ingest data provided on object initialization.
-    public let ingestKey : IngestKey?
+    public let ingestKey : IngestKey
 
 
     public init(name x: String, info: [String: Any], in environment: [String: any TypeSpec]) throws
@@ -36,21 +36,12 @@ public struct AttributeSpec : PropertySpec
 
     public func generatePropertyDeclaration() -> String
       {
-        "@\(type.swiftPropertyWrapper) var \(name) : \(type.swiftTypeExpression)"
+        "@\(type.swiftPropertyWrapper) var \(name) : \(type)"
       }
 
 
-    public func generateSwiftIngestDescriptor() -> String?
+    public func generatePropertyDefinition() -> String
       {
-        guard let ingestKey else { return nil }
-
-        let closureBodyText : String
-        switch type {
-          case .native(let storageType) :
-            closureBodyText = "try StorageType.\(storageType).createNSObject(from: $0)"
-          default :
-            closureBodyText = "try \(type.swiftTypeExpression).createNSData(from: $0)"
-        }
-        return ".init(\"\(name)\", ingestKey: \(ingestKey.swiftText), ingestAction: .assign({\(closureBodyText)}), optional: \(optional))"
+        "Attribute(\"\(name)\", \(type.isNative ? "nativeType" : "codableType"): \(type).self, ingestKey: .\(ingestKey))"
       }
   }

@@ -19,70 +19,25 @@ public struct RelationshipSpec : PropertySpec
       {
         // The arity, related entity name and inverse name are required.
 
-        let arity : Relationship.Arity = try info.requiredValue(for: "arity")
+        let arity = try info.requiredValue(of: Relationship.Arity.self, for: "arity")
+        let deleteRule = try info.optionalValue(of: Relationship.DeleteRule.self, for: "deleteRule") ?? .defaultValue(for: arity)
+        let relatedEntityName = try info.requiredValue(of: String.self, for: "relatedType")
+        let inverseName = try info.requiredValue(of: String.self, for: "inverseName")
+        let inverseArity = try info.optionalValue(of: Relationship.Arity.self, for: "inverseArity") ?? .defaultInverseValue(for: arity)
+        let inverseDeleteRule = try info.optionalValue(of: Relationship.DeleteRule.self, for: "inverseDeleteRule") ?? .defaultInverseValue(for: arity)
+        let ingestKey = try IngestKey(with: info["ingestKey"], for: "name")
+        let ingestMode = try info.optionalValue(of: Relationship.IngestMode.self, for: "ingestMode") ?? .defaultValue(for: arity)
 
-        relationship = .init(
-          name: name,
+        relationship = .init(name,
           arity: arity,
-          deleteRule: try Self.deleteRule(from: info, arity: arity),
-          relatedEntityName: try info.requiredValue(for: "relatedType"),
-          inverseName: try info.requiredValue(for: "inverseName"),
-          inverseArity: try Self.inverseArity(from: info, arity: arity),
-          inverseDeleteRule: try Self.inverseDeleteRule(from: info, arity: arity),
-          ingestInfo: try Self.ingestInfo(from: info, arity: arity)
+          relatedEntityName: relatedEntityName,
+          inverseName: inverseName,
+          deleteRule: deleteRule,
+          inverseArity: inverseArity,
+          inverseDeleteRule: inverseDeleteRule,
+          ingestKey: ingestKey,
+          ingestMode: ingestMode
         )
-      }
-
-
-    static func deleteRule(from info: [String: Any], arity: Relationship.Arity) throws -> Relationship.DeleteRule
-      {
-        // The default delete rule depends on the arity.
-        switch (try info.optionalValue(of: Relationship.DeleteRule.self, for: "deleteRule"), arity) {
-          case (.some(let r), _) : return r
-          case (.none, .toOne) : return .nullify
-          case (.none, .toMany) : return .cascade
-          case (.none, .optionalToOne) : return .nullify
-        }
-      }
-
-    static func inverseArity(from info: [String: Any], arity: Relationship.Arity) throws -> Relationship.Arity
-      {
-        // The default inverse arity depends on the arity.
-        switch (try info.optionalValue(of: Relationship.Arity.self, for: "inverseArity"), arity) {
-          case (.some(let a), _) : return a
-          case (.none, .toOne) : return .toMany
-          case (.none, .toMany) : return .toOne
-          case (.none, .optionalToOne) : return .optionalToOne
-        }
-      }
-
-    static func inverseDeleteRule(from info: [String: Any], arity: Relationship.Arity) throws -> Relationship.DeleteRule
-      {
-        // The default inverse delete rule depends on the arity (TODO: review...)
-        switch (try info.optionalValue(of: Relationship.DeleteRule.self, for: "inverseDeleteRule"), arity) {
-          case (.some(let r), _) : return r
-          case (.none, .toOne) : return .cascade
-          case (.none, .toMany) : return .nullify
-          case (.none, .optionalToOne) : return .nullify
-        }
-      }
-
-    static func ingestInfo(from info: [String: Any], arity: Relationship.Arity) throws -> Relationship.IngestInfo?
-      {
-        // The default ingest key is the relation name, but the default mode depends on the arity.
-        if let key = try IngestKey(with: info["ingestKey"], for: "name") {
-          switch (try info.optionalValue(of: Relationship.IngestMode.self, for: "ingestMode"), arity) {
-            case (.some(let mode), _) :
-              return (key, mode)
-            case (.none, .toMany) :
-              return (key, .create)
-            case (.none, .toOne), (.none, .optionalToOne) :
-              return (key, .reference)
-          }
-        }
-        else {
-          return nil
-        }
       }
 
 
@@ -112,9 +67,8 @@ public struct RelationshipSpec : PropertySpec
       }
 
 
-    public func generateSwiftIngestDescriptor() -> String?
+    public func generatePropertyDefinition() -> String
       {
-        guard let ingestInfo = relationship.ingestInfo else { return nil }
-        return ".init(\"\(relationship.name)\", ingestKey: \(ingestInfo.key.swiftText), ingestAction: .relate(relatedEntityName: \"\(relationship.relatedEntityName)\", arity: .\(relationship.arity.rawValue), ingestMode: .\(ingestInfo.mode.rawValue)), optional: \(relationship.optional))"
+        "Relationship(\"\(name)\", arity: .\(relationship.arity), relatedEntityName: \"\(relationship.relatedEntityName)\", inverseName: \"\(relationship.inverseName)\", deleteRule: .\(relationship.deleteRule), inverseArity: .\(relationship.inverseArity), inverseDeleteRule: .\(relationship.inverseDeleteRule), ingestKey: .\(relationship.ingestKey), ingestMode: .\(relationship.ingestMode))"
       }
   }

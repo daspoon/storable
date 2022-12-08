@@ -7,16 +7,16 @@ import CoreData
 
 public class IngestContext
   {
-    let objectInfo : [String: ObjectInfo]
+    let schema : Schema
     let managedObjectContext : NSManagedObjectContext
 
     private var ingesting : Bool = false
     private var delayedEffects : [() throws -> Void] = []
 
 
-    static func populate(managedObjectContext moc: NSManagedObjectContext, objectInfo: [String: ObjectInfo], dataSource: DataSource) throws
+    static func populate(schema s: Schema, managedObjectContext moc: NSManagedObjectContext, dataSource: DataSource) throws
       {
-        let context = try IngestContext(managedObjectContext: moc, objectInfo: objectInfo)
+        let context = try IngestContext(schema: s, managedObjectContext: moc)
 
         context.beginIngestion()
 
@@ -24,26 +24,26 @@ public class IngestContext
         for definition in dataSource.definitions {
           switch definition {
             case .entitySet(let entityName, let content) :
-              let info = try context.objectInfo(for: entityName)
+              let entity = try context.entity(for: entityName)
               if let content {
                 switch content.format {
                   case .any :
                     let jsonValue = try dataSource.load(content)
-                    _ = try info.managedObjectClass.init(info.entityDescription, with: .init(key: nil, value: jsonValue), in: context)
+                    _ = try entity.managedObjectClass.init(entity, with: .init(key: nil, value: jsonValue), in: context)
                   case .array :
                     let jsonArray = try dataSource.load(content, of: [String].self)
                     for instanceName in jsonArray {
-                      _ = try info.managedObjectClass.init(info.entityDescription, with: .init(key: instanceName, value: [:]), in: context)
+                      _ = try entity.managedObjectClass.init(entity, with: .init(key: instanceName, value: [:]), in: context)
                     }
                   case .dictionary :
                     let jsonDict = try dataSource.load(content, of: [String: Any].self)
                     for (instanceName, jsonValue) in jsonDict {
-                      _ = try info.managedObjectClass.init(info.entityDescription, with: .init(key: instanceName, value: jsonValue), in: context)
+                      _ = try entity.managedObjectClass.init(entity, with: .init(key: instanceName, value: jsonValue), in: context)
                     }
                 }
               }
               else {
-                _ = try info.managedObjectClass.init(info.entityDescription, with: .init(key: nil, value: [:]), in: context)
+                _ = try entity.managedObjectClass.init(entity, with: .init(key: nil, value: [:]), in: context)
               }
           }
         }
@@ -52,10 +52,10 @@ public class IngestContext
       }
 
 
-    init(managedObjectContext: NSManagedObjectContext, objectInfo: [String: ObjectInfo]) throws
+    init(schema s: Schema, managedObjectContext moc: NSManagedObjectContext) throws
       {
-        self.managedObjectContext = managedObjectContext
-        self.objectInfo = objectInfo
+        schema = s
+        managedObjectContext = moc
       }
 
 
@@ -67,16 +67,10 @@ public class IngestContext
       }
 
 
-    func objectInfo(for entityName: String) throws -> ObjectInfo
+    func entity(for entityName: String) throws -> Entity
       {
-        guard let info = objectInfo[entityName] else { throw Exception("entity '\(entityName)' is unknown") }
-        return info
-      }
-
-
-    func entityDescription(for name: String) throws -> NSEntityDescription
-      {
-        try objectInfo(for: name).entityDescription
+        guard let entity = schema.entitiesByName[entityName] else { throw Exception("unknown entity name '\(entityName)'") }
+        return entity
       }
 
 

@@ -59,7 +59,7 @@ public struct EnumerationSpec : TypeSpec
       { baseEnumTypes.flatMap({$0.definedValues}) + definedValues }
 
 
-    public func generateTypeDefinition(for modelName: String) -> String
+    public func generateEnumDefinition() -> String
       {
         """
         public enum \(name) : Int, Enumeration {

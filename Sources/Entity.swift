@@ -2,19 +2,27 @@
 
 */
 
+import CoreData
+
 
 public final class Entity
   {
     public let name : String
     public let identity : Identity
     public private(set) var properties : [String: Property] = [:]
+    public let entityDescription : NSEntityDescription
+    public let managedObjectClass : Object.Type
 
 
-    public init(_ name: String, identity: Identity = .name, properties: [Property] = [])
+    public init(_ name: String, identity: Identity, properties: [Property] = [])
       {
         self.name = name
         self.identity = identity
         self.properties = Dictionary(uniqueKeysWithValues: properties.map {($0.name, $0)})
+        self.entityDescription = .init()
+// TODO: use generic type parameter
+fatalError()
+// self.managedObjectClass = T.self
       }
 
 
@@ -35,6 +43,4 @@ public final class Entity
 
     public var hasSingleInstance : Bool
       { identity == .singleton }
-
-
   }

@@ -5,10 +5,6 @@
 import CoreData
 
 
-public typealias ObjectInfo = (entityDescription: NSEntityDescription, managedObjectClass: Object.Type)
-//(model: Entity, entityDescription: NSEntityDescription, managedObjectClass: Object.Type)
-
-
 public class DataStore
   {
     let schema : Schema
@@ -24,14 +20,10 @@ public class DataStore
         Self.semaphore.wait()
         precondition(Self.shared == nil)
 
-        // Construct the managed object model and the mapping of entity names to info required for instance creation.
-        let mom = try s.createManagedObjectModel()
-        let objectInfo = Dictionary(uniqueKeysWithValues: s.entitiesByName.map { (name, model) in
-          (name, ObjectInfo(entityDescription: mom.entitiesByName[model.name]!, managedObjectClass: Object.self)) // TODO: custom class determined by model
-        })
-
         schema = s
-        managedObjectModel = mom
+
+        // Construct the managed object model and the mapping of entity names to info required for instance creation.
+        managedObjectModel = try schema.createManagedObjectModel()
 
         // Create the persistent store coordinator
         let persistentStoreCoordinator = NSPersistentStoreCoordinator(managedObjectModel: managedObjectModel)
@@ -61,7 +53,7 @@ public class DataStore
           case 1 :
             break
           case 0 :
-            try IngestContext.populate(managedObjectContext: managedObjectContext, objectInfo: objectInfo, dataSource: dataSource)
+            try IngestContext.populate(schema: schema, managedObjectContext: managedObjectContext, dataSource: dataSource)
             configurations = try managedObjectContext.fetch(NSFetchRequest<Object>(entityName: schema.configurationEntityName))
             guard configurations.count == 1 else {
               throw Exception("inconsistency after ingestion: \(configurations.count) configurations detected")

@@ -41,22 +41,23 @@ public final class EntitySpec : TypeSpec
       }
 
 
-    public func generateSwiftEntity() -> String
+    public func generateEntityDefinition() -> String
       {
-        fatalError("")
+        """
+        Entity(\"\(name)\", identity: .\(identity), properties: [
+          \(properties.values.map({$0.generatePropertyDefinition()}).joined(separator: ",\n"))
+        ])
+        """
       }
 
 
-    public func generateTypeDefinition(for modelName: String) -> String
+    public func generateClassDefinition(for modelName: String) -> String
       {
         """
         public class \(name) : Object\(requiredProtocolName.map {", " + $0} ?? "")
         {
           typealias Game = \(modelName)
           \(properties.map({$1.generatePropertyDeclaration()}).joined(separator: "\n" + .space(2)))
-          let propertyIngestDescriptors : [PropertyIngestDescriptor] = [
-            \(properties.compactMap({$1.generateSwiftIngestDescriptor()}).joined(separator: ",\n" + .space(4)))
-          ]
         }
         """
       }

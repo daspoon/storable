@@ -60,7 +60,7 @@ public struct ModelBuilder
       }
 
 
-    public var swiftText : String
+    public func generateSwiftSource() -> String
       {
         """
         // Generated code, do not modify...
@@ -69,14 +69,42 @@ public struct ModelBuilder
         import Compendium
 
         struct \(modelName) : GameModel {
-          \(environment.values.map({$0.generateTypeDefinition(for: modelName)}).joined(separator: "\n\n"))
+          \(generateEnumDefinitions(environment.values.compactMap {$0 as? EnumerationSpec}))
+          \(generateClassDefinitions(environment.values.compactMap {$0 as? EntitySpec}))
+          \(generateSchemaDefinition(environment.values.compactMap {$0 as? EntitySpec}))
         }
         """
       }
 
 
-    public var managedObjectModel : NSManagedObjectModel
+    func generateEnumDefinitions(_ enumSpecs: [EnumerationSpec]) -> String
       {
-        abort()
+        """
+        // MARK: - Enum types -
+
+        \(enumSpecs.map({$0.generateEnumDefinition()}).joined(separator: "\n\n"))
+        """
+      }
+
+
+    func generateClassDefinitions(_ entitySpecs: [EntitySpec]) -> String
+      {
+        """
+        // MARK: - Managed object classes -
+
+        \(entitySpecs.map({$0.generateClassDefinition(for: modelName)}).joined(separator: "\n\n"))
+        """
+      }
+
+
+    func generateSchemaDefinition(_ entitySpecs: [EntitySpec]) -> String
+      {
+        """
+        // MARK: - Schema instance -
+
+        public let schema = Schema(name: "\(modelName)", entities: [
+          \(entitySpecs.map({$0.generateEntityDefinition()}).joined(separator: ",\n"))
+        ])
+        """
       }
   }

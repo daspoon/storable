@@ -13,9 +13,9 @@ public protocol PropertySpec
     /// Indicates whether or not a property value is required on ingest. Required.
     var optional : Bool { get }
 
-    /// Return the Swift source used to declare the property.
+    /// Return the text used to declare the property in the Swift class definition.
     func generatePropertyDeclaration() -> String
 
-    /// Return the Swift source used to create the property ingest descriptor, iff the property is ingested.
-    func generateSwiftIngestDescriptor() -> String?
+    /// Return the text used to define the property in the Swift schema definition.
+    func generatePropertyDefinition() -> String
   }
