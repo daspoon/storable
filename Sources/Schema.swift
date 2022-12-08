@@ -11,6 +11,9 @@ public struct Schema
     public let configurationEntityName : String
     public let entitiesByName : [String: Entity]
 
+    private var managedObjectModel : NSManagedObjectModel!
+
+
     public init(name: String, configurationEntityName configName: String = "Configuration", entities: [Entity])
       {
         self.name = name
@@ -18,16 +21,19 @@ public struct Schema
         self.entitiesByName = Dictionary(uniqueKeysWithValues: entities.map {($0.name, $0)})
       }
 
-    /// Create and return an NSManagedObjectModel for the receiver.
+
+    /// Return the associated NSManagedObjectModel, creating it if necessary.
     public func createManagedObjectModel() throws -> NSManagedObjectModel
       {
+        guard managedObjectModel == nil else { return managedObjectModel! }
+
         let managedObjectModel = NSManagedObjectModel()
 
         // Map each model name to a pairing of a partial NSEntityDescription and a list of relationships to be processed later.
         let entityInfo : [String: (entityDescription: NSEntityDescription, relationships: [Relationship])] = Dictionary(uniqueKeysWithValues: entitiesByName.map { (name, entity) in
-          let entityDescription = NSEntityDescription()
+          let entityDescription = entity.entityDescription
           entityDescription.name = name
-          entityDescription.managedObjectClassName = NSStringFromClass(Object.self) // TODO: custom classes
+          entityDescription.managedObjectClassName = NSStringFromClass(entity.managedObjectClass)
           // Initialize the entity's attributes
           entityDescription.properties = entity.attributes.map { attribute in
             NSAttributeDescription(name: attribute.name, type: attribute.coreDataStorageType, isOptional: attribute.optional)
@@ -74,12 +80,5 @@ public struct Schema
         managedObjectModel.entities = entityInfo.values.map { $0.entityDescription }
 
         return managedObjectModel
-      }
-
-
-    public func entity(named name: String) throws -> Entity
-      {
-        guard let entity = entitiesByName[name] else { throw Exception("unknown entity '\(name)") }
-        return entity
       }
   }
