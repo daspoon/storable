@@ -44,7 +44,7 @@ public final class EntitySpec : TypeSpec
     public func generateEntityDefinition() -> String
       {
         """
-        Entity(\"\(name)\", identity: .\(identity), properties: [
+        Entity(\(name).self, identity: .\(identity), properties: [
           \(properties.values.map({$0.generatePropertyDefinition()}).joined(separator: ",\n"))
         ])
         """
@@ -54,6 +54,7 @@ public final class EntitySpec : TypeSpec
     public func generateClassDefinition(for modelName: String) -> String
       {
         """
+        @objc(\(name))
         public class \(name) : Object\(requiredProtocolName.map {", " + $0} ?? "")
         {
           typealias Game = \(modelName)

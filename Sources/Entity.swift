@@ -14,15 +14,13 @@ public final class Entity
     public let managedObjectClass : Object.Type
 
 
-    public init(_ name: String, identity: Identity, properties: [Property] = [])
+    public init(_ objectType: Object.Type, identity: Identity, properties: [Property] = [])
       {
-        self.name = name
+        self.name = "\(objectType)"
         self.identity = identity
         self.properties = Dictionary(uniqueKeysWithValues: properties.map {($0.name, $0)})
         self.entityDescription = .init()
-// TODO: use generic type parameter
-fatalError()
-// self.managedObjectClass = T.self
+        self.managedObjectClass = objectType
       }
 
 
