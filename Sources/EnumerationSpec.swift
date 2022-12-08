@@ -4,7 +4,7 @@
 
 /// EnumerationSpec corresponds to the JSON specification of a generated Swift enum conforming to the Enumeration protocol.
 ///
-public struct EnumTypeSpec : TypeSpec
+public struct EnumerationSpec : TypeSpec
   {
     /// The data required to synthesize an enum value, specified as a JSON dictionary.
     public struct Value : Ingestible
@@ -31,7 +31,7 @@ public struct EnumTypeSpec : TypeSpec
       }
 
     public let name : String
-    public let baseEnumTypes : [EnumTypeSpec]
+    public let baseEnumTypes : [EnumerationSpec]
     public let definedValues : [Value]
 
     public init(name n: String, json dict: [String: Any], in environment: [String: any TypeSpec]) throws
@@ -41,7 +41,7 @@ public struct EnumTypeSpec : TypeSpec
 
         if let baseName = try dict.optionalValue(of: String.self, for: "extends") {
           guard let baseType = environment[baseName] else { throw Exception("unknown base type '\(baseName)'") }
-          guard let baseEnumType = baseType as? EnumTypeSpec else { throw Exception("invalid base type '\(baseName)'") }
+          guard let baseEnumType = baseType as? EnumerationSpec else { throw Exception("invalid base type '\(baseName)'") }
           baseEnumTypes = baseEnumType.baseEnumTypes + [baseEnumType]
         }
         else {
@@ -59,7 +59,7 @@ public struct EnumTypeSpec : TypeSpec
       { baseEnumTypes.flatMap({$0.definedValues}) + definedValues }
 
 
-    public func generateSwiftText(for modelName: String) -> String
+    public func generateTypeDefinition(for modelName: String) -> String
       {
         """
         public enum \(name) : Int, Enumeration {

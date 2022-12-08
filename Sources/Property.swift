@@ -2,18 +2,27 @@
 
 */
 
+import Foundation
+
 
 public protocol Property
   {
     /// The name of the model property. Required.
     var name : String { get }
 
+    /// Indicates whether or not the property value is ingested. Required.
+    var ingested : Bool { get }
+
     /// Indicates whether or not a property value is required on ingest. Required.
     var optional : Bool { get }
 
-    /// Return the Swift source used to declare the property.
-    func generateSwiftDeclaration() -> String
+    /// The ingestion method translates a JSON value  into an object value supported by CoreData, and must be implemented if ingested returns true. The default implementation causes a fatal error.
+    func ingest(json: Any) throws -> NSObject
+  }
 
-    /// Return the Swift source used to create the property ingest descriptor, iff the property is ingested.
-    func generateSwiftIngestDescriptor() -> String?
+
+extension Property
+  {
+    func ingest(json: Any) throws -> NSObject
+      { fatalError("required when ingested is true") }
   }

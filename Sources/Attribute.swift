@@ -5,71 +5,58 @@
 import CoreData
 
 
+// MARK: --
+
+
+
+// MARK: --
+
 /// Represents a managed object attribute.
 public struct Attribute : Property
   {
     /// The managed property name.
     public let name : String
 
-    /// A descriptor for the type of attribute values.
-    public let type : AttributeType
+    /// Non-nil for native types.
+    public let nativeAttributeType : NSAttributeDescription.AttributeType?
 
-    /// The key used to extract the property value from the ingest data provided on object initialization.
-    public let ingestKey : IngestKey?
+    /// The key and method used to extract the property value from json input and translate that value to a object type supported by CoreData.
+    public let ingest : (key: IngestKey, method: (Any) throws -> NSObject)?
 
 
-    public init(name x: String, type t: AttributeType, ingestKey k: IngestKey?)
+    /// Create an instance representing a (CoreData-) native value type.
+    public init<T>(_ attname: String, ofNativeType _: T.Type, ingestKey key: IngestKey?) where T : NativeType
       {
-        name = x
-        type = t
-        ingestKey = k
+        name = attname
+        nativeAttributeType = T.attributeType
+        ingest = key.map { (key: $0, method: { try T.attributeType.createNSObject(from: $0) })}
       }
 
 
-    public init(name x: String, info: [String: Any], in environment: [String: any TypeSpec]) throws
+    /// Create an instance representing a non-native value type encoded as data.
+    public init<T>(_ attname: String, ofCodableType _: T.Type, ingestKey key: IngestKey?) where T : Ingestible & Codable
       {
-        name = x
-
-        type = try info.requiredValue(for: "type") { (v: Any) in
-          guard let string = v as? String else { throw Exception("expecting string value for 'type'") }
-          return try AttributeType(with: string, in: environment)
-        }
-
-        ingestKey = try .init(with: info["ingestKey"], for: name)
+        name = attname
+        nativeAttributeType = nil
+        ingest = key.map { (key: $0, method: { try T.createNSData(from: $0) }) }
       }
+
+
+    public var ingested : Bool
+      { ingest != nil }
 
 
     public var optional : Bool
+      { fatalError() }
+
+
+    public func ingest(json: Any) throws -> NSObject
       {
-        guard case .optional = type else { return false }
-        return true
+        guard let ingest else { throw Exception("attribute is specified as non-ingestible") }
+        return try ingest.method(json)
       }
 
 
     public var coreDataStorageType : NSAttributeDescription.AttributeType
-      {
-        guard case .native(let storageType) = type else { return .binaryData }
-        return storageType.coreDataAttributeType
-      }
-
-
-    public func generateSwiftDeclaration() -> String
-      {
-        "@\(type.swiftPropertyWrapper) var \(name) : \(type.swiftTypeExpression)"
-      }
-
-
-    public func generateSwiftIngestDescriptor() -> String?
-      {
-        guard let ingestKey else { return nil }
-
-        let closureBodyText : String
-        switch type {
-          case .native(let storageType) :
-            closureBodyText = "try StorageType.\(storageType).createNSObject(from: $0)"
-          default :
-            closureBodyText = "try \(type.swiftTypeExpression).createNSData(from: $0)"
-        }
-        return ".init(\"\(name)\", ingestKey: \(ingestKey.swiftText), ingestAction: .assign({\(closureBodyText)}), optional: \(optional))"
-      }
+      { nativeAttributeType ?? .binaryData }
   }

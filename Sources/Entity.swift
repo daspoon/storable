@@ -3,21 +3,8 @@
 */
 
 
-public typealias ObjectTypeSpec = Entity
-
-
-public final class Entity : TypeSpec
+public final class Entity
   {
-    /// The notion of instance identity
-    public enum Identity : String, Ingestible {
-      /// There is no inherent identity.
-      case anonymous
-      /// Identity is given by the string value of the 'name' attribute.
-      case name
-      /// There is a single instance of the entity.
-      case singleton
-    }
-
     public let name : String
     public let identity : Identity
     public private(set) var properties : [String: Property] = [:]
@@ -31,40 +18,12 @@ public final class Entity : TypeSpec
       }
 
 
-    /// Create an entity from a JSON type specification.
-    public init(name: String, json dict: [String: Any], in environment: [String: any TypeSpec]) throws
-      {
-        self.name = name
-        self.identity = try dict.requiredValue(for: "identity")
-
-        if case .name = identity {
-          try addProperty(Attribute(name: "name", type: .native(.string), ingestKey: .element("name")))
-        }
-
-        for (attname, info) in try dict.optionalValue(of: [String: [String: Any]].self, for: "attributes") ?? [:] {
-          try addProperty(try Attribute(name: attname, info: info, in: environment))
-        }
-
-        for (relname, info) in try dict.optionalValue(of: [String: [String: Any]].self, for: "relationships") ?? [:] {
-          try addProperty(try Relationship(name: relname, info: info))
-        }
-      }
-
-
     public var attributes : [Attribute]
       { properties.values.compactMap { $0 as? Attribute } }
 
 
     public var relationships : [Relationship]
       { properties.values.compactMap { $0 as? Relationship } }
-
-
-    func addProperty(_ property: Property) throws
-      {
-        guard properties[property.name] == nil else { throw Exception("multiple definitions for property '\(property.name)'") }
-
-        properties[property.name] = property
-      }
 
 
     public var identityAttributeName : String?
@@ -78,21 +37,4 @@ public final class Entity : TypeSpec
       { identity == .singleton }
 
 
-    public func generateSwiftText(for modelName: String) -> String
-      {
-        """
-        public class \(name) : Object\(requiredProtocolName.map {", " + $0} ?? "")
-        {
-          typealias Game = \(modelName)
-          \(properties.map({$1.generateSwiftDeclaration()}).joined(separator: "\n" + .space(2)))
-          let propertyIngestDescriptors : [PropertyIngestDescriptor] = [
-            \(properties.compactMap({$1.generateSwiftIngestDescriptor()}).joined(separator: ",\n" + .space(4)))
-          ]
-        }
-        """
-      }
-
-
-    var requiredProtocolName : String?
-      { ["Race", "Demon", "Skill", "SkillGrant", "RaceFusion"].contains(name) ? name + "Model" : nil }
   }

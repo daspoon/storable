@@ -12,7 +12,7 @@ public indirect enum AttributeType
     case native(StorageType)
 
     /// Custom value types defined by the configuration.
-    case customEnum(EnumTypeSpec)
+    case customEnum(EnumerationSpec)
 
     /// An optional supported type.
     case optional(Self)
@@ -43,7 +43,7 @@ public indirect enum AttributeType
             resultingType = .native(storageType)
           }
           else if let referencedType = environment[name] {
-            guard let customType = referencedType as? EnumTypeSpec else { throw Exception("unsupported custom attribute type '\(name)'") }
+            guard let customType = referencedType as? EnumerationSpec else { throw Exception("unsupported custom attribute type '\(name)'") }
             resultingType = .customEnum(customType)
           }
           else {

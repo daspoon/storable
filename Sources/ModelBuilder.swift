@@ -33,9 +33,9 @@ public struct ModelBuilder
           let spec : any TypeSpec
           switch kind {
             case "enum" :
-              spec = try EnumTypeSpec(name: name, json: info, in: environment)
+              spec = try EnumerationSpec(name: name, json: info, in: environment)
             case "object" :
-              let entity = try ObjectTypeSpec(name: name, json: info, in: environment)
+              let entity = try EntitySpec(name: name, json: info, in: environment)
               spec = entity
             default :
               throw Exception("unsupported type kind '\(kind)'")
@@ -44,27 +44,18 @@ public struct ModelBuilder
         }
 
         // Create a list of the implied inverse relationships.
-        var inversePairs : [(entity: Entity, relationship: Relationship)] = []
-        for entity in environment.values.compactMap({$0 as? Entity}) {
-          for relationship in entity.relationships {
-            guard let target = environment[relationship.relatedEntityName] as? Entity else { throw Exception("unknown entity name '\(relationship.relatedEntityName)") }
-            let inverse = Relationship(
-              name: relationship.inverseName,
-              arity: relationship.inverseArity,
-              deleteRule: relationship.inverseDeleteRule,
-              relatedEntityName: entity.name,
-              inverseName: relationship.name,
-              inverseArity: relationship.arity,
-              inverseDeleteRule: relationship.deleteRule,
-              ingest: nil
-            )
-            inversePairs += [(target, inverse)]
+        var impliedEntityRelationships : [(entity: EntitySpec, relationship: RelationshipSpec)] = []
+        for entity in environment.values.compactMap({$0 as? EntitySpec}) {
+          for relationship in entity.properties.values.compactMap({$0 as? RelationshipSpec}) {
+            guard let relatedEntity = environment[relationship.relatedEntityName] as? EntitySpec else { throw Exception("unknown entity name '\(relationship.relatedEntityName)") }
+            let inverseRelationship = RelationshipSpec(relationship: relationship.relationship.inverse(for: entity.name))
+            impliedEntityRelationships += [(relatedEntity, inverseRelationship)]
           }
         }
 
         // Add those implied relationships to the target entity.
-        for (entity, relationship) in inversePairs {
-          try entity.addProperty(relationship)
+        for (entity, relationship) in impliedEntityRelationships {
+          try entity.addPropertySpec(relationship)
         }
       }
 
@@ -78,7 +69,7 @@ public struct ModelBuilder
         import Compendium
 
         struct \(modelName) : GameModel {
-          \(environment.values.map({$0.generateSwiftText(for: modelName)}).joined(separator: "\n\n"))
+          \(environment.values.map({$0.generateTypeDefinition(for: modelName)}).joined(separator: "\n\n"))
         }
         """
       }
