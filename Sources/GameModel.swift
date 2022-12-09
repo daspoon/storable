@@ -26,6 +26,9 @@ public protocol GameModel
     associatedtype Resistance : Enumeration
 
 
+    /// The class representing the game playthrough state.
+    associatedtype State : StateModel<Self>
+
     /// The class representing races.
     associatedtype Race : RaceModel<Self>
 
@@ -38,8 +41,19 @@ public protocol GameModel
     /// The class representing skill grants. (i.e. demon skill assignments by level).
     associatedtype SkillGrant : SkillGrantModel<Self>
 
-    // The class respresenting binary race fusions.
+    /// The class respresenting binary race fusions.
     associatedtype RaceFusion : RaceFusionModel<Self>
+  }
+
+
+// MARK: --
+
+public protocol StateModel<Game> : NSManagedObject
+  {
+    associatedtype Game : GameModel
+
+    /// 
+    var playerLevel : Int { get }
   }
 
 

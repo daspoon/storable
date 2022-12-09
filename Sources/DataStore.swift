@@ -48,13 +48,13 @@ public class DataStore
         managedObjectContext.persistentStoreCoordinator = persistentStoreCoordinator
 
         // Retrieve the configuration if one exists; otherwise trigger ingestion from the data source.
-        var configurations = try managedObjectContext.fetch(NSFetchRequest<Object>(entityName: schema.configurationEntityName))
+        var configurations = try managedObjectContext.fetch(NSFetchRequest<Object>(entityName: schema.stateEntityName))
         switch configurations.count {
           case 1 :
             break
           case 0 :
             try IngestContext.populate(schema: schema, managedObjectContext: managedObjectContext, dataSource: dataSource)
-            configurations = try managedObjectContext.fetch(NSFetchRequest<Object>(entityName: schema.configurationEntityName))
+            configurations = try managedObjectContext.fetch(NSFetchRequest<Object>(entityName: schema.stateEntityName))
             guard configurations.count == 1 else {
               throw Exception("inconsistency after ingestion: \(configurations.count) configurations detected")
             }

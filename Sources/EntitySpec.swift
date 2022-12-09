@@ -65,5 +65,5 @@ public final class EntitySpec : TypeSpec
 
 
     var requiredProtocolName : String?
-      { ["Race", "Demon", "Skill", "SkillGrant", "RaceFusion"].contains(name) ? name + "Model" : nil }
+      { ["Race", "Demon", "Skill", "SkillGrant", "RaceFusion", "State"].contains(name) ? name + "Model" : nil }
   }

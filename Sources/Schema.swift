@@ -8,16 +8,16 @@ import CoreData
 public struct Schema
   {
     public let name : String
-    public let configurationEntityName : String
+    public let stateEntityName : String
     public let entitiesByName : [String: Entity]
 
     private var managedObjectModel : NSManagedObjectModel!
 
 
-    public init(name: String, configurationEntityName configName: String = "Configuration", entities: [Entity])
+    public init(name: String, stateEntityName: String = "State", entities: [Entity])
       {
         self.name = name
-        self.configurationEntityName = configName
+        self.stateEntityName = stateEntityName
         self.entitiesByName = Dictionary(uniqueKeysWithValues: entities.map {($0.name, $0)})
       }
 
@@ -42,8 +42,8 @@ public struct Schema
         })
 
         // Ensure the configuration entity is defined and as has a single instance.
-        guard let configurationEntity = entitiesByName[configurationEntityName] else { throw Exception("Entity '\(configurationEntityName)' is not defined") }
-        guard configurationEntity.hasSingleInstance else { throw Exception("Entity '\(configurationEntityName)' must have a single instance") }
+        guard let stateEntity = entitiesByName[stateEntityName] else { throw Exception("Entity '\(stateEntityName)' is not defined") }
+        guard stateEntity.hasSingleInstance else { throw Exception("Entity '\(stateEntityName)' must have a single instance") }
 
         // Now add each specified relationship and its inverse to the corresponding entity descriptions.
         for (entityName, info) in entityInfo {
