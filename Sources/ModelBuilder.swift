@@ -102,7 +102,7 @@ public struct ModelBuilder
         """
         // MARK: - Schema instance -
 
-        public let schema = Schema(name: "\(modelName)", entities: [
+        public static let schema = Schema(name: "\(modelName)", entities: [
           \(entitySpecs.map({$0.generateEntityDefinition()}).joined(separator: ",\n"))
         ])
         """
