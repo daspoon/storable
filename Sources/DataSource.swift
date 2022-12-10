@@ -36,11 +36,11 @@ public struct DataSource
       }
 
 
-    let bundle : Bundle
+    let bundle : DataBundle
     let definitions : [Definition]
 
 
-    public init(bundle: Bundle, definitions: [Definition])
+    public init(bundle: DataBundle, definitions: [Definition])
       {
         self.bundle = bundle
         self.definitions = definitions
@@ -51,7 +51,7 @@ public struct DataSource
     public func load<T>(_ content: Content, of type: T.Type = Any.self) throws -> T
       {
         guard let url = bundle.url(forResource: content.resourceName, withExtension: "json") else {
-          throw Exception("json file '\(content.resourceName)' not found in bundle \(bundle.bundleIdentifier ?? "?")")
+          throw Exception("json file '\(content.resourceName)' not found in bundle")
         }
 
         let data : Data
