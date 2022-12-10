@@ -19,16 +19,17 @@ public final class EntitySpec : TypeSpec
 
         self.identity = try dict.requiredValue(of: Identity.self, for: "identity")
 
-        if case .name = identity {
-          try addPropertySpec(AttributeSpec(name: "name", info: ["name": "name", "type": "String"], in: environment))
-        }
-
         for (attname, info) in try dict.optionalValue(of: [String: [String: Any]].self, for: "attributes") ?? [:] {
           try addPropertySpec(try AttributeSpec(name: attname, info: info, in: environment))
         }
 
         for (relname, info) in try dict.optionalValue(of: [String: [String: Any]].self, for: "relationships") ?? [:] {
           try addPropertySpec(try RelationshipSpec(name: relname, info: info))
+        }
+
+        // Ensure a name attribute is defined if necessary.
+        if case .name = identity {
+          guard let nameAttr = properties["name"] as? AttributeSpec, case .native(.string) = nameAttr.type else { throw Exception("string-valued 'name' attribute is required") }
         }
       }
 
