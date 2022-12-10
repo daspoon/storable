@@ -33,6 +33,27 @@ public indirect enum AttributeType : CustomStringConvertible
       }
 
 
+    public func validate(_ json: Any) throws
+      {
+        switch self {
+          case .native(let storageType) :
+            return try storageType.validate(json)
+          case .customEnum(let enumSpec) :
+            return try enumSpec.validate(json)
+          case .optional(let wrapperType) :
+            return try wrapperType.validate(json)
+          case .array(let elementType) :
+            for element in try throwingCast(json, as: [Any].self) {
+              try elementType.validate(element)
+            }
+          case .dictionary(let valueType) :
+            for (_, value) in try throwingCast(json, as: [String: Any].self) {
+              try valueType.validate(value)
+            }
+        }
+      }
+
+
     /// Parse an type element from the given scanner.
     private static func parseType(_ scanner: Scanner, in environment: [String: any TypeSpec]) throws -> Self
       {

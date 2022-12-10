@@ -57,6 +57,13 @@ extension Array : Ingestible where Element : Ingestible
   }
 
 
+extension Bool : Ingestible
+  {
+    public init(json value: Bool) throws
+      { self = value }
+  }
+
+
 extension Dictionary : Ingestible where Key == String, Value : Ingestible
   {
     public init(json: [String: Value.Input]) throws
@@ -68,11 +75,8 @@ extension Dictionary : Ingestible where Key == String, Value : Ingestible
 
 extension Numeric
   {
-    public init(json: Any) throws
-      {
-        guard let value = json as? Self else { throw Exception("expecting \(Self.self) value") };
-        self = value
-      }
+    public init(json number: Self) throws
+      { self = number }
   }
 
 extension Int : Ingestible {}
@@ -91,10 +95,8 @@ extension UInt64 : Ingestible {}
 
 extension Optional : Ingestible where Wrapped : Ingestible
   {
-    public init(json: Wrapped.Input) throws
-      {
-        self = .some(try Wrapped(json: json))
-      }
+    public init(json: Wrapped.Input?) throws
+      { self = try json.map { try Wrapped(json: $0) } }
 
     public static var isNullable : Bool
       { true }
@@ -103,9 +105,6 @@ extension Optional : Ingestible where Wrapped : Ingestible
 
 extension String : Ingestible
   {
-    public init(json: Any) throws
-      {
-        guard let value = json as? Self else { throw Exception("expecting \(Self.self) value") };
-        self = value
-      }
+    public init(json string: String) throws
+      { self = string }
   }

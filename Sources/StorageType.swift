@@ -68,4 +68,19 @@ public enum StorageType
         }
       }
 
+    public func validate(_ json: Any) throws
+      {
+        switch self {
+          case .bool   : _ = try throwingCast(json, as: Bool.self)
+          case .double : _ = try throwingCast(json, as: Double.self)
+          case .float  : _ = try throwingCast(json, as: Float.self)
+          case .int    : _ = try throwingCast(json, as: Int.self)
+          case .int16  : _ = try throwingCast(json, as: Int16.self)
+          case .int32  : _ = try throwingCast(json, as: Int32.self)
+          case .int64  : _ = try throwingCast(json, as: Int64.self)
+          case .string : _ = try throwingCast(json, as: String.self)
+          default :
+            throw Exception("\(swiftTypeName) is not supported")
+        }
+      }
   }

@@ -33,6 +33,8 @@ public struct EnumerationSpec : TypeSpec
     public let name : String
     public let baseEnumTypes : [EnumerationSpec]
     public let definedValues : [Value]
+    public let definedValuesByName : [String: Value]
+
 
     public init(name n: String, json dict: [String: Any], in environment: [String: any TypeSpec]) throws
       {
@@ -48,15 +50,24 @@ public struct EnumerationSpec : TypeSpec
           baseEnumTypes = []
         }
 
-        let duplicates = Set(baseEnumTypes.flatMap({$0.definedValues.map({$0.name})})).intersection(definedValues.map({$0.name}))
-        guard duplicates.isEmpty else {
-          throw Exception("cases \(duplicates.map({"'\($0)'"}).joined(separator: ", ")) already defined by base type")
-        }
+        let allDefinedValues = ((baseEnumTypes.flatMap {$0.definedValues}) + definedValues).map { ($0.name, $0) }
+        definedValuesByName = try Dictionary(allDefinedValues, uniquingKeysWith: { v1, v2 in
+          throw Exception("multiple definitions of '\(v1.name)'")
+        })
       }
 
 
     public var values : [Value]
       { baseEnumTypes.flatMap({$0.definedValues}) + definedValues }
+
+
+    public func validate(_ json: Any) throws
+      {
+        let string = try throwingCast(json, as: String.self)
+        guard definedValuesByName[string] != nil else {
+          throw Exception("'\(string) does not name a member of enum \(name)")
+        }
+      }
 
 
     public func generateEnumDefinition() -> String
