@@ -19,6 +19,9 @@ public struct AttributeSpec : PropertySpec
     /// The default value expressed as a Swift source string.
     public let defaultSwiftText : String?
 
+    /// An optional transform applied to the input.
+    public let transform : (any IngestTransform)?
+
 
     public init(name x: String, info: [String: Any], in environment: [String: any TypeSpec]) throws
       {
@@ -30,6 +33,8 @@ public struct AttributeSpec : PropertySpec
         }
 
         ingestKey = try .init(with: info["ingestKey"], for: name)
+
+        transform = try info.optionalValue(of: String.self, for: "transform").map { try ingestTransform(named: $0) }
 
         defaultSwiftText = try info.optionalValue(for: "default")
 
@@ -49,6 +54,12 @@ public struct AttributeSpec : PropertySpec
 
     public func generatePropertyDefinition() -> String?
       {
-        "Attribute(\"\(name)\", \(type.isNative ? "nativeType" : "codableType"): \(type).self, ingestKey: .\(ingestKey), defaultValue: \(defaultSwiftText ?? "nil"))"
+        return generateConstructor("Attribute", argumentPairs: [
+          (nil, "\"" + name + "\""),
+          (type.isNative ? "nativeType" : "codableType", type.description + ".self"),
+          ("ingestKey", ".\(ingestKey)"),
+          transform.map { ("transform", $0.description) },
+          defaultSwiftText.map { ("defaultValue", $0) },
+        ])
       }
   }

@@ -51,6 +51,20 @@ public struct Attribute : Property
       }
 
 
+    public init<T,V>(_ attname: String, codableType: V.Type, ingestKey key: IngestKey? = nil, transform t: T, defaultValue v: V? = nil) where V : Ingestible & Codable, T : IngestTransform, T.Output == V.Input
+      {
+        name = attname
+        nativeAttributeType = nil
+        ingestKey = key ?? .element(name)
+        defaultIngestValue = try? v.map { try JSONEncoder().encode($0) as NSData }
+        allowsNilValue = V.isNullable
+        ingestMethod = { json in
+          guard let input = json as? T.Input else { throw Exception("expecting input of type '\(T.self)'") }
+          return try V.createNSData(from: try t.transform(input))
+        }
+      }
+
+
     public var coreDataStorageType : NSAttributeDescription.AttributeType
       { nativeAttributeType ?? .binaryData }
   }
