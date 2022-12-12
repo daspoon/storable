@@ -61,12 +61,13 @@ public struct EnumerationSpec : TypeSpec
       { baseEnumTypes.flatMap({$0.definedValues}) + definedValues }
 
 
-    public func validate(_ json: Any) throws
+    public func validate(_ json: Any) throws -> Any
       {
         let string = try throwingCast(json, as: String.self)
         guard definedValuesByName[string] != nil else {
           throw Exception("'\(string) does not name a member of enum \(name)")
         }
+        return string
       }
 
 

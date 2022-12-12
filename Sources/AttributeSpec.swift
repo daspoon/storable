@@ -17,7 +17,7 @@ public struct AttributeSpec : PropertySpec
     public let ingestKey : IngestKey
 
     /// The default value expressed as a Swift source string.
-    public let defaultSwiftText : String?
+    public private(set) var defaultValue : (any Defaultable)?
 
     /// An optional transform applied to the input.
     public let transform : (any IngestTransform)?
@@ -36,12 +36,17 @@ public struct AttributeSpec : PropertySpec
 
         transform = try info.optionalValue(of: String.self, for: "transform").map { try ingestTransform(named: $0) }
 
-        defaultSwiftText = try info.optionalValue(for: "default")
-
-        // Ensure the given string is a valid swift literal for the associated type
-        try defaultSwiftText.map { text in
-          let json = try JSONSerialization.jsonObject(with: text, encoding: .utf8, options: .fragmentsAllowed)
-          try type.validate(json)
+        // Ensure the default value, if given, is of the expected type.
+        defaultValue = try info["default"].map {
+          let v : Any
+          if let transform {
+            v = try transform.validate($0)
+          }
+          else {
+            v = try type.validate($0)
+          }
+          guard let value = v as? any Defaultable else { throw Exception("\(v) cannot be used as a default value") }
+          return value
         }
       }
 
@@ -59,7 +64,7 @@ public struct AttributeSpec : PropertySpec
           (type.isNative ? "nativeType" : "codableType", type.description + ".self"),
           ("ingestKey", ".\(ingestKey)"),
           transform.map { ("transform", $0.description) },
-          defaultSwiftText.map { ("defaultValue", $0) },
+          defaultValue.map { ("defaultValue", $0.asSwiftLiteral) },
         ])
       }
   }

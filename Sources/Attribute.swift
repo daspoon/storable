@@ -27,41 +27,37 @@ public struct Attribute : Property
     public let allowsNilValue : Bool
 
 
+    private init(name: String, ingestMethod: @escaping (Any) throws -> NSObject, ingestKey: IngestKey? = nil, allowsNilValue: Bool = false, nativeAttributeType: NSAttributeDescription.AttributeType? = nil, defaultValue: Any? = nil)
+      {
+        self.name = name
+        self.ingestMethod = ingestMethod
+        self.ingestKey = ingestKey ?? .element(name)
+        self.allowsNilValue = allowsNilValue
+        self.nativeAttributeType = nativeAttributeType
+
+        // TODO: report failure to ingest default value
+        self.defaultIngestValue = defaultValue.flatMap { try? ingestMethod($0) }
+      }
+
+
     /// Create an instance representing a (CoreData-) native value type.
     public init<T>(_ attname: String, nativeType: T.Type, ingestKey key: IngestKey? = nil, defaultValue v: T? = nil) where T : NativeType
       {
-        name = attname
-        nativeAttributeType = T.attributeType
-        ingestKey = key ?? .element(name)
-        ingestMethod = { try T.attributeType.createNSObject(from: $0) }
-        defaultIngestValue = v?.asNSObject
-        allowsNilValue = false
+        self.init(name: attname, ingestMethod: {try T.attributeType.createNSObject(from: $0)}, ingestKey: key, nativeAttributeType: T.attributeType, defaultValue: v)
       }
 
 
     /// Create an instance representing a non-native value type encoded as data.
     public init<T>(_ attname: String, codableType: T.Type, ingestKey key: IngestKey? = nil, defaultValue v: T? = nil) where T : Ingestible & Codable
       {
-        name = attname
-        nativeAttributeType = nil
-        ingestKey = key ?? .element(name)
-        ingestMethod = { try T.createNSData(from: $0) }
-        defaultIngestValue = try? v.map { try JSONEncoder().encode($0) as NSData }
-        allowsNilValue = T.isNullable
+        self.init(name: attname, ingestMethod: {try T.createNSData(from: $0)}, ingestKey: key, allowsNilValue: T.isNullable, defaultValue: v)
       }
 
 
-    public init<T,V>(_ attname: String, codableType: V.Type, ingestKey key: IngestKey? = nil, transform t: T, defaultValue v: V? = nil) where V : Ingestible & Codable, T : IngestTransform, T.Output == V.Input
+    /// Create an instance representing a non-native value type, with an ingest transform.
+    public init<T,V>(_ attname: String, codableType: V.Type, ingestKey key: IngestKey? = nil, transform t: T, defaultValue v: T.Input? = nil) where V : Ingestible & Codable, T : IngestTransform, T.Output == V.Input
       {
-        name = attname
-        nativeAttributeType = nil
-        ingestKey = key ?? .element(name)
-        defaultIngestValue = try? v.map { try JSONEncoder().encode($0) as NSData }
-        allowsNilValue = V.isNullable
-        ingestMethod = { json in
-          guard let input = json as? T.Input else { throw Exception("expecting input of type '\(T.self)'") }
-          return try V.createNSData(from: try t.transform(input))
-        }
+        self.init(name: attname, ingestMethod: {try V.createNSData(from: try t.transform(try throwingCast($0)))}, ingestKey: key, allowsNilValue: V.isNullable, defaultValue: v)
       }
 
 

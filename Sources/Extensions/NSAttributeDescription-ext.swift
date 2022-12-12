@@ -27,9 +27,9 @@ extension NSAttributeDescription.AttributeType
           case .date   : return try throwingCast(json, as: Date.self) as NSDate
           case .double : return try NSNumber(value: throwingCast(json, as: Double.self))
           case .float  : return try NSNumber(value: throwingCast(json, as: Float.self))
-          case .integer16  : return try NSNumber(value: throwingCast(json, as: Int16.self))
-          case .integer32  : return try NSNumber(value: throwingCast(json, as: Int32.self))
-          case .integer64  : return try NSNumber(value: throwingCast(json, as: Int64.self))
+          case .integer16  : return try NSNumber(value: throwingCast(json, as: Int.self))
+          case .integer32  : return try NSNumber(value: throwingCast(json, as: Int.self))
+          case .integer64  : return try NSNumber(value: throwingCast(json, as: Int.self))
           case .string : return try throwingCast(json, as: String.self) as NSString
           default :
             throw Exception("unsupported attribute type")

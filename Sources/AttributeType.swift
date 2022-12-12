@@ -33,7 +33,7 @@ public indirect enum AttributeType : CustomStringConvertible
       }
 
 
-    public func validate(_ json: Any) throws
+    public func validate(_ json: Any) throws -> Any
       {
         switch self {
           case .native(let storageType) :
@@ -43,13 +43,9 @@ public indirect enum AttributeType : CustomStringConvertible
           case .optional(let wrapperType) :
             return try wrapperType.validate(json)
           case .array(let elementType) :
-            for element in try throwingCast(json, as: [Any].self) {
-              try elementType.validate(element)
-            }
+            return try throwingCast(json, as: [Any].self).map { try elementType.validate($0) }
           case .dictionary(let valueType) :
-            for (_, value) in try throwingCast(json, as: [String: Any].self) {
-              try valueType.validate(value)
-            }
+            return Dictionary(uniqueKeysWithValues: try throwingCast(json, as: [String: Any].self).map {($0, try valueType.validate($1))})
         }
       }
 
