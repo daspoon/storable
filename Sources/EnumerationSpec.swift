@@ -71,29 +71,28 @@ public struct EnumerationSpec : TypeSpec
       }
 
 
-    public func generateEnumDefinition() -> String
+    public func codegenTypeDefinition(for modelName: String) -> String
       {
         """
-        public enum \(name) : Int, Enumeration {
-          \(values.map({"case \($0.name) \($0.intValue.map({" = \($0)"}) ?? "")"}).joined(separator: "\n" + .space(2)))
+        public enum \(name) : Int, Enumeration
+          {
+            \(values.map({"case \($0.name) \($0.intValue.map({" = \($0)"}) ?? "")"}).joined(separator: .newline() + .space(4)))
 
-          public init(json: String) throws {
-            switch json {
-              \(values.map({"case \"\($0.ingestName)\" : self = .\($0.name)"}).joined(separator: "\n" + .space(6)))
-              default :
-                throw Exception("invalid value for \\(Self.self)")
+            public init(json: String) throws {
+              switch json {
+                \(values.map({"case \"\($0.ingestName)\" : self = .\($0.name)"}).joined(separator: .newline() + .space(8)))
+                default :
+                  throw Exception("invalid value for \\(Self.self)")
+              }
             }
-          }
 
-          public var name : String {
-            switch self {
-              \(values.map({"case .\($0.name) : return \"\($0.name)\""}).joined(separator: "\n" + .space(6)))
+            public var name : String {
+              switch self {
+                \(values.map({"case .\($0.name) : return \"\($0.name)\""}).joined(separator: .newline() + .space(8)))
+              }
             }
-          }
 
-          \(baseEnumTypes.map({
-          "var \($0.name.camelCased) : \($0.name)? { .init(rawValue: rawValue) }"
-          }).joined(separator: "\n" + .space(2)))
+            \(baseEnumTypes.map({"var \($0.name.camelCased) : \($0.name)? { .init(rawValue: rawValue) }"}).joined(separator: .newline() + .space(4)))
         }
         """
       }

@@ -11,17 +11,17 @@ public protocol PropertySpec
     var name : String { get }
 
     /// Return the text used to declare the property in the Swift class definition.
-    func generatePropertyDeclaration() -> String
+    func codegenPropertyDeclaration() -> String
 
     /// Return the text used to define the property in the Swift schema definition.
-    func generatePropertyDefinition() -> String?
+    func codegenPropertyValue() -> String?
   }
 
 
 extension PropertySpec
   {
-    /// Used to implement generatePropertyDefinition, given the name of the constructed type and a list of optional key/value argument pairs.
-    public func generateConstructor(_ typeName: String, argumentPairs: [(name: String?, value: String)?]) -> String
+    /// Used to implement codegenPropertyValue, given the name of the constructed type and a list of optional key/value argument pairs.
+    public func codegenConstructor(_ typeName: String, argumentPairs: [(name: String?, value: String)?]) -> String
       {
         let specifiedArgumentPairs = argumentPairs.compactMap {$0}
         let specifiedArguments = specifiedArgumentPairs.map { (($0.map {$0 + ": "}) ?? "") + $1 }

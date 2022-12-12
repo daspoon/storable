@@ -13,7 +13,6 @@ public struct ModelBuilder
     /// The mapping of names to type specifications extracted from the input file.
     private var environment : [String: any TypeSpec] = [:]
 
-
     /// Initialize a new instance with the given name and configuration file path.
     public init(modelName name: String, inputPath: String) throws
       {
@@ -35,8 +34,7 @@ public struct ModelBuilder
             case "enum" :
               spec = try EnumerationSpec(name: name, json: info, in: environment)
             case "object" :
-              let entity = try EntitySpec(name: name, json: info, in: environment)
-              spec = entity
+              spec = try EntitySpec(name: name, json: info, in: environment)
             default :
               throw Exception("unsupported type kind '\(kind)'")
           }
@@ -62,49 +60,36 @@ public struct ModelBuilder
 
     public func generateSwiftSource() -> String
       {
-        """
-        // Generated code, do not modify...
+        // Note: type specifications are sorted by name to avoid spurious changes in generated code.
 
-        import Foundation
-        import Compendium
+        return { enumerationSpecs, entitySpecs in
+          """
+          // Generated code, do not modify...
 
-        struct \(modelName) : GameModel {
-          \(generateEnumDefinitions(environment.values.compactMap {$0 as? EnumerationSpec}))
-          \(generateClassDefinitions(environment.values.compactMap {$0 as? EntitySpec}))
-          \(generateSchemaDefinition(environment.values.compactMap {$0 as? EntitySpec}))
-        }
-        """
-      }
+          import Foundation
+          import Compendium
 
 
-    func generateEnumDefinitions(_ enumSpecs: [EnumerationSpec]) -> String
-      {
-        """
-        // MARK: - Enum types -
+          struct \(modelName) : GameModel
+            {
+              // MARK: - Enums -
 
-        \(enumSpecs.map({$0.generateEnumDefinition()}).joined(separator: "\n\n"))
-        """
-      }
+              \(enumerationSpecs.map({$0.codegenTypeDefinition(for: modelName)}).joined(separator: .newline(2)).indented(4))
 
+              // MARK: - Classes -
 
-    func generateClassDefinitions(_ entitySpecs: [EntitySpec]) -> String
-      {
-        """
-        // MARK: - Managed object classes -
+              \(entitySpecs.map({$0.codegenTypeDefinition(for: modelName)}).joined(separator: .newline(2)).indented(4))
 
-        \(entitySpecs.map({$0.generateClassDefinition(for: modelName)}).joined(separator: "\n\n"))
-        """
-      }
+              // MARK: - Schema -
 
-
-    func generateSchemaDefinition(_ entitySpecs: [EntitySpec]) -> String
-      {
-        """
-        // MARK: - Schema instance -
-
-        public static let schema = Schema(name: "\(modelName)", entities: [
-          \(entitySpecs.map({$0.generateEntityDefinition()}).joined(separator: ",\n"))
-        ])
-        """
+              public static let schema = Schema(name: "\(modelName)", entities: [
+                \(entitySpecs.map({$0.codegenEntityValue()}).joined(separator: "," + .newline()).indented(6))
+              ])
+            }
+          """
+        }(
+          environment.values.compactMap({$0 as? EnumerationSpec}).sorted(by: {$0.name < $1.name}),
+          environment.values.compactMap({$0 as? EntitySpec}).sorted(by: {$0.name < $1.name})
+        )
       }
   }

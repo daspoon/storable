@@ -52,23 +52,31 @@ public struct RelationshipSpec : PropertySpec
       { relationship.name }
 
 
-    public func generatePropertyDeclaration() -> String
+    public func codegenPropertyDeclaration() -> String
       {
-        """
-        @NSManaged var \(relationship.name) : \({
-          switch relationship.arity {
-            case .toOne : return relationship.relatedEntityName
-            case .toMany : return "Set<" + relationship.relatedEntityName + ">"
-            case .optionalToOne : return relationship.relatedEntityName + "?"
-          }
-        }())
-        """
+        let typeString : String
+        switch self.arity {
+          case .toOne : typeString = self.relatedEntityName
+          case .toMany : typeString = "Set<" + self.relatedEntityName + ">"
+          case .optionalToOne : typeString = self.relatedEntityName + "?"
+        }
+        return "@NSManaged var \(self.name) : \(typeString)"
       }
 
 
-    public func generatePropertyDefinition() -> String?
+    public func codegenPropertyValue() -> String?
       {
         guard isInverse == false else { return nil }
-        return "Relationship(\"\(name)\", arity: .\(relationship.arity), relatedEntityName: \"\(relationship.relatedEntityName)\", inverseName: \"\(relationship.inverseName)\", deleteRule: .\(relationship.deleteRule), inverseArity: .\(relationship.inverseArity), inverseDeleteRule: .\(relationship.inverseDeleteRule), ingestKey: .\(relationship.ingestKey), ingestMode: .\(relationship.ingestMode))"
+        return codegenConstructor("Relationship", argumentPairs: [
+          (nil, "\"" + self.name + "\""),
+          ("arity", ".\(self.arity)"),
+          ("relatedEntityName", "\"\(self.relatedEntityName)\""),
+          ("inverseName", "\"\(self.inverseName)\""),
+          ("deleteRule", ".\(self.deleteRule)"),
+          ("inverseArity", ".\(self.inverseArity)"),
+          ("inverseDeleteRule", ".\(self.inverseDeleteRule)"),
+          ("ingestKey", ".\(self.ingestKey)"),
+          ("ingestMode", ".\(self.ingestMode)"),
+        ])
       }
   }

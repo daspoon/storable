@@ -42,29 +42,32 @@ public final class EntitySpec : TypeSpec
       }
 
 
-    public func generateEntityDefinition() -> String
+    public func codegenEntityValue() -> String
       {
-        """
-        Entity(\(name).self, identity: .\(identity), properties: [
-          \(properties.values.compactMap({$0.generatePropertyDefinition()}).joined(separator: ",\n"))
-        ])
-        """
+        return { properties in
+          """
+          Entity(\(name).self, identity: .\(identity), properties: [
+            \(properties.compactMap({$0.codegenPropertyValue()}).joined(separator: "," + .newline()).indented(2))
+          ])
+          """
+        }(properties.values.sorted(by: {$0.name < $1.name}))
       }
 
 
-    public func generateClassDefinition(for modelName: String) -> String
+    public func codegenTypeDefinition(for modelName: String) -> String
       {
-        """
-        @objc(\(name))
-        public class \(name) : Object\(requiredProtocolName.map {", " + $0} ?? "")
-        {
-          typealias Game = \(modelName)
-          \(properties.map({$1.generatePropertyDeclaration()}).joined(separator: "\n" + .space(2)))
-        }
-        """
+        return { requiredProtocolName, properties in
+          """
+          @objc(\(name))
+          public class \(name) : Object\(requiredProtocolName.map {", " + $0} ?? "")
+            {
+              typealias Game = \(modelName)
+              \(properties.map({$0.codegenPropertyDeclaration()}).joined(separator: .newline()).indented(4))
+            }
+          """
+        }(
+          ["Race", "Demon", "Skill", "SkillGrant", "RaceFusion", "State"].contains(name) ? name + "Model" : nil,
+          properties.values.sorted(by: {$0.name < $1.name})
+        )
       }
-
-
-    var requiredProtocolName : String?
-      { ["Race", "Demon", "Skill", "SkillGrant", "RaceFusion", "State"].contains(name) ? name + "Model" : nil }
   }

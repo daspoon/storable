@@ -51,15 +51,15 @@ public struct AttributeSpec : PropertySpec
       }
 
 
-    public func generatePropertyDeclaration() -> String
+    public func codegenPropertyDeclaration() -> String
       {
         "@\(type.swiftPropertyWrapper) var \(name) : \(type)"
       }
 
 
-    public func generatePropertyDefinition() -> String?
+    public func codegenPropertyValue() -> String?
       {
-        return generateConstructor("Attribute", argumentPairs: [
+        return codegenConstructor("Attribute", argumentPairs: [
           (nil, "\"" + name + "\""),
           (type.isNative ? "nativeType" : "codableType", type.description + ".self"),
           ("ingestKey", ".\(ingestKey)"),
