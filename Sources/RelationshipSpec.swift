@@ -27,7 +27,7 @@ public struct RelationshipSpec : PropertySpec
         let inverseName = try info.requiredValue(of: String.self, for: "inverseName")
         let inverseArity = try info.optionalValue(of: Relationship.Arity.self, for: "inverseArity") ?? .defaultInverseValue(for: arity)
         let inverseDeleteRule = try info.optionalValue(of: Relationship.DeleteRule.self, for: "inverseDeleteRule") ?? .defaultInverseValue(for: arity)
-        let ingestKey = try IngestKey(with: info["ingestKey"], for: "name")
+        let ingestKey = try IngestKey(with: info["ingestKey"], for: name)
         let ingestMode = try info.optionalValue(of: Relationship.IngestMode.self, for: "ingestMode") ?? .defaultValue(for: arity)
 
         relationship = .init(name,
