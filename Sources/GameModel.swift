@@ -91,7 +91,10 @@ public protocol DemonModel<Game> : NSManagedObject
 
     // State
 
+    /// The demon exists in the player's compendium.
     var captured : Bool { get set }
+    /// The demon is available for capture.
+    var accessible : Bool { get set }
   }
 
 
