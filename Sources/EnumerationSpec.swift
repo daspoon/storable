@@ -11,8 +11,6 @@ public struct EnumerationSpec : TypeSpec
       {
         /// The 'name' element of the input dictionary. Required.
         public let name : String
-        /// The 'intValue' element of the input dictionary which determines the associated rawValue. The default is nil, which means rawValue is determined by definition order.
-        public let intValue : Int?
         /// The 'ingestName' is the string used to identify enum values when ingestring object properties of the enum type. The default is the given name.
         public let ingestName : String
         /// The 'shortName' is the string used to identity associated values in compact UI scenarios. The default is the given name.
@@ -23,7 +21,6 @@ public struct EnumerationSpec : TypeSpec
         public init(json dict: [String: Any]) throws
           {
             name = try dict.requiredValue(for: "name")
-            intValue = try dict.optionalValue(of: Int.self, for: "intValue")
             ingestName = try dict.optionalValue(for: "ingestName") ?? name
             shortName = try dict.optionalValue(for: "shortName") ?? name
             iconName = try dict.optionalValue(for: "iconName") ?? name
@@ -31,6 +28,7 @@ public struct EnumerationSpec : TypeSpec
       }
 
     public let name : String
+    public let rawTypeName : String
     public let baseEnumTypes : [EnumerationSpec]
     public let definedValues : [Value]
     public let definedValuesByName : [String: Value]
@@ -40,6 +38,9 @@ public struct EnumerationSpec : TypeSpec
       {
         name = n
         definedValues = try dict.requiredArrayValue(of: Value.self, for: "values")
+
+        rawTypeName = try dict.optionalValue(for: "representation") ?? "Int"
+        guard ["Int", "String"].contains(rawTypeName) else { throw Exception("representation must be either Int or String") }
 
         if let baseName = try dict.optionalValue(of: String.self, for: "extends") {
           guard let baseType = environment[baseName] else { throw Exception("unknown base type '\(baseName)'") }
@@ -74,9 +75,9 @@ public struct EnumerationSpec : TypeSpec
     public func codegenTypeDefinition(for modelName: String) -> String
       {
         """
-        public enum \(name) : Int, Enumeration
+        public enum \(name) : \(rawTypeName), Enumeration
           {
-            \(values.map({"case \($0.name) \($0.intValue.map({" = \($0)"}) ?? "")"}).joined(separator: .newline() + .space(4)))
+            \(values.map({"case \($0.name)"}).joined(separator: .newline() + .space(4)))
 
             public init(json: String) throws {
               switch json {
@@ -91,8 +92,6 @@ public struct EnumerationSpec : TypeSpec
                 \(values.map({"case .\($0.name) : return \"\($0.name)\""}).joined(separator: .newline() + .space(8)))
               }
             }
-
-            \(baseEnumTypes.map({"var \($0.name.camelCased) : \($0.name)? { .init(rawValue: rawValue) }"}).joined(separator: .newline() + .space(4)))
         }
         """.compressingVerticalWhitespace()
       }

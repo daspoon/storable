@@ -8,22 +8,22 @@ import CoreData
 public protocol GameModel
   {
     /// The enumeration of demon statistics.
-    associatedtype Statistic : Enumeration
+    associatedtype Statistic : Enumeration<Int>
 
     /// The enumeration of skill types
-    associatedtype SkillType : Enumeration
+    associatedtype SkillType : Enumeration<String>
 
     /// A sub-enumeration of skill types for which the effect is dependent on caster proficiency.
-    associatedtype Affinity : Enumeration
+    associatedtype Affinity : Enumeration<Int>
 
     /// A sub-enumeration of skill types for which the effect is dependent on target resistances.
-    associatedtype Element : Enumeration
+    associatedtype Element : Enumeration<Int>
 
     /// The enumeration of ailment types.
-    associatedtype Ailment : Enumeration
+    associatedtype Ailment : Enumeration<Int>
 
     /// The enumeration of resistance values.
-    associatedtype Resistance : Enumeration
+    associatedtype Resistance : Enumeration<Int>
 
 
     /// The class representing the game playthrough state.
