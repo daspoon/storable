@@ -112,6 +112,8 @@ public protocol SkillModel<Game> : NSManagedObject
     var cost : Int { get }
     /// A description of the skill effect.
     var effect : String { get }
+    /// The demon which uniquely possesses the skill, if any.
+    var uniqueBearer : Game.Demon? { get }
   }
 
 
