@@ -91,8 +91,6 @@ struct SMT5 : GameModel
             case .mirage : return "mirage"
           }
         }
-
-
     }
 
     public enum Element : Int, Enumeration
@@ -130,8 +128,6 @@ struct SMT5 : GameModel
             case .dark : return "dark"
           }
         }
-
-
     }
 
     public enum Resistance : Int, Enumeration
@@ -166,8 +162,6 @@ struct SMT5 : GameModel
             case .drain : return "drain"
           }
         }
-
-
     }
 
     public enum SkillType : Int, Enumeration
@@ -263,8 +257,6 @@ struct SMT5 : GameModel
             case .luck : return "luck"
           }
         }
-
-
     }
 
     // MARK: - Classes -

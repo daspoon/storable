@@ -94,6 +94,6 @@ public struct EnumerationSpec : TypeSpec
 
             \(baseEnumTypes.map({"var \($0.name.camelCased) : \($0.name)? { .init(rawValue: rawValue) }"}).joined(separator: .newline() + .space(4)))
         }
-        """
+        """.compressingVerticalWhitespace()
       }
   }
