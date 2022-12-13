@@ -117,12 +117,12 @@ public indirect enum AttributeType : CustomStringConvertible
 
 
     /// The name of the property wrapper used in Swift property declarations.
-    public var swiftPropertyWrapper : String
+    public func swiftPropertyWrapper(for propertyName: String) -> String
       {
         switch self {
           case .native : return "NSManaged"
           default :
-            return "Persistent"
+            return "Persistent(\"" + propertyName + "\")"
         }
       }
   }
