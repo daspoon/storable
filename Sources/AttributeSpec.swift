@@ -14,7 +14,7 @@ public struct AttributeSpec : PropertySpec
     public let type : AttributeType
 
     /// The key used to extract the property value from the ingest data provided on object initialization.
-    public let ingestKey : IngestKey
+    public let ingestKey : IngestKey?
 
     /// The default value expressed as a Swift source string.
     public private(set) var defaultValue : (any Defaultable)?
@@ -32,7 +32,7 @@ public struct AttributeSpec : PropertySpec
           return try AttributeType(with: string, in: environment)
         }
 
-        ingestKey = try .init(with: info["ingestKey"], for: name)
+        ingestKey = try info["ingestKey"].map { try IngestKey(with: $0, for: x) }
 
         transform = try info.optionalValue(of: String.self, for: "transform").map { try ingestTransform(named: $0) }
 
@@ -62,7 +62,7 @@ public struct AttributeSpec : PropertySpec
         return codegenConstructor("Attribute", argumentPairs: [
           (nil, "\"" + name + "\""),
           (type.isNative ? "nativeType" : "codableType", type.description + ".self"),
-          ("ingestKey", ".\(ingestKey)"),
+          ingestKey.map { ("ingestKey", ".\($0)") },
           transform.map { ("transform", $0.description) },
           defaultValue.map { ("defaultValue", $0.asSwiftLiteral) },
         ])

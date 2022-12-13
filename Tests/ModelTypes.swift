@@ -334,7 +334,7 @@ struct SMT5 : GameModel
 
     public static let schema = Schema(name: "SMT5", entities: [
       Entity(Demon.self, identity: .name, properties: [
-        Attribute("affinities", codableType: [Int].self, ingestKey: .element("affinities")),
+        Attribute("affinities", codableType: [Int].self),
         Attribute("ailmentResistances", codableType: [Resistance].self, ingestKey: .element("ailments"), transform: Unpack(), defaultValue: "------"),
         Attribute("captured", nativeType: Bool.self, ingestKey: .ignore, defaultValue: false),
         Attribute("elementResistances", codableType: [Resistance].self, ingestKey: .element("resists"), transform: Unpack(), defaultValue: "------"),
@@ -348,13 +348,13 @@ struct SMT5 : GameModel
         Attribute("name", nativeType: String.self, ingestKey: .key)
       ]),
       Entity(RaceFusion.self, identity: .anonymous, properties: [
-        Attribute("index", nativeType: Int.self, ingestKey: .element("index")),
+        Attribute("index", nativeType: Int.self),
         Relationship("inputs", arity: .toMany, relatedEntityName: "Race", inverseName: "consumingFusions", deleteRule: .cascade, inverseArity: .toMany, inverseDeleteRule: .nullify, ingestKey: .element("inputs"), ingestMode: .create),
         Relationship("output", arity: .toOne, relatedEntityName: "Race", inverseName: "producingFusions", deleteRule: .nullify, inverseArity: .toMany, inverseDeleteRule: .cascade, ingestKey: .element("output"), ingestMode: .reference)
       ]),
       Entity(Skill.self, identity: .name, properties: [
-        Attribute("cost", nativeType: Int.self, ingestKey: .element("cost"), defaultValue: 0),
-        Attribute("effect", nativeType: String.self, ingestKey: .element("effect")),
+        Attribute("cost", nativeType: Int.self, defaultValue: 0),
+        Attribute("effect", nativeType: String.self),
         Attribute("name", nativeType: String.self, ingestKey: .key),
         Attribute("type", codableType: SkillType.self, ingestKey: .element("element"))
       ]),
