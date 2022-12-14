@@ -114,15 +114,4 @@ public indirect enum AttributeType : CustomStringConvertible
         guard case .native = self else { return false }
         return true
       }
-
-
-    /// The name of the property wrapper used in Swift property declarations.
-    public func swiftPropertyWrapper(for propertyName: String) -> String
-      {
-        switch self {
-          case .native : return "NSManaged"
-          default :
-            return "Persistent(\"" + propertyName + "\")"
-        }
-      }
   }

@@ -53,7 +53,7 @@ public struct AttributeSpec : PropertySpec
 
     public func codegenPropertyDeclaration() -> String
       {
-        "@\(type.swiftPropertyWrapper(for: name)) var \(name) : \(type)"
+        "@Stored(\"\(name)\") var \(name) : \(type)"
       }
 
 
