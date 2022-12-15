@@ -88,6 +88,8 @@ public protocol DemonModel<Game> : NSManagedObject
     var ailmentResistances : [Game.Resistance] { get }
     /// The base affinities of the demon, indexed by Afinity rawValue.
     var affinities : [Int] { get }
+    /// The associated skills and the levels at which they're obtained.
+    var skillGrants : Set<Game.SkillGrant> { get }
 
     // State
 
