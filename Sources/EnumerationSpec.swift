@@ -92,6 +92,12 @@ public struct EnumerationSpec : TypeSpec
                 \(values.map({"case .\($0.name) : return \"\($0.name)\""}).joined(separator: .newline() + .space(8)))
               }
             }
+
+            public var shortName : String {
+              switch self {
+                \(values.map({"case .\($0.name) : return \"\($0.shortName)\""}).joined(separator: .newline() + .space(8)))
+              }
+            }
         }
         """.compressingVerticalWhitespace()
       }
