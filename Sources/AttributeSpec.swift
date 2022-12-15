@@ -61,7 +61,7 @@ public struct AttributeSpec : PropertySpec
       {
         return codegenConstructor("Attribute", argumentPairs: [
           (nil, "\"" + name + "\""),
-          (type.isNative ? "nativeType" : "codableType", type.description + ".self"),
+          ("of", type.description + ".self"),
           ingestKey.map { ("ingestKey", ".\($0)") },
           transform.map { ("transform", $0.description) },
           defaultValue.map { ("defaultValue", $0.asSwiftLiteral) },

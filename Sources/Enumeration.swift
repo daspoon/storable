@@ -5,7 +5,7 @@
 
 /// This protocol specifies the requirements of the various enumerated type components of GameModel.
 ///
-public protocol Enumeration<Value> : RawRepresentable<Self.Value>, CaseIterable, CustomStringConvertible, Hashable, Ingestible, Storable
+public protocol Enumeration<Value> : RawRepresentable<Self.Value>, CaseIterable, Codable, CustomStringConvertible, Hashable, Ingestible, Storable
   {
     associatedtype Value
 

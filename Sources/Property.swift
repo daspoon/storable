@@ -14,7 +14,7 @@ public protocol Property
     var ingestKey : IngestKey { get }
 
     /// The default value to be persisted when no value is provided on ingest. Required.
-    var defaultIngestValue : NSObject? { get }
+    var defaultIngestValue : (any Storable)? { get }
 
     /// Indicates whether or not the persisted value can be nil. Required.
     var allowsNilValue : Bool { get }

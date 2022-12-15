@@ -2,7 +2,7 @@
 
 */
 
-import Foundation
+import CoreData
 
 
 /// Represents a relation between entities.  Note that every relationship has an inverse, but only one endpoint is specified explicitly.
@@ -71,7 +71,7 @@ public struct Relationship : Property
       }
 
 
-    public var defaultIngestValue : NSObject?
+    public var defaultIngestValue : (any Storable)?
       { nil }
 
 

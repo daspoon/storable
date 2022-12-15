@@ -9,7 +9,9 @@ public protocol Storable
   {
     associatedtype StoredType : Storage
 
-    static func storedValue(for value: Self) throws -> StoredType
+    static var attributeType : NSAttributeDescription.AttributeType { get }
+
+    func storedValue() throws -> StoredType
 
     static func decodeStoredValue(_ storedValue: StoredType) throws -> Self
 
@@ -34,97 +36,116 @@ extension Storable
   }
 
 
+
 // MARK: - CoreData attribute types supported by  are Storable -
 
 extension Bool : Storable
   {
-    public static func storedValue(for value: Self) throws -> NSNumber { NSNumber(value: value) }
-    public static func decodeStoredValue(_ storedValue: NSNumber) throws -> Self { storedValue.boolValue }
+    public static var attributeType : NSAttributeDescription.AttributeType
+      { .boolean }
+    public func storedValue() throws -> NSNumber
+      { self as NSNumber }
+    public static func decodeStoredValue(_ object: NSNumber) throws -> Self
+      { object.boolValue }
   }
+
 
 extension Data : Storable
   {
-    public static func storedValue(for value: Self) throws -> NSData { value as NSData }
-    public static func decodeStoredValue(_ storedValue: NSData) throws -> Self { storedValue as Self }
+    public static var attributeType : NSAttributeDescription.AttributeType
+      { .binaryData }
+    public func storedValue() throws -> NSData
+      { self as NSData }
+    public static func decodeStoredValue(_ object: NSData) throws -> Self
+      { object as Data }
   }
+
 
 extension Date : Storable
   {
-    public static func storedValue(for value: Self) throws -> NSDate { value as NSDate }
-    public static func decodeStoredValue(_ storedValue: NSDate) throws -> Self { storedValue as Self }
+    public static var attributeType : NSAttributeDescription.AttributeType
+      { .date }
+    public func storedValue() throws -> NSDate
+      { self as NSDate }
+    public static func decodeStoredValue(_ object: NSDate) throws -> Self
+      { object as Self }
   }
+
 
 extension Double : Storable
   {
-    public static func storedValue(for value: Self) throws -> NSNumber { NSNumber(value: value) }
-    public static func decodeStoredValue(_ storedValue: NSNumber) throws -> Self { storedValue.doubleValue }
+    public static var attributeType : NSAttributeDescription.AttributeType
+      { .double }
+    public func storedValue() throws -> NSNumber
+      { self as NSNumber }
+    public static func decodeStoredValue(_ object: NSNumber) throws -> Self
+      { object.doubleValue }
   }
+
 
 extension Float : Storable
   {
-    public static func storedValue(for value: Self) throws -> NSNumber { NSNumber(value: value) }
-    public static func decodeStoredValue(_ storedValue: NSNumber) throws -> Self { storedValue.floatValue }
+    public static var attributeType : NSAttributeDescription.AttributeType
+      { .float }
+    public func storedValue() throws -> NSNumber
+      { self as NSNumber }
+    public static func decodeStoredValue(_ object: NSNumber) throws -> Self
+      { object.floatValue }
   }
+
 
 extension Int : Storable
   {
-    public static func storedValue(for value: Self) throws -> NSNumber { NSNumber(value: value) }
-    public static func decodeStoredValue(_ storedValue: NSNumber) throws -> Self { storedValue.intValue }
+    public static var attributeType : NSAttributeDescription.AttributeType
+      { .integer64 }
+    public func storedValue() throws -> NSNumber
+      { self as NSNumber }
+    public static func decodeStoredValue(_ object: NSNumber) throws -> Self
+      { object.intValue }
   }
+
 
 extension Int16 : Storable
   {
-    public static func storedValue(for value: Self) throws -> NSNumber { NSNumber(value: value) }
-    public static func decodeStoredValue(_ storedValue: NSNumber) throws -> Self { storedValue.int16Value }
+    public static var attributeType : NSAttributeDescription.AttributeType
+      { .integer16}
+    public func storedValue() throws -> NSNumber
+      { self as NSNumber }
+    public static func decodeStoredValue(_ object: NSNumber) throws -> Self
+      { object.int16Value }
   }
+
 
 extension Int32 : Storable
   {
-    public static func storedValue(for value: Self) throws -> NSNumber { NSNumber(value: value) }
-    public static func decodeStoredValue(_ storedValue: NSNumber) throws -> Self { storedValue.int32Value }
+    public static var attributeType : NSAttributeDescription.AttributeType
+      { .integer32 }
+    public func storedValue() throws -> NSNumber
+      { self as NSNumber }
+    public static func decodeStoredValue(_ object: NSNumber) throws -> Self
+      { object.int32Value }
   }
+
 
 extension Int64 : Storable
   {
-    public static func storedValue(for value: Self) throws -> NSNumber { NSNumber(value: value) }
-    public static func decodeStoredValue(_ storedValue: NSNumber) throws -> Self { storedValue.int64Value }
+    public static var attributeType : NSAttributeDescription.AttributeType
+      { .integer64 }
+    public func storedValue() throws -> NSNumber
+      { self as NSNumber }
+    public static func decodeStoredValue(_ object: NSNumber) throws -> Self
+      { object.int64Value }
   }
+
 
 extension String : Storable
   {
-    public static func storedValue(for value: Self) throws -> NSString { value as NSString }
-    public static func decodeStoredValue(_ storedValue: NSString) throws -> Self { storedValue as Self }
-  }
-
-
-// MARK: - NSManagedObject and Set<T: NSManagedObject> are Storable -
-
-extension NSManagedObject : Storable
-  {
-    public static func storedValue(for object: NSManagedObject) throws -> NSManagedObject { object }
-    public static func decodeStoredValue(_ object: NSManagedObject) throws -> Self { object as! Self }
-  }
-
-
-extension Set : Storable where Element : NSManagedObject
-  {
-    public static func storedValue(for set: Self) throws -> Self { set }
-    public static func decodeStoredValue(_ set: Self) throws -> Self { set }
-  }
-
-
-// MARK: - Any Codable is Storable as Data, but conformance must be specified by concrete types -
-
-extension Encodable
-  {
-    public static func storedValue(for value: Self) throws -> NSData
-      { try! JSONEncoder().encode(value) as NSData }
-  }
-
-extension Decodable
-  {
-    public static func decodeStoredValue(_ data: NSData) throws -> Self
-      { try! JSONDecoder().decode(Self.self, from: data as Data) }
+    public static var attributeType : NSAttributeDescription.AttributeType
+      { .string }
+    public func storedValue() throws -> NSString
+      { self as NSString }
+    public static func decodeStoredValue(_ object: NSString) throws -> Self
+      { object as Self }
   }
 
 
@@ -132,8 +153,11 @@ extension Decodable
 
 extension RawRepresentable where RawValue : Storable
   {
-    public static func storedValue(for value: Self) throws -> RawValue.StoredType
-      { try RawValue.storedValue(for: value.rawValue) }
+    public static var attributeType: NSAttributeDescription.AttributeType
+      { RawValue.attributeType }
+
+    public func storedValue() throws -> RawValue.StoredType
+      { try rawValue.storedValue() }
 
     public static func decodeStoredValue(_ storedValue: RawValue.StoredType) throws -> Self
       {
@@ -148,10 +172,13 @@ extension RawRepresentable where RawValue : Storable
 
 extension Optional : Storable where Wrapped : Storable
   {
-    public static func storedValue(for value: Self) throws -> Wrapped.StoredType?
+    public static var attributeType : NSAttributeDescription.AttributeType
+      { Wrapped.attributeType }
+
+    public func storedValue() throws -> Wrapped.StoredType?
       {
-        switch value {
-          case .some(let wrapped) : return try Wrapped.storedValue(for: wrapped)
+        switch self {
+          case .some(let wrapped) : return try wrapped.storedValue()
           case .none : return nil
         }
       }
@@ -176,13 +203,3 @@ extension Optional : Storable where Wrapped : Storable
         return true
       }
   }
-
-
-// MARK: - Concrete collection types are Storable as Data when their elements are Codable -
-
-extension Array : Storable where Element : Codable
-  { }
-
-
-extension Dictionary : Storable where Key : Codable, Value : Codable
-  { }

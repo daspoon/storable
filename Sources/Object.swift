@@ -20,7 +20,7 @@ open class Object : NSManagedObject
             if let jsonValue = ingestData[property.ingestKey] {
               switch property {
                 case let attribute as Attribute :
-                  setValue(try attribute.ingestMethod(jsonValue), forKey: attribute.name)
+                  setValue(try attribute.ingestMethod(jsonValue).storedValue(), forKey: attribute.name)
 
                 case let relationship as Relationship :
                   // The action taken depends on the ingestion mode and the arity of the relationship...
@@ -60,7 +60,7 @@ open class Object : NSManagedObject
             }
             else {
               guard property.defaultIngestValue != nil || property.allowsNilValue else { throw Exception("a value is required") }
-              setValue(property.defaultIngestValue, forKey: property.name)
+              setValue(try property.defaultIngestValue?.storedValue(), forKey: property.name)
             }
           }
           catch let error {

@@ -3,7 +3,7 @@
 */
 
 
-public protocol Defaultable : Ingestible // TODO: necessary to inherit Ingestible?
+public protocol Defaultable
   {
     /// Return a Swift literal expression of the receiver.
     var asSwiftLiteral : String { get }

@@ -6,29 +6,13 @@ import Foundation
 
 
 /// Ingestible identifies data types which can be translated from JSON and persisted as Data.
-public protocol Ingestible : Codable
+public protocol Ingestible
   {
     /// The associated JSON type.
     associatedtype Input
 
     /// Initialize a new value from a JSON value. Required.
     init(json: Input) throws
-
-    /// Indicates whether or not nil is a value of the type. The default implementation returns false.
-    static var isNullable : Bool { get }
-  }
-
-
-extension Ingestible
-  {
-    public static func createNSData(from json: Any) throws -> NSData
-      {
-        guard let value = json as? Input else { throw Exception("expecting value of type \(Input.self)") }
-        return try JSONEncoder().encode(try Self(json: value)) as NSData
-      }
-
-    public static var isNullable : Bool
-      { false }
   }
 
 
@@ -97,9 +81,6 @@ extension Optional : Ingestible where Wrapped : Ingestible
   {
     public init(json: Wrapped.Input?) throws
       { self = try json.map { try Wrapped(json: $0) } }
-
-    public static var isNullable : Bool
-      { true }
   }
 
 

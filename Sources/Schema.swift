@@ -36,7 +36,7 @@ public struct Schema
           entityDescription.managedObjectClassName = NSStringFromClass(entity.managedObjectClass)
           // Initialize the entity's attributes
           entityDescription.properties = entity.attributes.map { attribute in
-            return NSAttributeDescription(name: attribute.name, type: attribute.coreDataStorageType, isOptional: attribute.allowsNilValue)
+            return NSAttributeDescription(name: attribute.name, type: attribute.coreDataAttributeType, isOptional: attribute.allowsNilValue)
           }
           return (entity.name, (entityDescription, entity.relationships))
         })

@@ -43,7 +43,7 @@ public struct Stored<Value: Storable>
           // Encode and store the new value
           let wrapper = instance[keyPath: storageKeyPath]
           do {
-            let storedValue = newValue.isNullValue ? nil : try Value.storedValue(for: newValue)
+            let storedValue = newValue.isNullValue ? nil : try newValue.storedValue()
             instance.setPrimitiveValue(storedValue, forKey: wrapper.key)
           }
           catch let error as NSError {

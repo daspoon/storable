@@ -60,7 +60,7 @@ public struct RelationshipSpec : PropertySpec
           case .toMany : typeString = "Set<" + self.relatedEntityName + ">"
           case .optionalToOne : typeString = self.relatedEntityName + "?"
         }
-        return "@Stored(\"\(name)\") var \(name) : \(typeString)"
+        return "@NSManaged var \(name) : \(typeString)"
       }
 
 

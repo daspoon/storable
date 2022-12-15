@@ -9,7 +9,7 @@ public class DataStore
   {
     let schema : Schema
     let managedObjectModel : NSManagedObjectModel
-    let managedObjectContext : NSManagedObjectContext
+    public let managedObjectContext : NSManagedObjectContext
 
     public private(set) static var shared : DataStore!
     private static let semaphore = DispatchSemaphore(value: 1)
