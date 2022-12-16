@@ -48,7 +48,7 @@ public protocol GameModel
 
 // MARK: --
 
-public protocol StateModel<Game> : NSManagedObject
+public protocol StateModel<Game> : Object
   {
     associatedtype Game : GameModel
 
@@ -59,7 +59,7 @@ public protocol StateModel<Game> : NSManagedObject
 
 // MARK: --
 
-public protocol RaceModel<Game> : NSManagedObject
+public protocol RaceModel<Game> : Object
   {
     associatedtype Game : GameModel
 
@@ -70,7 +70,7 @@ public protocol RaceModel<Game> : NSManagedObject
 
 // MARK: --
 
-public protocol DemonModel<Game> : NSManagedObject
+public protocol DemonModel<Game> : Object
   {
     associatedtype Game : GameModel
 
@@ -102,7 +102,7 @@ public protocol DemonModel<Game> : NSManagedObject
 
 // MARK: --
 
-public protocol SkillModel<Game> : NSManagedObject
+public protocol SkillModel<Game> : Object
   {
     associatedtype Game : GameModel
 
@@ -121,7 +121,7 @@ public protocol SkillModel<Game> : NSManagedObject
 
 // MARK: --
 
-public protocol SkillGrantModel<Game> : NSManagedObject
+public protocol SkillGrantModel<Game> : Object
   {
     associatedtype Game : GameModel
 
@@ -136,7 +136,7 @@ public protocol SkillGrantModel<Game> : NSManagedObject
 
 // MARK: --
 
-public protocol RaceFusionModel<Game> : NSManagedObject
+public protocol RaceFusionModel<Game> : Object
   {
     associatedtype Game : GameModel
 
