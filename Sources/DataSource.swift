@@ -28,19 +28,11 @@ public struct DataSource
       }
 
 
-    /// Definition determines how json content translates to a set of object instances.
-    public enum Definition
-      {
-        /// Corresponds to a set of instances of a named entity.
-        case entitySet(name: String, content: Content? = nil)
-      }
-
-
     let bundle : DataBundle
-    let definitions : [Definition]
+    let definitions : [DataDefinition]
 
 
-    public init(bundle: DataBundle, definitions: [Definition])
+    public init(bundle: DataBundle, definitions: [DataDefinition])
       {
         self.bundle = bundle
         self.definitions = definitions

@@ -22,30 +22,7 @@ public class IngestContext
 
         // Ingest each defined type
         for definition in dataSource.definitions {
-          switch definition {
-            case .entitySet(let entityName, let content) :
-              let entity = try context.entity(for: entityName)
-              if let content {
-                switch content.format {
-                  case .any :
-                    let jsonValue = try dataSource.load(content)
-                    _ = try entity.managedObjectClass.init(entity, with: .init(key: nil, value: jsonValue), in: context)
-                  case .array :
-                    let jsonArray = try dataSource.load(content, of: [String].self)
-                    for instanceName in jsonArray {
-                      _ = try entity.managedObjectClass.init(entity, with: .init(key: instanceName, value: [:]), in: context)
-                    }
-                  case .dictionary :
-                    let jsonDict = try dataSource.load(content, of: [String: Any].self)
-                    for (instanceName, jsonValue) in jsonDict {
-                      _ = try entity.managedObjectClass.init(entity, with: .init(key: instanceName, value: jsonValue), in: context)
-                    }
-                }
-              }
-              else {
-                _ = try entity.managedObjectClass.init(entity, with: .init(key: nil, value: [:]), in: context)
-              }
-          }
+          try definition.ingest(from: dataSource, into: context)
         }
 
         try context.endIngestion()
