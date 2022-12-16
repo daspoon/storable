@@ -50,7 +50,10 @@ public final class EntitySpec : TypeSpec
             \(properties.compactMap({$0.codegenPropertyValue()}).joined(separator: "," + .newline()).indented(2))
           ])
           """
-        }(properties.values.sorted(by: {$0.name < $1.name}))
+        }(
+          properties.values.filter({$0 is AttributeSpec}).sorted(by: {$0.name < $1.name})
+            + properties.values.filter({$0 is RelationshipSpec}).sorted(by: {$0.name < $1.name})
+        )
       }
 
 
@@ -67,7 +70,8 @@ public final class EntitySpec : TypeSpec
           """
         }(
           ["Race", "Demon", "Skill", "SkillGrant", "RaceFusion", "State"].contains(name) ? name + "Model" : nil,
-          properties.values.sorted(by: {$0.name < $1.name})
+          properties.values.filter({$0 is AttributeSpec}).sorted(by: {$0.name < $1.name})
+            + properties.values.filter({$0 is RelationshipSpec}).sorted(by: {$0.name < $1.name})
         )
       }
   }
