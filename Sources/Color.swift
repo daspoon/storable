@@ -3,26 +3,35 @@
 */
 
 
-public enum Color
+public struct Color
   {
-    case named(String)
-    case rgba(Float, Float, Float, Float)
+    public var red, green, blue, alpha : Double
+
+    public init(red r: Double, green g: Double, blue b: Double, alpha a: Double = 1)
+      {
+        red = r
+        green = g
+        blue = b
+        alpha = a
+      }
   }
 
 
 extension Color : Ingestible
   {
-    public init(json: Any) throws
+    public init(json values: [Double]) throws
       {
-        switch json {
-          case let name as String :
-            self = .named(name)
-          case let values as [Float] where values.count == 3 :
-            self = .rgba(values[0], values[1], values[2], 1)
-          case let values as [Float] where values.count == 4 :
-            self = .rgba(values[0], values[1], values[2], values[3])
-          default :
-            throw Exception("expecting color name or array of 3 or 4 component values")
-        }
+        guard (3 ... 4).contains(values.count) else { throw Exception("expecting array of 3 or 4 component values") }
+        red = values[0]
+        green = values[1]
+        blue = values[2]
+        alpha = values.count == 4 ? values[3] : 1
       }
+  }
+
+
+extension Color
+  {
+    public var swiftText : String
+      { ".init(red: \(red), green: \(green), blue: \(blue), alpha: \(alpha))" }
   }
