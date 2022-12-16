@@ -52,11 +52,35 @@ extension String
       }
 
 
-    /// Return an approximate plural form by appending "s"
-    var pluralized : String
-      { self + "s" }
+    /// Return the constituent words of a bumpy-case string.
+    public var bumpyCaseComponents : [String]
+      {
+        var components : [String] = []
 
-    /// Return an approximate camel-cased form by lowercasing the first character.
-    var camelCased : String
-      { String(prefix(1)).lowercased() + String(dropFirst(1)) }
+        var i = startIndex
+        let n = endIndex
+        while i < n {
+          let word: String
+
+          // Determine the number (i - j) of leading uppercase characters...
+          let j = i
+          while i < n && self[i].isUppercase { i = index(after: i) }
+
+          // If this number is greater than one, treat the substring as an acronym...
+          if i > index(after: j) {
+            // If the sequence is non-terminal then its last letter is considered the first letter of the subsequent word.
+            if i < n { i = index(before: i) }
+            word = String(self[j ..< i])
+          }
+          else {
+            let c = self[j].isUppercase ? self[j].lowercased() : String(self[j])
+            while i < n && !self[i].isUppercase { i = index(after: i) }
+            word = c + String(self[index(after: j) ..< i])
+          }
+
+          components.append(word)
+        }
+
+        return components
+      }
   }
