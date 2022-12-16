@@ -47,3 +47,39 @@ public struct EntitySetDefinition : DataDefinition
         }
       }
   }
+
+
+/// Create a set of RaceFusion instances from a file containing a fusion table.
+public struct RaceFusionDefinition : DataDefinition
+  {
+    public let entityName : String
+    public let content : DataSource.Content
+
+    public init(entityName x: String, content c: DataSource.Content)
+      {
+        entityName = x
+        content = c
+      }
+
+    public func ingest(from dataSource: DataSource, into context: IngestContext) throws
+      {
+        let entity = try context.entity(for: "RaceFusion")
+
+        let fusion_chart = try dataSource.load(content, of: [String: Any].self)
+        let raceNames = try fusion_chart.requiredValue(of: [String].self, for: "races")
+        let fusionTable = try fusion_chart.requiredValue(of: [[String]].self, for: "table")
+        for i in 0 ..< raceNames.count {
+          for j in 0 ..< i {
+            guard fusionTable[i][j] != "-" else { continue }
+            let ingestData = IngestData(
+              key: fusionTable[i][j],
+              value: [
+                "index": i * raceNames.count + j,
+                "inputs": [raceNames[i], raceNames[j]]
+              ]
+            )
+            _ = try entity.managedObjectClass.init(entity, with: ingestData, in: context)
+          }
+        }
+      }
+  }
