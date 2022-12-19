@@ -46,6 +46,18 @@ public protocol GameModel
   }
 
 
+extension GameModel
+  {
+    /// Return true iff Affinity.allCases is non-empty.
+    public static var hasAffinities : Bool
+      { Affinity.allCases.isEmpty == false }
+
+    /// Return true iff Ailment.allCases is non-empty.
+    public static var hasAilments : Bool
+      { Ailment.allCases.isEmpty == false }
+  }
+
+
 // MARK: --
 
 public protocol StateModel<Game> : Object
