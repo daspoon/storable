@@ -53,11 +53,13 @@ public struct EntitySetDefinition : DataDefinition
 public struct RaceFusionDefinition : DataDefinition
   {
     public let entityName : String
+    public let nullRaceName : String
     public let content : DataSource.Content
 
-    public init(entityName x: String, content c: DataSource.Content)
+    public init(entityName x: String, nullRaceName nr: String = "-", content c: DataSource.Content)
       {
         entityName = x
+        nullRaceName = nr
         content = c
       }
 
@@ -70,7 +72,7 @@ public struct RaceFusionDefinition : DataDefinition
         let fusionTable = try fusion_chart.requiredValue(of: [[String]].self, for: "table")
         for i in 0 ..< raceNames.count {
           for j in 0 ..< i {
-            guard fusionTable[i][j] != "-" else { continue }
+            guard fusionTable[i][j] != nullRaceName else { continue }
             let ingestData = IngestData(
               key: fusionTable[i][j],
               value: [
