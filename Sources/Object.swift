@@ -30,12 +30,12 @@ open class Object : NSManagedObject
                     case (.create, .toMany) :
                       // Creating a to-many relation requires the associated data is a dictionary mapping instance identifiers to the data provided to the related object initializer.
                       guard let jsonDict = jsonValue as? [String: Any] else { throw Exception("a dictionary value is required") }
-                      let relatedObjects = try jsonDict.map { (key, value) in try relatedClass.init(relatedEntity, with: IngestData(key: key, value: value), in: context) }
+                      let relatedObjects = try jsonDict.map { (key, value) in try relatedClass.init(relatedEntity, with: .dictionaryEntry(key: key, value: value), in: context) }
                       setValue(Set(relatedObjects), forKey: relationship.name)
 
                     case (.create, _) :
                       // Creating a to-one relationship requires providing the associated data to the related object initializer.
-                      let relatedObject = try relatedClass.init(relatedEntity, with: .init(value: jsonValue), in: context)
+                      let relatedObject = try relatedClass.init(relatedEntity, with: .value(jsonValue), in: context)
                       setValue(relatedObject, forKey: relationship.name)
 
                     case (.reference, .toMany) :

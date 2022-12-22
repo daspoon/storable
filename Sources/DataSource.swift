@@ -12,7 +12,18 @@ public struct DataSource
     /// Content indentifies a json value used to ingest a set of object instances.
     public struct Content
       {
-        public enum Format { case any, array, dictionary }
+        /// Format indicates how json data is to be interpreted.
+        public enum Format
+          {
+            /// An arbitrary value
+            case any
+            /// An array of arbitrary values
+            case array
+            /// A dictionary mapping string keys to arbitrary values
+            case dictionary
+            /// An array of strings interpreted as a dictionary mapping the elements to an empty dictionary (or an arbitrary value?).
+            case dictionaryAsArryOfKeys
+          }
 
         /// The name of the json resource within the bundle.
         public let resourceName : String

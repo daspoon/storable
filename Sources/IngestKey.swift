@@ -3,13 +3,17 @@
 */
 
 
-/// IngestKey determines how a property value is extracted from the IngestData pair provided on initialization of the enclosing object.
+/// IngestKey determines how an object property value is extracted from the IngestData provided on initialization.
+///
 public enum IngestKey : Equatable
   {
-    /// The property value is the key component of the data.
+    /// The property value is the key component of the dictionary entry represented by the ingest data.
     case key
 
-    /// The property value is the value component of the data.
+    /// The property value is the index of the array element represented by the ingest data.
+    case index
+
+    /// The property value is the the associated value of the ingest data.
     case value
 
     /// The data value is a dictionary and the property value is the named element of that dictionary.
@@ -26,6 +30,7 @@ extension IngestKey : CustomStringConvertible
       {
         switch self {
           case .key : return "key"
+          case .index : return "index"
           case .value : return "value"
           case .element(let name) : return "element(\"" + name + "\")"
           case .ignore : return "ignore"
@@ -45,6 +50,8 @@ extension IngestKey
           switch string {
             case ".key" :
               self = .key
+            case ".index" :
+              self = .index
             case ".value" :
               self = .value
             case ".ignore" :
