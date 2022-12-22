@@ -59,7 +59,7 @@ public struct DataSource
           json = try JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions(rawValue:0))
         }
         catch let error as NSError {
-          throw Exception("failed to decode json data from '\(url.lastPathComponent)': " + error.localizedDescription)
+          throw Exception("failed to decode json data from '\(url.lastPathComponent)': " + ((error.userInfo["NSDebugDescription"] as? String) ?? error.description))
         }
 
         if let keyPath = content.keyPath {
