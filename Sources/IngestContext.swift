@@ -22,6 +22,7 @@ public class IngestContext
 
         // Ingest each defined type
         for definition in dataSource.definitions {
+          log(definition.ingestDescription)
           try definition.ingest(from: dataSource, into: context)
         }
 

@@ -7,6 +7,8 @@
 public protocol DataDefinition
   {
     func ingest(from dataSource: DataSource, into context: IngestContext) throws
+
+    var ingestDescription : String { get }
   }
 
 
@@ -44,6 +46,14 @@ public struct EntitySetDefinition : DataDefinition
         }
         else {
           _ = try entity.managedObjectClass.init(entity, with: .init(key: nil, value: [:]), in: context)
+        }
+      }
+
+    public var ingestDescription : String
+      {
+        switch content {
+          case .some(let content) : return "ingesting \(entityName) from \(content.resourceNameAndKeyPath) as \(content.format)"
+          case .none : return "creating \(entityName)"
         }
       }
   }
@@ -84,4 +94,7 @@ public struct RaceFusionDefinition : DataDefinition
           }
         }
       }
+
+    public var ingestDescription : String
+      { "building fusion table" }
   }

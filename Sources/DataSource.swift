@@ -25,6 +25,9 @@ public struct DataSource
 
         public init(resourceName name: String, keyPath path: String? = nil, format fmt: Format = .dictionary)
           { resourceName = name; keyPath = path; format = fmt }
+
+        public var resourceNameAndKeyPath : String
+          { resourceName + (keyPath.map {"/" + $0} ?? "") }
       }
 
 
