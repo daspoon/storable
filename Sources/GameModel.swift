@@ -145,6 +145,15 @@ public protocol SkillGrantModel<Game> : Object
     var level : Int { get }
   }
 
+extension SkillGrantModel
+  {
+    public var demonRaceAndLevelText : String
+      { "\(demon.race.name), level \(demon.level)" }
+
+    public var levelText : String
+      { level > 0 ? level.description : "" }
+  }
+
 
 // MARK: --
 
@@ -158,4 +167,10 @@ public protocol RaceFusionModel<Game> : Object
     var output : Game.Race { get }
     /// The set of races input to the fusion.
     var inputs : Set<Game.Race> { get }
+  }
+
+extension RaceFusionModel
+  {
+    public var inputRaceNamesJoined : String
+      { inputs.map({$0.name}).joined(separator: ", ") }
   }
