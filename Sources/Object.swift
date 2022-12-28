@@ -16,17 +16,6 @@ open class Object : NSManagedObject
       { .anonymous }
 
 
-    /// Return the sequence of classes between self (inclusive) and Object (exclusive).
-    class var inheritanceChainToObject : AnyIterator<Object.Type>
-      {
-        var next : Object.Type? = self
-        return AnyIterator {
-          defer { next = next?.superclass() as? Object.Type }
-          return next != .some(Object.self) ? next : nil
-        }
-      }
-
-
     /// Return a mapping of names to Property values, corresponding to the instance variables declared with property wrappers conforming to ManagedPropertyWrapper.
     class var properties : [(String, Property)]
       {

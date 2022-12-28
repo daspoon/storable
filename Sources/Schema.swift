@@ -22,8 +22,28 @@ public struct Schema
         self.name = name
         self.stateEntityName = stateEntityName
 
-        // Map the name of each class to an Entity instance, which maintains its NSEntityDescription configured with the declared attributes.
-        entitiesByName = .init(uniqueKey: \.name, elements: objectTypes.map {Entity(objectType: $0)})
+        // Perform a post-order traversal on the implied class hierarchy to populate the mapping of names to Entity values and establish the inheritance relations between NSEntityDescriptions.
+        var _entitiesByName : [String: Entity] = [:]
+        _ = NSObject.inheritanceHierarchy(with: objectTypes).fold { objectType, subentities in
+          guard objectType != Object.self else { return NSEntityDescription() }
+          // Create and register an Entity instance;  it creates an NSEntityDescription with the appropriate name and managedObjectClassName.
+          let entity = Entity(objectType: objectType)
+          _entitiesByName[entity.name] = entity
+          // Populate the entity's attribute descriptions
+          for (name, property) in entity.properties {
+            guard let attribute = property as? Attribute else { continue }
+            let attributeDescription = NSAttributeDescription()
+            attributeDescription.name = name
+            attributeDescription.type = attribute.coreDataAttributeType
+            attributeDescription.isOptional = attribute.allowsNilValue
+            entity.entityDescription.properties.append(attributeDescription)
+          }
+          // Establish the inheritance relation with subentities, if any.
+          entity.entityDescription.subentities = subentities
+          // Return the entity description for use by the superentity
+          return entity.entityDescription
+        }
+        entitiesByName = _entitiesByName
 
         // Extend each NSEntityDescription with the specified relationships and their inverses, which we synthesize where not given explicitly.
         for (sourceName, sourceEntity) in entitiesByName {
