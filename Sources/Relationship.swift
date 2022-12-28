@@ -9,8 +9,8 @@ import CoreData
 public struct Relationship : Property
   {
     public enum Arity : String, Ingestible { case toOne, optionalToOne, toMany }
-    public enum DeleteRule : String, Ingestible { case cascade, nullify }
     public enum IngestMode : String, Ingestible { case reference, create }
+    public typealias DeleteRule = NSDeleteRule
 
     public typealias IngestInfo = (key: IngestKey, mode: IngestMode)
 
@@ -29,12 +29,6 @@ public struct Relationship : Property
     /// The name of the inverse relationship on the destination entity.
     public let inverseName : String
 
-    /// The the arity of the inverse relationship on the destination entity.
-    public let inverseArity : Arity
-
-    /// The effect which deleting the related object has on the host object.
-    public let inverseDeleteRule : DeleteRule
-
     /// Determines how related objects are obtained from the ingest value, if any, provided on object initialization: a mode of 'reference' indicates that ingested values name existing objects;
     /// a mode of 'create' indicates ingested values are JSON data used to create the related objects. Nil indicates the relation is not ingested.
     public let ingestKey : IngestKey
@@ -42,15 +36,13 @@ public struct Relationship : Property
 
 
     /// Initialize a new instance.
-    public init(_ name: String, arity: Arity, relatedEntityName: String, inverseName: String, deleteRule: DeleteRule? = nil, inverseArity: Arity? = nil, inverseDeleteRule: DeleteRule? = nil, ingestKey: IngestKey? = nil, ingestMode: IngestMode? = nil)
+    public init(_ name: String, arity: Arity, relatedEntityName: String, inverseName: String, deleteRule: DeleteRule? = nil, ingestKey: IngestKey? = nil, ingestMode: IngestMode? = nil)
       {
         self.name = name
         self.arity = arity
         self.relatedEntityName = relatedEntityName
         self.inverseName = inverseName
         self.deleteRule = deleteRule ?? .defaultValue(for: arity)
-        self.inverseArity = inverseArity ?? .defaultInverseValue(for: arity)
-        self.inverseDeleteRule = inverseDeleteRule ?? .defaultInverseValue(for: arity)
         self.ingestKey = ingestKey ?? .element(name)
         self.ingestMode = ingestMode ?? .defaultValue(for: arity)
       }
@@ -59,12 +51,10 @@ public struct Relationship : Property
     public func inverse(for entityName: String) -> Relationship
       {
         Self(inverseName,
-          arity: inverseArity,
+          arity: .defaultInverseValue(for: arity),
           relatedEntityName: entityName,
           inverseName: name,
-          deleteRule: deleteRule,
-          inverseArity: arity,
-          inverseDeleteRule: deleteRule,
+          deleteRule: .defaultInverseValue(for: arity),
           ingestKey: .ignore,
           ingestMode: .reference
         )
@@ -121,16 +111,16 @@ extension Relationship.DeleteRule
     public static func defaultValue(for arity: Relationship.Arity) -> Self
       {
         switch arity {
-          case .toOne, .optionalToOne : return .nullify
-          case .toMany : return .cascade
+          case .toOne, .optionalToOne : return .nullifyDeleteRule
+          case .toMany : return .cascadeDeleteRule
         }
       }
 
     public static func defaultInverseValue(for arity: Relationship.Arity) -> Self
       {
         switch arity {
-          case .toOne : return .cascade
-          case .toMany, .optionalToOne : return .nullify
+          case .toOne : return .cascadeDeleteRule
+          case .toMany, .optionalToOne : return .nullifyDeleteRule
         }
       }
   }

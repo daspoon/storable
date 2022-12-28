@@ -8,30 +8,32 @@ import CoreData
 public final class Entity
   {
     public let name : String
-    public let identity : Identity
-    public private(set) var properties : [String: Property] = [:]
+    public let properties : [String: Property]
     public let entityDescription : NSEntityDescription
     public let managedObjectClass : Object.Type
 
 
-    public init(_ objectType: Object.Type, identity: Identity, properties: [Property] = [])
+    public init(objectType: Object.Type)
       {
-        self.name = "\(objectType)"
-        self.identity = identity
-        self.properties = Dictionary(uniqueKeysWithValues: properties.map {($0.name, $0)})
-        self.entityDescription = .init()
-        self.managedObjectClass = objectType
+        name = objectType.entityName
+        managedObjectClass = objectType
+        properties = Dictionary(uniqueKeysWithValues: objectType.properties)
+
+        // Create a partial entity description containing the declared attributes; relationships are processed later by the enclosing Schema.
+        entityDescription = .init()
+        entityDescription.name = name
+        entityDescription.managedObjectClassName = name
+        for (name, property) in properties {
+          guard let attribute = property as? Attribute else { continue }
+          let attributeDescription = NSAttributeDescription()
+          attributeDescription.name = name
+          attributeDescription.type = attribute.coreDataAttributeType
+          attributeDescription.isOptional = attribute.allowsNilValue
+          entityDescription.properties.append(attributeDescription)
+        }
       }
 
 
-    public var attributes : [Attribute]
-      { properties.values.compactMap { $0 as? Attribute } }
-
-
-    public var relationships : [Relationship]
-      { properties.values.compactMap { $0 as? Relationship } }
-
-
     public var hasSingleInstance : Bool
-      { identity == .singleton }
+      { managedObjectClass.identity == .singleton }
   }

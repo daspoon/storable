@@ -27,7 +27,7 @@ public struct Attribute : Property
     public let allowsNilValue : Bool
 
 
-    private init(name: String, type: NSAttributeDescription.AttributeType, ingestMethod: @escaping (Any) throws -> any Storable, ingestKey: IngestKey? = nil, allowsNilValue: Bool = false, defaultValue: Any? = nil)
+    public init(name: String, type: NSAttributeDescription.AttributeType, ingestMethod: @escaping (Any) throws -> any Storable, ingestKey: IngestKey? = nil, allowsNilValue: Bool = false, defaultValue: Any? = nil)
       {
         self.name = name
         self.ingestMethod = ingestMethod
@@ -37,24 +37,5 @@ public struct Attribute : Property
 
         // TODO: report failure to ingest default value
         self.defaultIngestValue = defaultValue.flatMap { try? ingestMethod($0) }
-      }
-
-
-    /// Create an instance representing a (CoreData-) native value type.
-    public init<V>(_ attname: String, of: V.Type, ingestKey key: IngestKey? = nil, defaultValue v: V? = nil) where V : Ingestible & Storable
-      {
-        func ingest(_ json: Any) throws -> V {
-          try V(json: try throwingCast(json))
-        }
-        self.init(name: attname, type: V.attributeType, ingestMethod: ingest, ingestKey: key, defaultValue: v)
-      }
-
-    /// Create an instance representing a non-native value type, with an ingest transform.
-    public init<T, V>(_ attname: String, of: V.Type, ingestKey key: IngestKey? = nil, transform t: T, defaultValue v: T.Input? = nil) where V : Ingestible & Storable, T : IngestTransform, T.Output == V.Input
-      {
-        func ingest(_ json: Any) throws -> V {
-          try V(json: try t.transform(try throwingCast(json)))
-        }
-        self.init(name: attname, type: V.attributeType, ingestMethod: ingest, ingestKey: key, allowsNilValue: V.isOptional, defaultValue: v)
       }
   }

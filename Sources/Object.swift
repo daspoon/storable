@@ -8,6 +8,51 @@ import CoreData
 /// The base class of managed object.
 open class Object : NSManagedObject
   {
+    public class var entityName : String
+      { "\(Self.self)" }
+
+
+    open class var identity : Identity
+      { .anonymous }
+
+
+    /// Return the sequence of classes between self (inclusive) and Object (exclusive).
+    class var inheritanceChainToObject : AnyIterator<Object.Type>
+      {
+        var next : Object.Type? = self
+        return AnyIterator {
+          defer { next = next?.superclass() as? Object.Type }
+          return next != .some(Object.self) ? next : nil
+        }
+      }
+
+
+    /// Return a mapping of names to Property values, corresponding to the instance variables declared with property wrappers conforming to ManagedPropertyWrapper.
+    class var properties : [(String, Property)]
+      {
+        let entityName = Self.entityName
+
+        // Create a mirror on an empty instance; this requires an empty entity description attached to a managed object model.
+        let templateObjectModel = NSManagedObjectModel()
+        let templateEntity = NSEntityDescription()
+        templateEntity.name = entityName
+        templateEntity.managedObjectClassName = entityName
+        templateObjectModel.entities = [templateEntity]
+        let mirror = Mirror(reflecting: Self.init(entityDescription: templateEntity))
+
+        return mirror.children.compactMap { label, value in
+          guard let wrapper = value as? ManagedPropertyWrapper else { return nil }
+          guard let label, label.hasPrefix("_") else { return nil }
+          return (label.removing(prefix: "_"), wrapper.property)
+        }
+      }
+
+
+    /// This method is used to create an non-functional instance for the purpose of reflection. It is 'required' because it is invoked on a class object, and thus also 'public'.
+    public required convenience init(entityDescription: NSEntityDescription)
+      { self.init(entity: entityDescription, insertInto: nil) }
+
+
     /// Initialize a new instance with the given ingestion data. The name parameter must be provided iff instances of this class are retrieved by name.
     public required convenience init(_ entity: Entity, with ingestData: IngestData, in context: IngestContext) throws
       {

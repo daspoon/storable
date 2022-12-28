@@ -3,6 +3,13 @@
 */
 
 
+extension Dictionary
+  {
+    public init<S: Sequence>(uniqueKey key: (Value) -> Key, elements: S) where S.Element == Value
+      { self.init(uniqueKeysWithValues: elements.map { (key($0), $0) }) }
+  }
+
+
 extension Dictionary where Key == String, Value == Any
   {
     public func optionalValue<V>(of type: V.Type = V.self, for key: String, in context: @autoclosure () -> String? = {nil}()) throws -> V?

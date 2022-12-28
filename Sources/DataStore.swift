@@ -15,15 +15,19 @@ public class DataStore
     private static let semaphore = DispatchSemaphore(value: 1)
 
 
-    public init(schema s: Schema, dataSource: DataSource, reset: Bool) throws
+    public init(schema s: Schema, stateEntityName: String = "State", dataSource: DataSource, reset: Bool) throws
       {
+        // Ensure the State entity is defined and as has a single instance.
+        guard let stateEntity = s.entitiesByName[stateEntityName] else { throw Exception("Entity '\(stateEntityName)' is not defined") }
+        guard stateEntity.hasSingleInstance else { throw Exception("Entity '\(stateEntityName)' must have a single instance") }
+
         Self.semaphore.wait()
         precondition(Self.shared == nil)
 
         schema = s
 
         // Construct the managed object model and the mapping of entity names to info required for instance creation.
-        managedObjectModel = try schema.createManagedObjectModel()
+        managedObjectModel = schema.managedObjectModel
 
         // Create the persistent store coordinator
         let persistentStoreCoordinator = NSPersistentStoreCoordinator(managedObjectModel: managedObjectModel)
