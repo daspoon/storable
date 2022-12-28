@@ -32,13 +32,6 @@ public final class Entity
       { properties.values.compactMap { $0 as? Relationship } }
 
 
-    public var identityAttributeName : String?
-      {
-        guard case .name = identity else { return nil }
-        return "name"
-      }
-
-
     public var hasSingleInstance : Bool
       { identity == .singleton }
   }
