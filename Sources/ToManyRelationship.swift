@@ -11,9 +11,9 @@ public struct ToManyRelationship<Value: Object> : ManagedPropertyWrapper
     public let property : Property
 
 
-    public init(_ propertyName: String, inverseName: String, deleteRule: NSDeleteRule? = nil)
+    public init(_ propertyName: String, inverseName: String, deleteRule r: NSDeleteRule? = nil, ingestKey k: IngestKey? = nil, ingestMode m: Relationship.IngestMode? = nil)
       {
-        property = Relationship(propertyName, arity: .toMany, relatedEntityName: Value.entityName, inverseName: inverseName, deleteRule: deleteRule)
+        property = Relationship(propertyName, arity: .toMany, relatedEntityName: Value.entityName, inverseName: inverseName, deleteRule: r, ingestKey: k, ingestMode: m)
       }
 
 
