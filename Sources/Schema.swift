@@ -1,26 +1,22 @@
 /*
 
-  TODO: extend to support inheritance
-    - build a tree containing the given classes together with their superclasses rooted at Object.
-    - set the subentities of each NSEntityDescription appropriately...
-
 */
 
 import CoreData
 
 
+/// A Schema corresponds to an NSManagedObjectModel, but is generated from a list of Object subclasses and maintains additional information about those classes.
+///
 public struct Schema
   {
     public let name : String
-    public let stateEntityName : String
     public let entitiesByName : [String: Entity]
     public let managedObjectModel : NSManagedObjectModel
 
 
-    public init(name: String, stateEntityName: String = "State", objectTypes: [Object.Type]) throws
+    public init(name: String, objectTypes: [Object.Type]) throws
       {
         self.name = name
-        self.stateEntityName = stateEntityName
 
         // Perform a post-order traversal on the implied class hierarchy to populate the mapping of names to Entity values and establish the inheritance relations between NSEntityDescriptions.
         var _entitiesByName : [String: Entity] = [:]
