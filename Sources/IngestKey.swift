@@ -39,6 +39,13 @@ extension IngestKey : CustomStringConvertible
   }
 
 
+extension IngestKey : ExpressibleByStringLiteral
+  {
+    public init(stringLiteral name: String)
+      { self = .element(name) }
+  }
+
+
 extension IngestKey
   {
     /// Attempt to convert a JSON value, which must be either a String or nil, to an IngestKey. A nil argument indicates the ingestKey is unspecified and so defaults
