@@ -3,9 +3,16 @@
 */
 
 
-public struct IconSpec : Ingestible
+public struct IconSpec
   {
-    public enum Source : String, Ingestible { case system, bundle }
+    public enum Source : String { case system, bundle }
+
+    public struct Color
+      {
+        public var red, green, blue, alpha : Double
+        public init(red r: Double, green g: Double, blue b: Double, alpha a: Double = 1)
+          { red = r; green = g; blue = b; alpha = a }
+      }
 
     public let name : String
     public let source : Source
@@ -17,14 +24,4 @@ public struct IconSpec : Ingestible
         self.source = source ?? .bundle
         self.color = color
       }
-
-    public init(json dict: [String: Any]) throws
-      {
-        name = try dict.requiredValue(for: "name")
-        source = try dict.optionalValue(for: "source") ?? .bundle
-        color = try dict.optionalValue(for: "color")
-      }
-
-    public var swiftText : String
-      { "IconSpec(name: \"\(name)\", source: .\(source)" + (color.map {", color: \($0.swiftText)"} ?? "") + ")" }
   }
