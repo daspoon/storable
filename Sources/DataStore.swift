@@ -66,7 +66,28 @@ public class DataStore
             throw Exception("inconsistency on initialization: \(configurations.count) configurations detected")
         }
 
+        // Observe notifications to trigger saving changes
+        NotificationCenter.default.addObserver(self, selector: #selector(saveChanges(_:)), name: .dataStoreNeedsSave, object: nil)
+
         Self.shared = self
         Self.semaphore.signal()
+      }
+
+
+    deinit
+      {
+        NotificationCenter.default.removeObserver(self, name: .dataStoreNeedsSave, object: nil)
+      }
+
+
+    @objc
+    func saveChanges(_ sender: Any?)
+      {
+        do {
+          try managedObjectContext.save()
+        }
+        catch let error as NSError {
+          log("failed to save: \(error)")
+        }
       }
   }
