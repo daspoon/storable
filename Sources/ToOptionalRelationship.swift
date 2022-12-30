@@ -23,12 +23,14 @@ public struct ToOptionalRelationship<Value: Nullable> : ManagedPropertyWrapper w
         get {
           let wrapper = instance[keyPath: storageKeyPath]
           do {
-            switch instance.primitiveValue(forKey: wrapper.property.name) {
+            let value : Value
+            switch instance.value(forKey: wrapper.property.name) {
               case .some(let object) :
-                return Value.inject(try throwingCast(object, as: Value.Wrapped.self))
+                value = Value.inject(try throwingCast(object, as: Value.Wrapped.self))
               case .none :
-                return nil
+                value = nil
             }
+            return value
           }
           catch let error as NSError {
             fatalError("failed to get value of type \(Value.self) for property '\(wrapper.property.name)': \(error)")
@@ -36,7 +38,7 @@ public struct ToOptionalRelationship<Value: Nullable> : ManagedPropertyWrapper w
         }
         set {
           let wrapper = instance[keyPath: storageKeyPath]
-          instance.setPrimitiveValue(newValue, forKey: wrapper.property.name)
+          instance.setValue(newValue.project, forKey: wrapper.property.name)
         }
       }
 

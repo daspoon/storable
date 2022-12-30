@@ -23,7 +23,7 @@ public struct ToManyRelationship<Value: SetAlgebra & ExpressibleByArrayLiteral> 
         get {
           let wrapper = instance[keyPath: storageKeyPath]
           do {
-            switch instance.primitiveValue(forKey: wrapper.property.name) {
+            switch instance.value(forKey: wrapper.property.name) {
               case .some(let set) :
                 return try throwingCast(set, as: Value.self)
               case .none :
@@ -36,7 +36,7 @@ public struct ToManyRelationship<Value: SetAlgebra & ExpressibleByArrayLiteral> 
         }
         set {
           let wrapper = instance[keyPath: storageKeyPath]
-          instance.setPrimitiveValue(newValue, forKey: wrapper.property.name)
+          instance.setValue(newValue, forKey: wrapper.property.name)
         }
       }
 

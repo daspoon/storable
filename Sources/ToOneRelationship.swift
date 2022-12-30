@@ -23,7 +23,7 @@ public struct ToOneRelationship<Value: Object> : ManagedPropertyWrapper
         get {
           let wrapper = instance[keyPath: storageKeyPath]
           do {
-            switch instance.primitiveValue(forKey: wrapper.property.name) {
+            switch instance.value(forKey: wrapper.property.name) {
               case .some(let object) :
                 return try throwingCast(object, as: Value.self)
               case .none :
@@ -36,7 +36,7 @@ public struct ToOneRelationship<Value: Object> : ManagedPropertyWrapper
         }
         set {
           let wrapper = instance[keyPath: storageKeyPath]
-          instance.setPrimitiveValue(newValue, forKey: wrapper.property.name)
+          instance.setValue(newValue, forKey: wrapper.property.name)
         }
       }
 

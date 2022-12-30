@@ -36,7 +36,7 @@ public struct Stored<Value: Ingestible & Storable> : ManagedPropertyWrapper
           // Retrieve and decode the stored object value
           let wrapper = instance[keyPath: storageKeyPath]
           do {
-            switch (instance.primitiveValue(forKey: wrapper.property.name), Value.isOptional) {
+            switch (instance.value(forKey: wrapper.property.name), Value.isOptional) {
               case (.some(let objectValue), _) :
                 let storedValue = try throwingCast(objectValue, as: Value.StoredType.self)
                 return try Value.decodeStoredValue(storedValue)
@@ -55,7 +55,7 @@ public struct Stored<Value: Ingestible & Storable> : ManagedPropertyWrapper
           let wrapper = instance[keyPath: storageKeyPath]
           do {
             let storedValue = newValue.isNullValue ? nil : try newValue.storedValue()
-            instance.setPrimitiveValue(storedValue, forKey: wrapper.property.name)
+            instance.setValue(storedValue, forKey: wrapper.property.name)
           }
           catch let error as NSError {
             fatalError("failed to set value of type \(Value.self) for property '\(wrapper.property.name)': \(error)")
