@@ -27,9 +27,11 @@ public struct Relationship : Property
     /// The name of the inverse relationship on the destination entity.
     public let inverseName : String
 
+    /// ...
+    public let ingestAction : IngestAction
+
     /// Determines how related objects are obtained from the ingest value, if any, provided on object initialization: a mode of 'reference' indicates that ingested values name existing objects;
     /// a mode of 'create' indicates ingested values are JSON data used to create the related objects. Nil indicates the relation is not ingested.
-    public let ingestKey : IngestKey
     public let ingestMode : IngestMode
 
 
@@ -41,7 +43,7 @@ public struct Relationship : Property
         self.relatedEntityName = relatedEntityName
         self.inverseName = inverseName
         self.deleteRule = deleteRule ?? .defaultValue(for: arity)
-        self.ingestKey = ingestKey ?? .element(name)
+        self.ingestAction = ingestKey == .some(.ignore) ? .ignore : .ingest(key: ingestKey ?? .element(name))
         self.ingestMode = ingestMode ?? .defaultValue(for: arity)
       }
 
