@@ -6,30 +6,26 @@ import CoreData
 
 
 @propertyWrapper
-public struct ToManyRelationship<Value: Object> : ManagedPropertyWrapper
+public struct ToManyRelationship<Value: SetAlgebra & ExpressibleByArrayLiteral> : ManagedPropertyWrapper where Value.Element : Object
   {
     public let property : Property
 
 
     public init(_ propertyName: String, inverseName: String, deleteRule r: NSDeleteRule? = nil, ingestKey k: IngestKey? = nil, ingestMode m: Relationship.IngestMode? = nil)
       {
-        property = Relationship(propertyName, arity: .toMany, relatedEntityName: Value.entityName, inverseName: inverseName, deleteRule: r, ingestKey: k, ingestMode: m)
+        property = Relationship(propertyName, arity: .toMany, relatedEntityName: Value.Element.entityName, inverseName: inverseName, deleteRule: r, ingestKey: k, ingestMode: m)
       }
 
 
-//    @available(*, unavailable, message: "Accessible only as a property on an NSManagedObject")
-    public var wrappedValue : Set<Value> { get { fatalError() } set { fatalError() } }
-
-
     /// Retrieving the property value requires access to the enclosing object instance.
-    public static subscript<Owner: Object>(_enclosingInstance: Owner, wrapped: ReferenceWritableKeyPath<Owner, Set<Value>>, storage: ReferenceWritableKeyPath<Owner, Self>) -> Set<Value>
+    public static subscript<Object: NSManagedObject>(_enclosingInstance instance: Object, wrapped wrappedKeyPath: ReferenceWritableKeyPath<Object,Value>, storage storageKeyPath: ReferenceWritableKeyPath<Object, Self>) -> Value
       {
         get {
-          let wrapper = _enclosingInstance[keyPath: storage]
+          let wrapper = instance[keyPath: storageKeyPath]
           do {
-            switch _enclosingInstance.primitiveValue(forKey: wrapper.property.name) {
+            switch instance.primitiveValue(forKey: wrapper.property.name) {
               case .some(let set) :
-                return try throwingCast(set, as: Set<Value>.self)
+                return try throwingCast(set, as: Value.self)
               case .none :
                 return []
             }
@@ -39,8 +35,20 @@ public struct ToManyRelationship<Value: Object> : ManagedPropertyWrapper
           }
         }
         set {
-          let wrapper = _enclosingInstance[keyPath: storage]
-          _enclosingInstance.setPrimitiveValue(newValue, forKey: wrapper.property.name)
+          let wrapper = instance[keyPath: storageKeyPath]
+          instance.setPrimitiveValue(newValue, forKey: wrapper.property.name)
         }
       }
+
+
+    // Unavailable
+
+    @available(*, unavailable, message: "Use init(_:inverseName:deleteRule:ingestKey:ingestMode:)")
+    public init() { fatalError() }
+
+    @available(*, unavailable, message: "Use (_:inverseName:deleteRule:ingestKey:ingestMode:)")
+    public init(wrappedValue: Value) { fatalError() }
+
+    @available(*, unavailable, message: "Unsupported")
+    public var wrappedValue : Value { get { fatalError() } set { fatalError() } }
   }

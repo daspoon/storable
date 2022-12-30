@@ -66,10 +66,10 @@ public struct Stored<Value: Ingestible & Storable> : ManagedPropertyWrapper
 
     // Unavailable
 
-    @available(*, unavailable, message: "Use init(_:) instead.")
+    @available(*, unavailable, message: "Use init(_:ingestKey:defaultValue:) or init(_:ingestKey:transform:defaultValue:)")
     public init() { fatalError() }
 
-    @available(*, unavailable, message: "Use init(wrappedValue:_:) instead.")
+    @available(*, unavailable, message: "Use init(_:ingestKey:defaultValue:) or init(_:ingestKey:transform:defaultValue:)")
     public init(wrappedValue: Value) { fatalError() }
 
     @available(*, unavailable, message: "Accessible only as a property on an NSManagedObject")
