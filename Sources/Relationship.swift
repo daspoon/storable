@@ -12,8 +12,6 @@ public struct Relationship : Property
     public enum IngestMode : String, Ingestible { case reference, create }
     public typealias DeleteRule = NSDeleteRule
 
-    public typealias IngestInfo = (key: IngestKey, mode: IngestMode)
-
     /// The name of the corresponding property of the source entity.
     public let name : String
 
