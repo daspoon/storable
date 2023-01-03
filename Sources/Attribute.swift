@@ -5,31 +5,73 @@
 import CoreData
 
 
-/// Represents a managed object attribute.
-public struct Attribute : Property
+@propertyWrapper
+public struct Attribute<Value: Ingestible & Storable> : ManagedPropertyWrapper
   {
-    /// The managed property name.
-    public let name : String
-
-    /// Non-nil for native types.
-    public let coreDataAttributeType : NSAttributeDescription.AttributeType
-
-    public let ingestAction : IngestAction
-
-    /// The method used to translate the json ingest value to an object value persisted by CoreData.
-    public let ingestMethod : (Any) throws -> any Storable
-
-    /// Indicates whether or not nil is an legitimate property value.
-    public let allowsNilValue : Bool
+    public let managedProperty : ManagedProperty
 
 
-    public init(name: String, type: NSAttributeDescription.AttributeType, ingestMethod: @escaping (Any) throws -> any Storable, ingestKey: IngestKey? = nil, allowsNilValue: Bool = false, defaultValue v: Any? = nil)
+    public init(_ name: String, ingestKey key: IngestKey? = nil, defaultValue v: Value? = nil)
       {
-        // TODO: report failure to ingest default value
-        self.name = name
-        self.ingestAction = .ingest(key: ingestKey ?? .element(name), defaultValue: v.flatMap { try? ingestMethod($0) })
-        self.ingestMethod = ingestMethod
-        self.allowsNilValue = allowsNilValue
-        self.coreDataAttributeType = type
+        func ingest(_ json: Any) throws -> Value {
+          try Value(json: try throwingCast(json))
+        }
+        managedProperty = ManagedAttribute(name: name, type: Value.attributeType, ingestMethod: ingest, ingestKey: key, allowsNilValue: Value.isOptional, defaultValue: v)
       }
+
+
+    public init<Transform>(_ name: String, ingestKey key: IngestKey? = nil, transform t: Transform, defaultValue v: Transform.Input? = nil) where Transform : IngestTransform, Transform.Output == Value.Input
+      {
+        func ingest(_ json: Any) throws -> Value {
+          try Value(json: try t.transform(try throwingCast(json)))
+        }
+        managedProperty = ManagedAttribute(name: name, type: Value.attributeType, ingestMethod: ingest, ingestKey: key, allowsNilValue: Value.isOptional, defaultValue: v)
+      }
+
+
+    /// Retrieving the property value requires access to the enclosing object instance.
+    public static subscript<Object: NSManagedObject>(_enclosingInstance instance: Object, wrapped wrappedKeyPath: ReferenceWritableKeyPath<Object, Value>, storage storageKeyPath: ReferenceWritableKeyPath<Object, Self>) -> Value
+      {
+        get {
+          // Retrieve and decode the stored object value
+          let wrapper = instance[keyPath: storageKeyPath]
+          do {
+            switch (instance.value(forKey: wrapper.managedProperty.name), Value.isOptional) {
+              case (.some(let objectValue), _) :
+                let storedValue = try throwingCast(objectValue, as: Value.StoredType.self)
+                return try Value.decodeStoredValue(storedValue)
+              case (.none, true) :
+                return Value.nullValue
+              case (.none, false) :
+                throw Exception("no stored value for '\(wrapper.managedProperty.name)'")
+            }
+          }
+          catch let error as NSError {
+            fatalError("failed to get value of type \(Value.self) for property '\(wrapper.managedProperty.name)': \(error)")
+          }
+        }
+        set {
+          // Encode and store the new value
+          let wrapper = instance[keyPath: storageKeyPath]
+          do {
+            let storedValue = newValue.isNullValue ? nil : try newValue.storedValue()
+            instance.setValue(storedValue, forKey: wrapper.managedProperty.name)
+          }
+          catch let error as NSError {
+            fatalError("failed to set value of type \(Value.self) for property '\(wrapper.managedProperty.name)': \(error)")
+          }
+        }
+      }
+
+
+    // Unavailable
+
+    @available(*, unavailable, message: "Use init(_:ingestKey:defaultValue:) or init(_:ingestKey:transform:defaultValue:)")
+    public init() { fatalError() }
+
+    @available(*, unavailable, message: "Use init(_:ingestKey:defaultValue:) or init(_:ingestKey:transform:defaultValue:)")
+    public init(wrappedValue: Value) { fatalError() }
+
+    @available(*, unavailable, message: "Accessible only as a property on an NSManagedObject")
+    public var wrappedValue : Value { get { fatalError() } set { fatalError() } }
   }

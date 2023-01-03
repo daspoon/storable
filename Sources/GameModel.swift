@@ -60,7 +60,7 @@ extension GameModel
 
 // MARK: --
 
-public protocol StateModel<Game> : Object
+public protocol StateModel<Game> : ManagedObject
   {
     associatedtype Game : GameModel
 
@@ -71,7 +71,7 @@ public protocol StateModel<Game> : Object
 
 // MARK: --
 
-public protocol RaceModel<Game> : Object
+public protocol RaceModel<Game> : ManagedObject
   {
     associatedtype Game : GameModel
 
@@ -82,7 +82,7 @@ public protocol RaceModel<Game> : Object
 
 // MARK: --
 
-public protocol DemonModel<Game> : Object
+public protocol DemonModel<Game> : ManagedObject
   {
     associatedtype Game : GameModel
 
@@ -114,7 +114,7 @@ public protocol DemonModel<Game> : Object
 
 // MARK: --
 
-public protocol SkillModel<Game> : Object
+public protocol SkillModel<Game> : ManagedObject
   {
     associatedtype Game : GameModel
 
@@ -133,7 +133,7 @@ public protocol SkillModel<Game> : Object
 
 // MARK: --
 
-public protocol SkillGrantModel<Game> : Object
+public protocol SkillGrantModel<Game> : ManagedObject
   {
     associatedtype Game : GameModel
 
@@ -148,7 +148,7 @@ public protocol SkillGrantModel<Game> : Object
 
 // MARK: --
 
-public protocol RaceFusionModel<Game> : Object
+public protocol RaceFusionModel<Game> : ManagedObject
   {
     associatedtype Game : GameModel
 

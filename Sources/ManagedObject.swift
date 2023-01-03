@@ -6,7 +6,7 @@ import CoreData
 
 
 /// The base class of managed object.
-open class Object : NSManagedObject
+open class ManagedObject : NSManagedObject
   {
     public class var entityName : String
       { "\(Self.self)" }
@@ -16,34 +16,28 @@ open class Object : NSManagedObject
       { .anonymous }
 
 
-    /// Return a mapping of names to Property values, corresponding to the instance variables declared with property wrappers conforming to ManagedPropertyWrapper.
-    class var properties : [(String, Property)]
+    /// Return a mirror for instances of this class.
+    class var instanceMirror : Mirror
       {
         let entityName = Self.entityName
 
-        // Create a mirror on an empty instance; this requires an empty entity description attached to a managed object model.
         let templateObjectModel = NSManagedObjectModel()
         let templateEntity = NSEntityDescription()
         templateEntity.name = entityName
         templateEntity.managedObjectClassName = entityName
         templateObjectModel.entities = [templateEntity]
-        let mirror = Mirror(reflecting: Self.init(entityDescription: templateEntity))
 
-        return mirror.children.compactMap { label, value in
-          guard let wrapper = value as? ManagedPropertyWrapper else { return nil }
-          guard let label, label.hasPrefix("_") else { return nil }
-          return (label.removing(prefix: "_"), wrapper.property)
-        }
+        return Mirror(reflecting: Self.init(entity: templateEntity, insertInto: nil))
       }
 
 
     /// This method is used to create an non-functional instance for the purpose of reflection. It is 'required' because it is invoked on a class object, and thus also 'public'.
-    public required convenience init(entityDescription: NSEntityDescription)
-      { self.init(entity: entityDescription, insertInto: nil) }
+    public override required init(entity desc: NSEntityDescription, insertInto ctx: NSManagedObjectContext?)
+      { super.init(entity: desc, insertInto: ctx) }
 
 
     /// Initialize a new instance with the given ingestion data. The name parameter must be provided iff instances of this class are retrieved by name.
-    public required convenience init(_ entity: Entity, with ingestData: IngestData, in context: IngestContext) throws
+    public required convenience init(_ entity: ManagedEntity, with ingestData: IngestData, in context: IngestContext) throws
       {
         // Delegate to the designated initializer for NSManagedObject.
         self.init(entity: entity.entityDescription, insertInto: context.managedObjectContext)
@@ -55,9 +49,9 @@ open class Object : NSManagedObject
               case .ingest(key: let key, defaultValue: let defaultValue) :
                 if let jsonValue = ingestData[key] {
                   switch property {
-                    case let attribute as Attribute :
+                    case let attribute as ManagedAttribute :
                       setValue(try attribute.ingestMethod(jsonValue).storedValue(), forKey: attribute.name)
-                    case let relationship as Relationship :
+                    case let relationship as ManagedRelationship :
                       // The action taken depends on the ingestion mode and the arity of the relationship...
                       let relatedEntity = try context.entity(for: relationship.relatedEntityName)
                       let relatedClass = relatedEntity.managedObjectClass

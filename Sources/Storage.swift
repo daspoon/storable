@@ -12,7 +12,6 @@ public protocol Storage
 
 extension NSData : Storage {}
 extension NSDate : Storage {}
-extension NSManagedObject : Storage {}
 extension NSNumber : Storage {}
 extension NSString : Storage {}
 
@@ -30,6 +29,3 @@ extension String : Storage {}
 
 
 extension Optional : Storage where Wrapped : Storage {}
-
-
-extension Set : Storage where Element : NSManagedObject {}

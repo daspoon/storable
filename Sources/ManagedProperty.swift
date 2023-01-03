@@ -5,7 +5,7 @@
 import Foundation
 
 
-public protocol Property
+public protocol ManagedProperty
   {
     /// The name of the model property. Required.
     var name : String { get }

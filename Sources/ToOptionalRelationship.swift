@@ -6,14 +6,14 @@ import CoreData
 
 
 @propertyWrapper
-public struct ToOptionalRelationship<Value: Nullable> : ManagedPropertyWrapper where Value.Wrapped : Object
+public struct ToOptionalRelationship<Value: Nullable> : ManagedPropertyWrapper where Value.Wrapped : ManagedObject
   {
-    public let property : Property
+    public let managedProperty : ManagedProperty
 
 
-    public init(_ propertyName: String, inverseName: String, deleteRule r: NSDeleteRule? = nil, ingestKey k: IngestKey? = nil, ingestMode m: Relationship.IngestMode? = nil)
+    public init(_ propertyName: String, inverseName: String, deleteRule r: NSDeleteRule? = nil, ingestKey k: IngestKey? = nil, ingestMode m: ManagedRelationship.IngestMode? = nil)
       {
-        property = Relationship(propertyName, arity: .optionalToOne, relatedEntityName: Value.Wrapped.entityName, inverseName: inverseName, deleteRule: r, ingestKey: k, ingestMode: m)
+        managedProperty = ManagedRelationship(propertyName, arity: .optionalToOne, relatedEntityName: Value.Wrapped.entityName, inverseName: inverseName, deleteRule: r, ingestKey: k, ingestMode: m)
       }
 
 
@@ -24,7 +24,7 @@ public struct ToOptionalRelationship<Value: Nullable> : ManagedPropertyWrapper w
           let wrapper = instance[keyPath: storageKeyPath]
           do {
             let value : Value
-            switch instance.value(forKey: wrapper.property.name) {
+            switch instance.value(forKey: wrapper.managedProperty.name) {
               case .some(let object) :
                 value = Value.inject(try throwingCast(object, as: Value.Wrapped.self))
               case .none :
@@ -33,12 +33,12 @@ public struct ToOptionalRelationship<Value: Nullable> : ManagedPropertyWrapper w
             return value
           }
           catch let error as NSError {
-            fatalError("failed to get value of type \(Value.self) for property '\(wrapper.property.name)': \(error)")
+            fatalError("failed to get value of type \(Value.self) for property '\(wrapper.managedProperty.name)': \(error)")
           }
         }
         set {
           let wrapper = instance[keyPath: storageKeyPath]
-          instance.setValue(newValue.project, forKey: wrapper.property.name)
+          instance.setValue(newValue.project, forKey: wrapper.managedProperty.name)
         }
       }
 
