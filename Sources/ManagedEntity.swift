@@ -28,8 +28,4 @@ public struct ManagedEntity
         entityDescription.name = objectType.entityName
         entityDescription.managedObjectClassName = objectType.entityName
       }
-
-
-    public var hasSingleInstance : Bool
-      { managedObjectClass.identity == .singleton }
   }

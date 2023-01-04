@@ -50,7 +50,7 @@ public class DataStore
       {
         // Ensure the State entity is defined and as has a single instance.
         guard let stateEntity = schema.entitiesByName[stateEntityName] else { throw Exception("Entity '\(stateEntityName)' is not defined") }
-        guard stateEntity.hasSingleInstance else { throw Exception("Entity '\(stateEntityName)' must have a single instance") }
+        guard case .singleton = stateEntity.managedObjectClass.identity else { throw Exception("Entity '\(stateEntityName)' must have a single instance") }
 
         // Defer to the designated initializer
         try self.init(schema: schema, reset: reset)
