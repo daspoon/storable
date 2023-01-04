@@ -10,22 +10,34 @@ public struct Attribute<Value: Ingestible & Storable> : ManagedPropertyWrapper
   {
     public let managedProperty : ManagedProperty
 
+    private static func ingest(_ json: Any) throws -> Value
+      { try Value(json: try throwingCast(json)) }
 
-    public init(_ name: String, ingestKey key: IngestKey? = nil, defaultValue v: Value? = nil)
+
+    public init(_ name: String, ingestKey k: IngestKey? = nil)
       {
-        func ingest(_ json: Any) throws -> Value {
-          try Value(json: try throwingCast(json))
-        }
-        managedProperty = ManagedAttribute(name: name, type: Value.attributeType, ingestMethod: ingest, ingestKey: key, allowsNilValue: Value.isOptional, defaultValue: v)
+        managedProperty = ManagedAttribute(name: name, type: Value.attributeType, ingestMethod: Self.ingest, ingestKey: k, allowsNilValue: Value.isOptional)
       }
 
 
-    public init<Transform>(_ name: String, ingestKey key: IngestKey? = nil, transform t: Transform, defaultValue v: Transform.Input? = nil) where Transform : IngestTransform, Transform.Output == Value.Input
+    public init(wrappedValue v: Value, _ name: String, ingestKey k: IngestKey? = nil)
+      {
+        managedProperty = ManagedAttribute(name: name, type: Value.attributeType, ingestMethod: Self.ingest, ingestKey: k, allowsNilValue: Value.isOptional, defaultValue: v)
+      }
+
+
+    public init<Transform>(_ name: String, ingestKey key: IngestKey? = nil, transform t: Transform, defaultIngestValue v: Transform.Input? = nil) where Transform : IngestTransform, Transform.Output == Value.Input
       {
         func ingest(_ json: Any) throws -> Value {
           try Value(json: try t.transform(try throwingCast(json)))
         }
-        managedProperty = ManagedAttribute(name: name, type: Value.attributeType, ingestMethod: ingest, ingestKey: key, allowsNilValue: Value.isOptional, defaultValue: v)
+        let tv = v.map {
+          do { return try ingest($0) }
+          catch let error as NSError {
+            fatalError("failed to transform default value '\($0)' of attribute \(name): \(error)")
+          }
+        }
+        managedProperty = ManagedAttribute(name: name, type: Value.attributeType, ingestMethod: ingest, ingestKey: key, allowsNilValue: Value.isOptional, defaultValue: tv)
       }
 
 

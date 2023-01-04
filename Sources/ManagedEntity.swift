@@ -8,7 +8,8 @@ import CoreData
 public struct ManagedEntity
   {
     public let name : String
-    public let properties : [String: ManagedProperty]
+    public private(set) var attributes : [String: ManagedAttribute] = [:]
+    public private(set) var relationships : [String: ManagedRelationship] = [:]
     public let entityDescription : NSEntityDescription
     public let managedObjectClass : ManagedObject.Type
 
@@ -18,11 +19,19 @@ public struct ManagedEntity
         name = objectType.entityName
         managedObjectClass = objectType
 
-        properties = Dictionary(uniqueKeysWithValues: objectType.instanceMirror.children.compactMap { label, value in
-          guard let wrapper = value as? ManagedPropertyWrapper else { return nil }
-          guard let label, label.hasPrefix("_") else { return nil }
-          return (label.removing(prefix: "_"), wrapper.managedProperty)
-        })
+        for (label, value) in objectType.instanceMirror.children {
+          guard let label, label.hasPrefix("_") else { continue }
+          guard let wrapper = value as? ManagedPropertyWrapper else { continue }
+          let propertyName = label.removing(prefix: "_")
+          switch wrapper.managedProperty {
+            case let attribute as ManagedAttribute :
+              attributes[propertyName] = attribute
+            case let relationship as ManagedRelationship :
+              relationships[propertyName] = relationship
+            default :
+              continue
+          }
+        }
 
         entityDescription = .init()
         entityDescription.name = objectType.entityName

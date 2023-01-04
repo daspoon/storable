@@ -43,72 +43,87 @@ open class ManagedObject : NSManagedObject
       }
 
 
-    /// This method is used to create an non-functional instance for the purpose of reflection. It is 'required' because it is invoked on a class object, and thus also 'public'.
+    /// This method is 'required' because it is invoked on class objects. This method is not intended to be overidden.
     public override required init(entity desc: NSEntityDescription, insertInto ctx: NSManagedObjectContext?)
       { super.init(entity: desc, insertInto: ctx) }
 
 
-    /// Initialize a new instance with the given ingestion data. The name parameter must be provided iff instances of this class are retrieved by name.
-    public required convenience init(_ entity: ManagedEntity, with ingestData: IngestData, in context: IngestContext) throws
+    /// Initialize a new instance, assigning default attribute values. This method is not intended to be overidden.
+    public required init(_ entity: ManagedEntity, in managedObjectContext: NSManagedObjectContext) throws
       {
         // Delegate to the designated initializer for NSManagedObject.
-        self.init(entity: entity.entityDescription, insertInto: context.managedObjectContext)
+        super.init(entity: entity.entityDescription, insertInto: managedObjectContext)
 
-        // Initialize property values from the ingest data
-        for property in entity.properties.values {
+        // Assign default attribute values
+        for attribute in entity.attributes.values {
+          guard let defaultValue = attribute.defaultValue else { continue }
+          setValue(try defaultValue.storedValue(), forKey: attribute.name)
+        }
+      }
+
+
+    /// Initialize a new instance, taking property values from the given ingest data. This method is not intended to be overidden.
+    public required init(_ entity: ManagedEntity, with ingestData: IngestData, in context: IngestContext) throws
+      {
+        // Delegate to the designated initializer for NSManagedObject.
+        super.init(entity: entity.entityDescription, insertInto: context.managedObjectContext)
+
+        // Ingest attributes.
+        for attribute in entity.attributes.values {
           do {
-            switch property.ingestAction {
-              case .ingest(key: let key, defaultValue: let defaultValue) :
-                if let jsonValue = ingestData[key] {
-                  switch property {
-                    case let attribute as ManagedAttribute :
-                      setValue(try attribute.ingestMethod(jsonValue).storedValue(), forKey: attribute.name)
-                    case let relationship as ManagedRelationship :
-                      // The action taken depends on the ingestion mode and the arity of the relationship...
-                      let relatedEntity = try context.entity(for: relationship.relatedEntityName)
-                      let relatedClass = relatedEntity.managedObjectClass
-                      switch (relationship.ingestMode, relationship.arity) {
-                        case (.create, .toMany) :
-                          // Creating a to-many relation requires the associated data is a dictionary mapping instance identifiers to the data provided to the related object initializer.
-                          guard let jsonDict = jsonValue as? [String: Any] else { throw Exception("a dictionary value is required") }
-                          let relatedObjects = try jsonDict.map { (key, value) in try relatedClass.init(relatedEntity, with: .dictionaryEntry(key: key, value: value), in: context) }
-                          setValue(Set(relatedObjects), forKey: relationship.name)
-                        case (.create, _) :
-                          // Creating a to-one relationship requires providing the associated data to the related object initializer.
-                          let relatedObject = try relatedClass.init(relatedEntity, with: .value(jsonValue), in: context)
-                          setValue(relatedObject, forKey: relationship.name)
-                        case (.reference, .toMany) :
-                          // A to-many reference requires an array string instance identifiers. Evaluation is delayed until all entity instances have been created.
-                          guard let instanceIds = jsonValue as? [String] else { throw Exception("an array of object identifiers is required") }
-                          context.delay {
-                            let relatedObjects = try instanceIds.map { try context.fetchObject(id: $0, of: relatedEntity.name) }
-                            self.setValue(Set(relatedObjects), forKey: relationship.name)
-                          }
-                        case (.reference, _) :
-                          // A to-one reference requires a string instance identifier. Evaluation is delayed until all entity instances have been created.
-                          guard let instanceId = jsonValue as? String else { throw Exception("an object identifier is required") }
-                          context.delay {
-                            let relatedObject = try context.fetchObject(id: instanceId, of: relatedEntity.name)
-                            self.setValue(relatedObject, forKey: relationship.name)
-                          }
-                      }
-                    default :
-                      fatalError("unsupported property type: \(type(of: property))")
-                  }
+            let storableValue : (any Storable)?
+            switch (ingestData[attribute.ingestKey], attribute.defaultValue) {
+              case (.some(let jsonValue), _) :
+                storableValue = try attribute.ingestMethod(jsonValue)
+              case (.none, .some(let defaultValue)) :
+                storableValue = defaultValue
+              case (.none, .none) :
+                guard attribute.allowsNilValue else { throw Exception("a value is required") }
+                storableValue = nil
+            }
+            setValue(try storableValue?.storedValue(), forKey: attribute.name)
+          }
+          catch let error {
+            throw Exception("failed to ingest attribute '\(attribute.name)' of '\(entity.name)' -- " + error.localizedDescription)
+          }
+        }
+
+        // Ingest relationships.
+        for relationship in entity.relationships.values {
+          guard relationship.ingestKey != .ignore else { continue }
+          do {
+            let relatedEntity = try context.entity(for: relationship.relatedEntityName)
+            let relatedClass = relatedEntity.managedObjectClass
+            switch (ingestData[relationship.ingestKey], relationship.ingestMode, relationship.arity) {
+              case (.some(let jsonValue), .create, .toMany) :
+                // Creating a to-many relation requires the associated data is a dictionary mapping instance identifiers to the data provided to the related object initializer.
+                guard let jsonDict = jsonValue as? [String: Any] else { throw Exception("a dictionary value is required") }
+                let relatedObjects = try jsonDict.map { (key, value) in try relatedClass.init(relatedEntity, with: .dictionaryEntry(key: key, value: value), in: context) }
+                setValue(Set(relatedObjects), forKey: relationship.name)
+              case (.some(let jsonValue), .create, _) :
+                // Creating a to-one relationship requires providing the associated data to the related object initializer.
+                let relatedObject = try relatedClass.init(relatedEntity, with: .value(jsonValue), in: context)
+                setValue(relatedObject, forKey: relationship.name)
+              case (.some(let jsonValue), .reference, .toMany) :
+                // A to-many reference requires an array string instance identifiers. Evaluation is delayed until all entity instances have been created.
+                guard let instanceIds = jsonValue as? [String] else { throw Exception("an array of object identifiers is required") }
+                context.delay {
+                  let relatedObjects = try instanceIds.map { try context.fetchObject(id: $0, of: relatedEntity.name) }
+                  self.setValue(Set(relatedObjects), forKey: relationship.name)
                 }
-                else {
-                  guard defaultValue != nil || property.allowsNilValue else { throw Exception("a value is required") }
-                  setValue(try defaultValue?.storedValue(), forKey: property.name)
+              case (.some(let jsonValue), .reference, _) :
+                // A to-one reference requires a string instance identifier. Evaluation is delayed until all entity instances have been created.
+                guard let instanceId = jsonValue as? String else { throw Exception("an object identifier is required") }
+                context.delay {
+                  let relatedObject = try context.fetchObject(id: instanceId, of: relatedEntity.name)
+                  self.setValue(relatedObject, forKey: relationship.name)
                 }
-              case .initialize(initialValue: let initialValue) :
-                guard initialValue != nil || property.allowsNilValue else { throw Exception("an initial value is required") }
-                setValue(try initialValue?.storedValue(), forKey: property.name)
-              case .ignore :
-                break
+              case (.none, _, let arity) :
+                guard arity == .toMany || arity == .optionalToOne else { throw Exception("a value is required") }
             }
           }
           catch let error {
-            throw Exception("failed to ingest '\(entity.name).\(property.name)' -- " + error.localizedDescription)
+            throw Exception("failed to ingest relationship '\(relationship.name)' of '\(entity.name)' -- " + error.localizedDescription)
           }
         }
       }

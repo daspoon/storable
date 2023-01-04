@@ -27,8 +27,8 @@ public struct ManagedRelationship : ManagedProperty
     /// The name of the inverse relationship on the destination entity.
     public let inverseName : String
 
-    /// ...
-    public let ingestAction : IngestAction
+    /// Indicates how values are established on object ingestion.
+    public let ingestKey : IngestKey
 
     /// Determines how related objects are obtained from the ingest value, if any, provided on object initialization: a mode of 'reference' indicates that ingested values name existing objects;
     /// a mode of 'create' indicates ingested values are JSON data used to create the related objects. Nil indicates the relation is not ingested.
@@ -43,7 +43,7 @@ public struct ManagedRelationship : ManagedProperty
         self.relatedEntityName = relatedEntityName
         self.inverseName = inverseName
         self.deleteRule = deleteRule ?? .defaultValue(for: arity)
-        self.ingestAction = ingestKey == .some(.ignore) ? .ignore : .ingest(key: ingestKey ?? .element(name))
+        self.ingestKey = ingestKey ?? .element(name)
         self.ingestMode = ingestMode ?? .defaultValue(for: arity)
       }
 
@@ -58,21 +58,6 @@ public struct ManagedRelationship : ManagedProperty
           ingestKey: .ignore,
           ingestMode: .reference
         )
-      }
-
-
-    public var defaultIngestValue : (any Storable)?
-      { nil }
-
-
-    public var allowsNilValue : Bool
-      {
-        switch arity {
-          case .optionalToOne, .toMany :
-            return true
-          case .toOne :
-            return false
-        }
       }
   }
 

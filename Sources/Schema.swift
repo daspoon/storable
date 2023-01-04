@@ -26,8 +26,7 @@ public struct Schema
           let entity = ManagedEntity(objectType: objectType)
           _entitiesByName[entity.name] = entity
           // Populate the entity's attribute descriptions
-          for (name, property) in entity.properties {
-            guard let attribute = property as? ManagedAttribute else { continue }
+          for (name, attribute) in entity.attributes {
             let attributeDescription = NSAttributeDescription()
             attributeDescription.name = name
             attributeDescription.type = attribute.attributeType
@@ -43,8 +42,7 @@ public struct Schema
 
         // Extend each NSEntityDescription with the specified relationships and their inverses, which we synthesize where not given explicitly.
         for (sourceName, sourceEntity) in entitiesByName {
-          for (relationshipName, property) in sourceEntity.properties {
-            guard let relationship = property as? ManagedRelationship else { continue }
+          for (relationshipName, relationship) in sourceEntity.relationships {
             // Skip the relationship if it is already defined, which happens when the inverse relationship is processed first.
             guard sourceEntity.entityDescription.relationshipsByName[relationshipName] == nil
               else { continue }
@@ -54,7 +52,7 @@ public struct Schema
               else { throw Exception("relationship \(sourceName).\(relationshipName) has unknown target entity name '\(targetName)'") }
             // Get or synthesize the inverse relationship.
             let inverse : ManagedRelationship
-            switch targetEntity.properties[relationship.inverseName] as? ManagedRelationship {
+            switch targetEntity.relationships[relationship.inverseName] {
               case .none :
                 inverse = relationship.inverse(for: sourceName)
               case .some(let explicit) :
