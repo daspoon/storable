@@ -8,6 +8,18 @@ import CoreData
 /// The base class of managed object.
 open class ManagedObject : NSManagedObject
   {
+    /// The notion of instance identity (within class).
+    public enum Identity : String, Ingestible
+      {
+        /// There is no inherent identity.
+        case anonymous
+        /// Identity is given by the string value of the 'name' attribute.
+        case name
+        /// There is a single instance of the entity.
+        case singleton
+      }
+
+
     public class var entityName : String
       { "\(Self.self)" }
 
