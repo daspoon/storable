@@ -43,12 +43,6 @@ public struct ToOneRelationship<Value: ManagedObject> : ManagedPropertyWrapper
 
     // Unavailable
 
-    @available(*, unavailable, message: "Use init(_:inverseName:deleteRule:ingestKey:ingestMode:)")
-    public init() { fatalError() }
-
-    @available(*, unavailable, message: "Use (_:inverseName:deleteRule:ingestKey:ingestMode:)")
-    public init(wrappedValue: Value) { fatalError() }
-
     @available(*, unavailable, message: "Unsupported")
     public var wrappedValue : Value { get { fatalError() } set { fatalError() } }
   }
