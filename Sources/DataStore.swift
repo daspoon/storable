@@ -11,19 +11,9 @@ public class DataStore
     let managedObjectModel : NSManagedObjectModel
     public let managedObjectContext : NSManagedObjectContext
 
-    public private(set) static var shared : DataStore!
-    private static let semaphore = DispatchSemaphore(value: 1)
 
-
-    public init(schema s: Schema, stateEntityName: String = "State", dataSource: DataSource, reset: Bool) throws
+    public init(schema s: Schema, reset: Bool) throws
       {
-        // Ensure the State entity is defined and as has a single instance.
-        guard let stateEntity = s.entitiesByName[stateEntityName] else { throw Exception("Entity '\(stateEntityName)' is not defined") }
-        guard stateEntity.hasSingleInstance else { throw Exception("Entity '\(stateEntityName)' must have a single instance") }
-
-        Self.semaphore.wait()
-        precondition(Self.shared == nil)
-
         schema = s
 
         // Construct the managed object model and the mapping of entity names to info required for instance creation.
@@ -34,7 +24,7 @@ public class DataStore
 
         // Determine the location of the data store
         let applicationDocumentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).last!
-        let dataStoreURL = URL(string: "dataStore.sqlite", relativeTo: applicationDocumentsURL)!
+        let dataStoreURL = URL(string: "\(schema.name).sqlite", relativeTo: applicationDocumentsURL)!
 
         // Optionally delete the data store (for debugging)
         if reset && FileManager.default.fileExists(atPath: dataStoreURL.path) {
@@ -51,6 +41,20 @@ public class DataStore
         managedObjectContext = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
         managedObjectContext.persistentStoreCoordinator = persistentStoreCoordinator
 
+        // Observe notifications to trigger saving changes
+        NotificationCenter.default.addObserver(self, selector: #selector(save(_:)), name: .dataStoreNeedsSave, object: nil)
+      }
+
+
+    public convenience init(schema: Schema, stateEntityName: String = "State", dataSource: DataSource, reset: Bool) throws
+      {
+        // Ensure the State entity is defined and as has a single instance.
+        guard let stateEntity = schema.entitiesByName[stateEntityName] else { throw Exception("Entity '\(stateEntityName)' is not defined") }
+        guard stateEntity.hasSingleInstance else { throw Exception("Entity '\(stateEntityName)' must have a single instance") }
+
+        // Defer to the designated initializer
+        try self.init(schema: schema, reset: reset)
+
         // Retrieve the configuration if one exists; otherwise trigger ingestion from the data source.
         var configurations = try managedObjectContext.fetch(NSFetchRequest<ManagedObject>(entityName: stateEntityName))
         switch configurations.count {
@@ -65,12 +69,6 @@ public class DataStore
           default :
             throw Exception("inconsistency on initialization: \(configurations.count) configurations detected")
         }
-
-        // Observe notifications to trigger saving changes
-        NotificationCenter.default.addObserver(self, selector: #selector(saveChanges(_:)), name: .dataStoreNeedsSave, object: nil)
-
-        Self.shared = self
-        Self.semaphore.signal()
       }
 
 
@@ -80,8 +78,17 @@ public class DataStore
       }
 
 
+    func create<T: ManagedObject>(_ type: T.Type = T.self, initialize: (T) throws -> Void) throws -> T
+      {
+        guard let entity = schema.entitiesByName[type.entityName] else { throw Exception("unknown entity \(type.entityName)") }
+        let instance = type.init(entity: entity.entityDescription, insertInto: managedObjectContext)
+        try initialize(instance)
+        return instance
+      }
+
+
     @objc
-    func saveChanges(_ sender: Any?)
+    func save(_ sender: Any? = nil)
       {
         do {
           try managedObjectContext.save()
