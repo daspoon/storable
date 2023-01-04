@@ -5,7 +5,7 @@
 import CoreData
 
 
-public final class ManagedEntity
+public struct ManagedEntity
   {
     public let name : String
     public let properties : [String: ManagedProperty]
