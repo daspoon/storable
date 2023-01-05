@@ -39,20 +39,20 @@ open class ManagedObject : NSManagedObject
         templateEntity.managedObjectClassName = entityName
         templateObjectModel.entities = [templateEntity]
 
-        return Mirror(reflecting: Self.init(entity: templateEntity, insertInto: nil))
+        return Mirror(reflecting: Self.init(templateEntityDescription: templateEntity))
       }
 
 
     /// This method is 'required' because it is invoked on class objects. This method is not intended to be overidden.
-    public override required init(entity desc: NSEntityDescription, insertInto ctx: NSManagedObjectContext?)
-      { super.init(entity: desc, insertInto: ctx) }
+    public required convenience init(templateEntityDescription desc: NSEntityDescription)
+      { self.init(entity: desc, insertInto: nil) }
 
 
     /// Initialize a new instance, assigning default attribute values. This method is not intended to be overidden.
-    public required init(_ entity: ManagedEntity, in managedObjectContext: NSManagedObjectContext) throws
+    public required convenience init(_ entity: ManagedEntity, in managedObjectContext: NSManagedObjectContext) throws
       {
         // Delegate to the designated initializer for NSManagedObject.
-        super.init(entity: entity.entityDescription, insertInto: managedObjectContext)
+        self.init(entity: entity.entityDescription, insertInto: managedObjectContext)
 
         // Assign default attribute values
         for attribute in entity.attributes.values {
@@ -63,10 +63,10 @@ open class ManagedObject : NSManagedObject
 
 
     /// Initialize a new instance, taking property values from the given ingest data. This method is not intended to be overidden.
-    public required init(_ entity: ManagedEntity, with ingestData: IngestData, in context: IngestContext) throws
+    public required convenience init(_ entity: ManagedEntity, with ingestData: IngestData, in context: IngestContext) throws
       {
         // Delegate to the designated initializer for NSManagedObject.
-        super.init(entity: entity.entityDescription, insertInto: context.managedObjectContext)
+        self.init(entity: entity.entityDescription, insertInto: context.managedObjectContext)
 
         // Ingest attributes.
         for attribute in entity.attributes.values {
