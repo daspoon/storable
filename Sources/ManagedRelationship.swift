@@ -8,8 +8,16 @@ import CoreData
 /// Represents a relation between entities.  Note that every relationship has an inverse, but only one endpoint is specified explicitly.
 public struct ManagedRelationship : ManagedProperty
   {
+    /// Determines how related objects are obtained from object ingest data.
+    public enum IngestMode : String
+      {
+        /// Ingested values are the names of existing objects.
+        case reference
+        /// Ingested values are the data required to construct related objects.
+        case create
+      }
+
     public enum Arity : String, Ingestible { case toOne, optionalToOne, toMany }
-    public enum IngestMode : String, Ingestible { case reference, create }
     public typealias DeleteRule = NSDeleteRule
 
     /// The name of the corresponding property of the source entity.
@@ -28,23 +36,18 @@ public struct ManagedRelationship : ManagedProperty
     public let inverseName : String
 
     /// Indicates how values are established on object ingestion.
-    public let ingestKey : IngestKey
-
-    /// Determines how related objects are obtained from the ingest value, if any, provided on object initialization: a mode of 'reference' indicates that ingested values name existing objects;
-    /// a mode of 'create' indicates ingested values are JSON data used to create the related objects. Nil indicates the relation is not ingested.
-    public let ingestMode : IngestMode
+    public let ingest : (key: IngestKey, mode: IngestMode)?
 
 
     /// Initialize a new instance.
-    public init(_ name: String, arity: Arity, relatedEntityName: String, inverseName: String, deleteRule: DeleteRule? = nil, ingestKey: IngestKey? = nil, ingestMode: IngestMode? = nil)
+    public init(_ name: String, arity: Arity, relatedEntityName: String, inverseName: String, deleteRule: DeleteRule? = nil, ingest: (key: IngestKey, mode: IngestMode)? = nil)
       {
         self.name = name
         self.arity = arity
         self.relatedEntityName = relatedEntityName
         self.inverseName = inverseName
         self.deleteRule = deleteRule ?? .defaultValue(for: arity)
-        self.ingestKey = ingestKey ?? .element(name)
-        self.ingestMode = ingestMode ?? .defaultValue(for: arity)
+        self.ingest = ingest
       }
 
 
@@ -54,9 +57,7 @@ public struct ManagedRelationship : ManagedProperty
           arity: .defaultInverseValue(for: arity),
           relatedEntityName: entityName,
           inverseName: name,
-          deleteRule: .defaultInverseValue(for: arity),
-          ingestKey: .ignore,
-          ingestMode: .reference
+          deleteRule: .defaultInverseValue(for: arity)
         )
       }
   }

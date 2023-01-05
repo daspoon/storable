@@ -11,9 +11,15 @@ public struct ToOneRelationship<Value: ManagedObject> : ManagedPropertyWrapper
     public let managedProperty : ManagedProperty
 
 
-    public init(_ propertyName: String, inverseName: String, deleteRule r: NSDeleteRule? = nil, ingestKey k: IngestKey? = nil, ingestMode m: ManagedRelationship.IngestMode? = nil)
+    public init(_ name: String, inverseName: String, deleteRule r: NSDeleteRule? = nil)
       {
-        managedProperty = ManagedRelationship(propertyName, arity: .toOne, relatedEntityName: Value.entityName, inverseName: inverseName, deleteRule: r, ingestKey: k, ingestMode: m)
+        managedProperty = ManagedRelationship(name, arity: .toOne, relatedEntityName: Value.entityName, inverseName: inverseName, deleteRule: r)
+      }
+
+
+    public init(_ name: String, inverseName: String, deleteRule r: NSDeleteRule? = nil, ingestMode m: ManagedRelationship.IngestMode, ingestKey k: IngestKey? = nil)
+      {
+        managedProperty = ManagedRelationship(name, arity: .toOne, relatedEntityName: Value.entityName, inverseName: inverseName, deleteRule: r, ingest: (key: k ?? .element(name), mode: m))
       }
 
 

@@ -14,26 +14,22 @@ public struct ManagedAttribute : ManagedProperty
     /// Non-nil for native types.
     public let attributeType : NSAttributeDescription.AttributeType
 
-    /// Indicates how json values are extracted from the data provided to the enclosing object on ingestion.
-    public let ingestKey : IngestKey
-
-    /// The method used to translate the json ingest value to an object value persisted by CoreData.
-    public let ingestMethod : (Any) throws -> any Storable
+    /// The optional default value.
+    public let defaultValue : (any Storable)?
 
     /// Indicates whether or not nil is an legitimate property value.
     public let allowsNilValue : Bool
 
-    /// The optional default value.
-    public let defaultValue : (any Storable)?
+    /// If non-nil, determines how json values are extracted from object ingest data and transformed to stored values.
+    public let ingest : (key: IngestKey, method: (Any) throws -> any Storable)?
 
 
-    public init(name: String, type: NSAttributeDescription.AttributeType, ingestMethod: @escaping (Any) throws -> any Storable, ingestKey: IngestKey? = nil, allowsNilValue: Bool = false, defaultValue: (any Storable)? = nil)
+    public init(name: String, type: NSAttributeDescription.AttributeType, defaultValue: (any Storable)? = nil, allowsNilValue: Bool = false, ingest: (key: IngestKey, method: (Any) throws -> any Storable)? = nil)
       {
         self.name = name
-        self.ingestKey = ingestKey ?? .element(name)
-        self.ingestMethod = ingestMethod
-        self.allowsNilValue = allowsNilValue
         self.attributeType = type
         self.defaultValue = defaultValue
+        self.allowsNilValue = allowsNilValue
+        self.ingest = ingest
       }
   }

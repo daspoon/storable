@@ -72,15 +72,20 @@ open class ManagedObject : NSManagedObject
         for attribute in entity.attributes.values {
           do {
             let storableValue : (any Storable)?
-            switch (ingestData[attribute.ingestKey], attribute.defaultValue) {
-              case (.some(let jsonValue), _) :
-                storableValue = try attribute.ingestMethod(jsonValue)
-              case (.none, .some(let defaultValue)) :
-                storableValue = defaultValue
-              case (.none, .none) :
-                guard attribute.allowsNilValue else { throw Exception("a value is required") }
-                storableValue = nil
+            if let ingest = attribute.ingest {
+              switch (ingestData[ingest.key], attribute.defaultValue) {
+                case (.some(let jsonValue), _) :
+                  storableValue = try ingest.method(jsonValue)
+                case (.none, .some(let defaultValue)) :
+                  storableValue = defaultValue
+                case (.none, .none) :
+                  storableValue = nil
+              }
             }
+            else {
+              storableValue = attribute.defaultValue
+            }
+            guard storableValue != nil || attribute.allowsNilValue else { throw Exception("a value is required") }
             setValue(try storableValue?.storedValue(), forKey: attribute.name)
           }
           catch let error {
@@ -90,11 +95,11 @@ open class ManagedObject : NSManagedObject
 
         // Ingest relationships.
         for relationship in entity.relationships.values {
-          guard relationship.ingestKey != .ignore else { continue }
+          guard let ingest = relationship.ingest else { continue }
           do {
             let relatedEntity = try context.entity(for: relationship.relatedEntityName)
             let relatedClass = relatedEntity.managedObjectClass
-            switch (ingestData[relationship.ingestKey], relationship.ingestMode, relationship.arity) {
+            switch (ingestData[ingest.key], ingest.mode, relationship.arity) {
               case (.some(let jsonValue), .create, .toMany) :
                 // Creating a to-many relation requires the associated data is a dictionary mapping instance identifiers to the data provided to the related object initializer.
                 guard let jsonDict = jsonValue as? [String: Any] else { throw Exception("a dictionary value is required") }

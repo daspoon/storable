@@ -6,27 +6,47 @@ import CoreData
 
 
 @propertyWrapper
-public struct Attribute<Value: Ingestible & Storable> : ManagedPropertyWrapper
+public struct Attribute<Value: Storable> : ManagedPropertyWrapper
   {
     public let managedProperty : ManagedProperty
 
-    private static func ingest(_ json: Any) throws -> Value
+    private static func ingest(_ json: Any) throws -> Value where Value : Ingestible
       { try Value(json: try throwingCast(json)) }
 
 
-    public init(_ name: String, ingestKey k: IngestKey? = nil)
+    public init(_ name: String)
       {
-        managedProperty = ManagedAttribute(name: name, type: Value.attributeType, ingestMethod: Self.ingest, ingestKey: k, allowsNilValue: Value.isOptional)
+        managedProperty = ManagedAttribute(name: name, type: Value.attributeType, allowsNilValue: Value.isOptional)
+      }
+
+    public init(_ name: String)  where Value : Ingestible
+      {
+        managedProperty = ManagedAttribute(name: name, type: Value.attributeType, allowsNilValue: Value.isOptional, ingest: (.element(name), Self.ingest))
+      }
+
+    public init(_ name: String, ingestKey k: IngestKey) where Value : Ingestible
+      {
+        managedProperty = ManagedAttribute(name: name, type: Value.attributeType, allowsNilValue: Value.isOptional, ingest: (k, Self.ingest))
       }
 
 
-    public init(wrappedValue v: Value, _ name: String, ingestKey k: IngestKey? = nil)
+    public init(wrappedValue v: Value, _ name: String)
       {
-        managedProperty = ManagedAttribute(name: name, type: Value.attributeType, ingestMethod: Self.ingest, ingestKey: k, allowsNilValue: Value.isOptional, defaultValue: v)
+        managedProperty = ManagedAttribute(name: name, type: Value.attributeType, defaultValue: v, allowsNilValue: Value.isOptional)
+      }
+
+    public init(wrappedValue v: Value, _ name: String) where Value : Ingestible
+      {
+        managedProperty = ManagedAttribute(name: name, type: Value.attributeType, defaultValue: v, allowsNilValue: Value.isOptional, ingest: (.element(name), Self.ingest))
+      }
+
+    public init(wrappedValue v: Value, _ name: String, ingestKey k: IngestKey) where Value : Ingestible
+      {
+        managedProperty = ManagedAttribute(name: name, type: Value.attributeType, defaultValue: v, allowsNilValue: Value.isOptional, ingest: (k, Self.ingest))
       }
 
 
-    public init<Transform>(_ name: String, ingestKey key: IngestKey? = nil, transform t: Transform, defaultIngestValue v: Transform.Input? = nil) where Transform : IngestTransform, Transform.Output == Value.Input
+    public init<Transform>(_ name: String, ingestKey k: IngestKey? = nil, transform t: Transform, defaultIngestValue v: Transform.Input? = nil) where Value : Ingestible, Transform : IngestTransform, Transform.Output == Value.Input
       {
         func ingest(_ json: Any) throws -> Value {
           try Value(json: try t.transform(try throwingCast(json)))
@@ -37,7 +57,7 @@ public struct Attribute<Value: Ingestible & Storable> : ManagedPropertyWrapper
             fatalError("failed to transform default value '\($0)' of attribute \(name): \(error)")
           }
         }
-        managedProperty = ManagedAttribute(name: name, type: Value.attributeType, ingestMethod: ingest, ingestKey: key, allowsNilValue: Value.isOptional, defaultValue: tv)
+        managedProperty = ManagedAttribute(name: name, type: Value.attributeType, defaultValue: tv, allowsNilValue: Value.isOptional, ingest: (k ?? .element(name), ingest))
       }
 
 

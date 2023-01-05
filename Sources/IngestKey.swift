@@ -18,9 +18,6 @@ public enum IngestKey : Equatable
 
     /// The data value is a dictionary and the property value is the named element of that dictionary.
     case element(String)
-
-    /// The property value is not ingested.
-    case ignore
   }
 
 
