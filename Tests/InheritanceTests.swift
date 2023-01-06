@@ -23,7 +23,7 @@ fileprivate class Combatant : Object // TODO: abstract
     @Attribute("name")
     var name : String
 
-    @Relationship("skills", inverseName: "wielders")
+    @Relationship("skills", inverseName: "wielders", deleteRule: .nullifyDeleteRule)
     var skills : Set<Skill>
   }
 

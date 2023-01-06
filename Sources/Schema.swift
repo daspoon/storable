@@ -54,7 +54,7 @@ public struct Schema
             let inverse : RelationshipInfo
             switch targetEntity.relationships[relationship.inverseName] {
               case .none :
-                inverse = relationship.inverse(for: sourceName)
+                throw Exception("specified inverse \(targetName).\(relationship.inverseName) of \(sourceName).\(relationshipName) is undefined")
               case .some(let explicit) :
                 guard explicit.relatedEntityName == sourceName
                   else { throw Exception("relatedEntityName '\(explicit.relatedEntityName)' of \(targetName).\(relationship.inverseName) is inconsistent with specified inverse \(sourceName).\(relationshipName)") }
@@ -68,12 +68,12 @@ public struct Schema
             forwardDescription.destinationEntity = targetEntity.entityDescription
             forwardDescription.inverseRelationship = inverseDescription
             forwardDescription.deleteRule = relationship.deleteRule
-            forwardDescription.rangeOfCount = relationship.arity.rangeOfCount
+            forwardDescription.rangeOfCount = relationship.arity
             inverseDescription.name = relationship.inverseName
             inverseDescription.destinationEntity = sourceEntity.entityDescription
             inverseDescription.inverseRelationship = forwardDescription
             inverseDescription.deleteRule = inverse.deleteRule
-            inverseDescription.rangeOfCount = inverse.arity.rangeOfCount
+            inverseDescription.rangeOfCount = inverse.arity
             // Add the NSRelationshipDescriptions to the corresponding NSEntityDescriptions
             sourceEntity.entityDescription.properties.append(forwardDescription)
             targetEntity.entityDescription.properties.append(inverseDescription)

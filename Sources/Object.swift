@@ -100,7 +100,7 @@ open class Object : NSManagedObject
             let relatedEntity = try context.objectInfo(for: relationship.relatedEntityName)
             let relatedClass = relatedEntity.managedObjectClass
             switch (ingestData[ingest.key], ingest.mode, relationship.arity) {
-              case (.some(let jsonValue), .create, .toMany) :
+              case (.some(let jsonValue), .create, let arity) where arity.upperBound > 1 :
                 // Creating a to-many relation requires the associated data is a dictionary mapping instance identifiers to the data provided to the related object initializer.
                 guard let jsonDict = jsonValue as? [String: Any] else { throw Exception("a dictionary value is required") }
                 let relatedObjects = try jsonDict.map { (key, value) in try relatedClass.init(relatedEntity, with: .dictionaryEntry(key: key, value: value), in: context) }
@@ -109,7 +109,7 @@ open class Object : NSManagedObject
                 // Creating a to-one relationship requires providing the associated data to the related object initializer.
                 let relatedObject = try relatedClass.init(relatedEntity, with: .value(jsonValue), in: context)
                 setValue(relatedObject, forKey: relationship.name)
-              case (.some(let jsonValue), .reference, .toMany) :
+              case (.some(let jsonValue), .reference, let arity) where arity.upperBound > 1 :
                 // A to-many reference requires an array string instance identifiers. Evaluation is delayed until all entity instances have been created.
                 guard let instanceIds = jsonValue as? [String] else { throw Exception("an array of object identifiers is required") }
                 context.delay {
@@ -124,7 +124,7 @@ open class Object : NSManagedObject
                   self.setValue(relatedObject, forKey: relationship.name)
                 }
               case (.none, _, let arity) :
-                guard arity == .toMany || arity == .optionalToOne else { throw Exception("a value is required") }
+                guard arity.lowerBound == 0 else { throw Exception("a value is required") }
             }
           }
           catch let error {
