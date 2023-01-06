@@ -19,7 +19,7 @@ fileprivate class Category : ManagedObject
     @Attribute("name")
     var name : String
 
-    @ToManyRelationship("items", inverseName: "category", deleteRule: .cascadeDeleteRule)
+    @Relationship("items", inverseName: "category", deleteRule: .cascadeDeleteRule)
     var items : Set<Item>
   }
 
@@ -29,10 +29,10 @@ fileprivate class Item : ManagedObject
     @Attribute("name")
     var name : String
 
-    @ToOneRelationship("category", inverseName: "items", deleteRule: .nullifyDeleteRule)
+    @Relationship("category", inverseName: "items", deleteRule: .nullifyDeleteRule)
     var category : Category
 
-    @ToOptionalRelationship("box", inverseName: "items", deleteRule: .nullifyDeleteRule)
+    @Relationship("box", inverseName: "items", deleteRule: .nullifyDeleteRule)
     var box : Box?
   }
 
@@ -42,7 +42,7 @@ fileprivate class Box : ManagedObject
     @Attribute("number")
     var number : Int
 
-    @ToManyRelationship("items", inverseName: "box", deleteRule: .nullifyDeleteRule)
+    @Relationship("items", inverseName: "box", deleteRule: .nullifyDeleteRule)
     var items : Set<Item>
   }
 

@@ -12,7 +12,7 @@ fileprivate class Skill : ManagedObject
     @Attribute("name")
     var name : String
 
-    @ToManyRelationship("wielders", inverseName: "skills", deleteRule: .nullifyDeleteRule)
+    @Relationship("wielders", inverseName: "skills", deleteRule: .nullifyDeleteRule)
     var wielders : Set<Combatant>
   }
 
@@ -23,7 +23,7 @@ fileprivate class Combatant : ManagedObject // TODO: abstract
     @Attribute("name")
     var name : String
 
-    @ToManyRelationship("skills", inverseName: "wielders")
+    @Relationship("skills", inverseName: "wielders")
     var skills : Set<Skill>
   }
 
