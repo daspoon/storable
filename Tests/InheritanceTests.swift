@@ -7,7 +7,7 @@ import XCTest
 
 
 @objc(Skill)
-fileprivate class Skill : ManagedObject
+fileprivate class Skill : Object
   {
     @Attribute("name")
     var name : String
@@ -18,7 +18,7 @@ fileprivate class Skill : ManagedObject
 
 
 @objc(Combatant)
-fileprivate class Combatant : ManagedObject // TODO: abstract
+fileprivate class Combatant : Object // TODO: abstract
   {
     @Attribute("name")
     var name : String

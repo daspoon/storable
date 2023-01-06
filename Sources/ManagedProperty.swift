@@ -2,11 +2,10 @@
 
 */
 
-import Foundation
 
-
+/// ManagedPropertyWrapper is used to identify property wrappers which implement CoreData-managed properties on subclasses of ManagedObject.
+///
 public protocol ManagedProperty
   {
-    /// The name of the managed object property. Required.
-    var name : String { get }
+    var propertyInfo : PropertyInfo { get }
   }

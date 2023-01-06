@@ -8,10 +8,10 @@ import XCTest
 @testable import Compendium
 
 
-// MARK: - a class with a wide range of attributes -
+// MARK: - a class with the range of standard attributes -
 
 @objc(FullyAttributed)
-fileprivate class FullyAttributed : ManagedObject
+fileprivate class FullyAttributed : Object
   {
     @Attribute("boolValue")
     var boolValue : Bool
@@ -48,11 +48,51 @@ fileprivate class FullyAttributed : ManagedObject
   }
 
 
+// MARK: - a class with the range of standard attributes and default values -
+
+@objc(DefaultAttributed)
+fileprivate class DefaultAttributed : Object
+  {
+    @Attribute("boolValue")
+    var boolValue : Bool = true
+
+    @Attribute("intValue")
+    var intValue : Int = 1
+
+    @Attribute("int16Value")
+    var int16Value : Int16 = 2
+
+    @Attribute("int32Value")
+    var int32Value : Int32 = 3
+
+    @Attribute("int64Value")
+    var int64Value : Int64 = 4
+
+    @Attribute("floatValue")
+    var floatValue : Float = 5.5
+
+    @Attribute("doubleValue")
+    var doubleValue : Double = 6.5
+
+    @Attribute("stringValue")
+    var stringValue : String = "heynow"
+
+    @Attribute("dateValue")
+    var dateValue : Date = .now
+
+    @Attribute("dataValue")
+    var dataValue : Data = .init()
+
+    @Attribute("optionalIntValue")
+    var optionalIntValue : Int? = nil
+  }
+
+
 // MARK: - compiler rejection of non-storable types -
 
 #if false
 @objc(WronglyAttributed)
-fileprivate class WronglyAttributed : ManagedObject
+fileprivate class WronglyAttributed : Object
   {
     enum MyEnum { case one, two, three }
     struct MyStruct { var intValue : Int }
@@ -77,7 +117,7 @@ fileprivate class WronglyAttributed : ManagedObject
 
 final class AttributeTests : XCTestCase
   {
-    func test() throws
+    func testStandard() throws
       {
         let store = try dataStore(for: [FullyAttributed.self])
 
@@ -129,5 +169,15 @@ final class AttributeTests : XCTestCase
         XCTAssertEqual(object.optionalIntValue, 42)
         object.optionalIntValue = nil
         XCTAssertEqual(object.optionalIntValue, nil)
+      }
+
+
+    func tesDefaulted() throws
+      {
+        let store = try dataStore(for: [FullyAttributed.self])
+
+        let object = try store.create(DefaultAttributed.self) { _ in }
+
+        print(object.intValue)
       }
   }

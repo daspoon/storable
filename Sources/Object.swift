@@ -6,7 +6,7 @@ import CoreData
 
 
 /// The base class of managed object.
-open class ManagedObject : NSManagedObject
+open class Object : NSManagedObject
   {
     /// The notion of instance identity (within class).
     public enum Identity : String, Ingestible
@@ -49,13 +49,13 @@ open class ManagedObject : NSManagedObject
 
 
     /// Initialize a new instance, assigning default attribute values. This method is not intended to be overidden.
-    public required convenience init(_ entity: ManagedEntity, in managedObjectContext: NSManagedObjectContext) throws
+    public required convenience init(_ info: ObjectInfo, in managedObjectContext: NSManagedObjectContext) throws
       {
         // Delegate to the designated initializer for NSManagedObject.
-        self.init(entity: entity.entityDescription, insertInto: managedObjectContext)
+        self.init(entity: info.entityDescription, insertInto: managedObjectContext)
 
         // Assign default attribute values
-        for attribute in entity.attributes.values {
+        for attribute in info.attributes.values {
           guard let defaultValue = attribute.defaultValue else { continue }
           setValue(try defaultValue.storedValue(), forKey: attribute.name)
         }
@@ -63,13 +63,13 @@ open class ManagedObject : NSManagedObject
 
 
     /// Initialize a new instance, taking property values from the given ingest data. This method is not intended to be overidden.
-    public required convenience init(_ entity: ManagedEntity, with ingestData: IngestData, in context: IngestContext) throws
+    public required convenience init(_ info: ObjectInfo, with ingestData: IngestData, in context: IngestContext) throws
       {
         // Delegate to the designated initializer for NSManagedObject.
-        self.init(entity: entity.entityDescription, insertInto: context.managedObjectContext)
+        self.init(entity: info.entityDescription, insertInto: context.managedObjectContext)
 
         // Ingest attributes.
-        for attribute in entity.attributes.values {
+        for attribute in info.attributes.values {
           do {
             let storableValue : (any Storable)?
             if let ingest = attribute.ingest {
@@ -89,15 +89,15 @@ open class ManagedObject : NSManagedObject
             setValue(try storableValue?.storedValue(), forKey: attribute.name)
           }
           catch let error {
-            throw Exception("failed to ingest attribute '\(attribute.name)' of '\(entity.name)' -- " + error.localizedDescription)
+            throw Exception("failed to ingest attribute '\(attribute.name)' of '\(info.name)' -- " + error.localizedDescription)
           }
         }
 
         // Ingest relationships.
-        for relationship in entity.relationships.values {
+        for relationship in info.relationships.values {
           guard let ingest = relationship.ingest else { continue }
           do {
-            let relatedEntity = try context.entity(for: relationship.relatedEntityName)
+            let relatedEntity = try context.objectInfo(for: relationship.relatedEntityName)
             let relatedClass = relatedEntity.managedObjectClass
             switch (ingestData[ingest.key], ingest.mode, relationship.arity) {
               case (.some(let jsonValue), .create, .toMany) :
@@ -128,7 +128,7 @@ open class ManagedObject : NSManagedObject
             }
           }
           catch let error {
-            throw Exception("failed to ingest relationship '\(relationship.name)' of '\(entity.name)' -- " + error.localizedDescription)
+            throw Exception("failed to ingest relationship '\(relationship.name)' of '\(info.name)' -- " + error.localizedDescription)
           }
         }
       }

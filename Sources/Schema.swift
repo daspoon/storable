@@ -10,20 +10,20 @@ import CoreData
 public struct Schema
   {
     public let name : String
-    public let entitiesByName : [String: ManagedEntity]
+    public let entitiesByName : [String: ObjectInfo]
     public let managedObjectModel : NSManagedObjectModel
 
 
-    public init(name: String, objectTypes: [ManagedObject.Type]) throws
+    public init(name: String, objectTypes: [Object.Type]) throws
       {
         self.name = name
 
         // Perform a post-order traversal on the implied class hierarchy to populate the mapping of names to Entity values and establish the inheritance relations between NSEntityDescriptions.
-        var _entitiesByName : [String: ManagedEntity] = [:]
+        var _entitiesByName : [String: ObjectInfo] = [:]
         _ = NSObject.inheritanceHierarchy(with: objectTypes).fold { objectType, subentities in
-          guard objectType != ManagedObject.self else { return NSEntityDescription() }
+          guard objectType != Object.self else { return NSEntityDescription() }
           // Create and register an Entity instance;  it creates an NSEntityDescription with the appropriate name and managedObjectClassName.
-          let entity = ManagedEntity(objectType: objectType)
+          let entity = ObjectInfo(objectType: objectType)
           _entitiesByName[entity.name] = entity
           // Populate the entity's attribute descriptions
           for (name, attribute) in entity.attributes {
@@ -51,7 +51,7 @@ public struct Schema
             guard let targetEntity = entitiesByName[targetName]
               else { throw Exception("relationship \(sourceName).\(relationshipName) has unknown target entity name '\(targetName)'") }
             // Get or synthesize the inverse relationship.
-            let inverse : ManagedRelationship
+            let inverse : RelationshipInfo
             switch targetEntity.relationships[relationship.inverseName] {
               case .none :
                 inverse = relationship.inverse(for: sourceName)

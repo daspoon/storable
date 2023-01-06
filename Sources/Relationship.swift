@@ -6,47 +6,47 @@ import CoreData
 
 
 @propertyWrapper
-public struct Relationship<Value> : ManagedPropertyWrapper
+public struct Relationship<Value> : ManagedProperty
   {
-    public let managedProperty : ManagedProperty
+    public let propertyInfo : PropertyInfo
 
 
     // MARK: - to-one -
 
-    public init(_ name: String, inverseName: String, deleteRule r: NSDeleteRule? = nil) where Value : ManagedObject
+    public init(_ name: String, inverseName: String, deleteRule r: NSDeleteRule? = nil) where Value : Object
       {
-        managedProperty = ManagedRelationship(name, arity: .toOne, relatedEntityName: Value.entityName, inverseName: inverseName, deleteRule: r)
+        propertyInfo = RelationshipInfo(name, arity: .toOne, relatedEntityName: Value.entityName, inverseName: inverseName, deleteRule: r)
       }
 
-    public init(_ name: String, inverseName: String, deleteRule r: NSDeleteRule? = nil, ingestMode m: ManagedRelationship.IngestMode, ingestKey k: IngestKey? = nil) where Value : ManagedObject
+    public init(_ name: String, inverseName: String, deleteRule r: NSDeleteRule? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil) where Value : Object
       {
-        managedProperty = ManagedRelationship(name, arity: .toOne, relatedEntityName: Value.entityName, inverseName: inverseName, deleteRule: r, ingest: (key: k ?? .element(name), mode: m))
+        propertyInfo = RelationshipInfo(name, arity: .toOne, relatedEntityName: Value.entityName, inverseName: inverseName, deleteRule: r, ingest: (key: k ?? .element(name), mode: m))
       }
 
 
     // MARK: - to-optional -
 
-    public init(_ name: String, inverseName: String, deleteRule r: NSDeleteRule? = nil) where Value : Nullable, Value.Wrapped : ManagedObject
+    public init(_ name: String, inverseName: String, deleteRule r: NSDeleteRule? = nil) where Value : Nullable, Value.Element : Object
       {
-        managedProperty = ManagedRelationship(name, arity: .optionalToOne, relatedEntityName: Value.Wrapped.entityName, inverseName: inverseName, deleteRule: r)
+        propertyInfo = RelationshipInfo(name, arity: .optionalToOne, relatedEntityName: Value.Element.entityName, inverseName: inverseName, deleteRule: r)
       }
 
-    public init(_ name: String, inverseName: String, deleteRule r: NSDeleteRule? = nil, ingestMode m: ManagedRelationship.IngestMode, ingestKey k: IngestKey? = nil) where Value : Nullable, Value.Wrapped : ManagedObject
+    public init(_ name: String, inverseName: String, deleteRule r: NSDeleteRule? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil) where Value : Nullable, Value.Element : Object
       {
-        managedProperty = ManagedRelationship(name, arity: .optionalToOne, relatedEntityName: Value.Wrapped.entityName, inverseName: inverseName, deleteRule: r, ingest: (key: k ?? .element(name), mode: m))
+        propertyInfo = RelationshipInfo(name, arity: .optionalToOne, relatedEntityName: Value.Element.entityName, inverseName: inverseName, deleteRule: r, ingest: (key: k ?? .element(name), mode: m))
       }
 
 
     // MARK: - to-many -
 
-    public init(_ name: String, inverseName: String, deleteRule r: NSDeleteRule? = nil) where Value : SetAlgebra & ExpressibleByArrayLiteral, Value.Element : ManagedObject
+    public init(_ name: String, inverseName: String, deleteRule r: NSDeleteRule? = nil) where Value : SetAlgebra, Value.Element : Object
       {
-        managedProperty = ManagedRelationship(name, arity: .toMany, relatedEntityName: Value.Element.entityName, inverseName: inverseName, deleteRule: r)
+        propertyInfo = RelationshipInfo(name, arity: .toMany, relatedEntityName: Value.Element.entityName, inverseName: inverseName, deleteRule: r)
       }
 
-    public init(_ name: String, inverseName: String, deleteRule r: NSDeleteRule? = nil, ingestMode m: ManagedRelationship.IngestMode, ingestKey k: IngestKey? = nil) where Value : SetAlgebra & ExpressibleByArrayLiteral, Value.Element : ManagedObject
+    public init(_ name: String, inverseName: String, deleteRule r: NSDeleteRule? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil) where Value : SetAlgebra, Value.Element : Object
       {
-        managedProperty = ManagedRelationship(name, arity: .toMany, relatedEntityName: Value.Element.entityName, inverseName: inverseName, deleteRule: r, ingest: (key: k ?? .element(name), mode: m))
+        propertyInfo = RelationshipInfo(name, arity: .toMany, relatedEntityName: Value.Element.entityName, inverseName: inverseName, deleteRule: r, ingest: (key: k ?? .element(name), mode: m))
       }
 
 
@@ -56,7 +56,7 @@ public struct Relationship<Value> : ManagedPropertyWrapper
       {
         get {
           let wrapper = instance[keyPath: storageKeyPath]
-          let storedValue = instance.value(forKey: wrapper.managedProperty.name)
+          let storedValue = instance.value(forKey: wrapper.propertyInfo.name)
           guard let value = storedValue as? Value else {
             fatalError("failed to interpret \(String(describing: storedValue)) as \(Value.self)")
           }
@@ -64,7 +64,7 @@ public struct Relationship<Value> : ManagedPropertyWrapper
         }
         set {
           let wrapper = instance[keyPath: storageKeyPath]
-          instance.setValue(newValue, forKey: wrapper.managedProperty.name)
+          instance.setValue(newValue, forKey: wrapper.propertyInfo.name)
         }
       }
 

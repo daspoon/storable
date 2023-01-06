@@ -6,7 +6,7 @@ import CoreData
 
 
 /// Represents a relation between entities.  Note that every relationship has an inverse, but only one endpoint is specified explicitly.
-public struct ManagedRelationship : ManagedProperty
+public struct RelationshipInfo : PropertyInfo
   {
     /// Determines how related objects are obtained from object ingest data.
     public enum IngestMode : String
@@ -51,7 +51,7 @@ public struct ManagedRelationship : ManagedProperty
       }
 
 
-    public func inverse(for entityName: String) -> ManagedRelationship
+    public func inverse(for entityName: String) -> RelationshipInfo
       {
         Self(inverseName,
           arity: .defaultInverseValue(for: arity),
@@ -65,9 +65,9 @@ public struct ManagedRelationship : ManagedProperty
 
 // MARK: --
 
-extension ManagedRelationship.Arity
+extension RelationshipInfo.Arity
   {
-    public static func defaultInverseValue(for arity: ManagedRelationship.Arity) -> Self
+    public static func defaultInverseValue(for arity: RelationshipInfo.Arity) -> Self
       {
         switch arity {
           case .toOne : return .toMany
@@ -92,9 +92,9 @@ extension ManagedRelationship.Arity
 
 // MARK: --
 
-extension ManagedRelationship.DeleteRule
+extension RelationshipInfo.DeleteRule
   {
-    public static func defaultValue(for arity: ManagedRelationship.Arity) -> Self
+    public static func defaultValue(for arity: RelationshipInfo.Arity) -> Self
       {
         switch arity {
           case .toOne, .optionalToOne : return .nullifyDeleteRule
@@ -102,7 +102,7 @@ extension ManagedRelationship.DeleteRule
         }
       }
 
-    public static func defaultInverseValue(for arity: ManagedRelationship.Arity) -> Self
+    public static func defaultInverseValue(for arity: RelationshipInfo.Arity) -> Self
       {
         switch arity {
           case .toOne : return .cascadeDeleteRule
@@ -114,9 +114,9 @@ extension ManagedRelationship.DeleteRule
 
 // MARK: --
 
-extension ManagedRelationship.IngestMode
+extension RelationshipInfo.IngestMode
   {
-    public static func defaultValue(for arity: ManagedRelationship.Arity) -> Self
+    public static func defaultValue(for arity: RelationshipInfo.Arity) -> Self
       {
         switch arity {
           case .toOne, .optionalToOne : return .reference

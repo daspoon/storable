@@ -56,13 +56,13 @@ public class DataStore
         try self.init(schema: schema, reset: reset)
 
         // Retrieve the configuration if one exists; otherwise trigger ingestion from the data source.
-        var configurations = try managedObjectContext.fetch(NSFetchRequest<ManagedObject>(entityName: stateEntityName))
+        var configurations = try managedObjectContext.fetch(NSFetchRequest<Object>(entityName: stateEntityName))
         switch configurations.count {
           case 1 :
             break
           case 0 :
             try IngestContext.populate(schema: schema, managedObjectContext: managedObjectContext, dataSource: dataSource)
-            configurations = try managedObjectContext.fetch(NSFetchRequest<ManagedObject>(entityName: stateEntityName))
+            configurations = try managedObjectContext.fetch(NSFetchRequest<Object>(entityName: stateEntityName))
             guard configurations.count == 1 else {
               throw Exception("inconsistency after ingestion: \(configurations.count) configurations detected")
             }
@@ -78,7 +78,7 @@ public class DataStore
       }
 
 
-    func create<T: ManagedObject>(_ type: T.Type = T.self, initialize: (T) throws -> Void) throws -> T
+    func create<T: Object>(_ type: T.Type = T.self, initialize: (T) throws -> Void) throws -> T
       {
         guard let entity = schema.entitiesByName[type.entityName] else { throw Exception("unknown entity \(type.entityName)") }
         let instance = try type.init(entity, in: managedObjectContext)

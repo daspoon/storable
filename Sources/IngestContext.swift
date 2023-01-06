@@ -45,16 +45,16 @@ public class IngestContext
       }
 
 
-    func entity(for entityName: String) throws -> ManagedEntity
+    func objectInfo(for entityName: String) throws -> ObjectInfo
       {
         guard let entity = schema.entitiesByName[entityName] else { throw Exception("unknown entity name '\(entityName)'") }
         return entity
       }
 
 
-    func fetchObject(id name: String, of entityName: String) throws -> ManagedObject
+    func fetchObject(id name: String, of entityName: String) throws -> Object
       {
-        let fetchRequest = NSFetchRequest<ManagedObject>(entityName: entityName)
+        let fetchRequest = NSFetchRequest<Object>(entityName: entityName)
         fetchRequest.predicate = NSPredicate(format: "name = %@", name)
 
         let results = try managedObjectContext.fetch(fetchRequest)

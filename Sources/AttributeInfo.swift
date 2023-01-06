@@ -6,7 +6,7 @@ import CoreData
 
 
 /// Represents a managed object attribute.
-public struct ManagedAttribute : ManagedProperty
+public struct AttributeInfo : PropertyInfo
   {
     /// The managed property name.
     public let name : String
