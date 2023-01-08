@@ -16,33 +16,33 @@ public struct Attribute<Value: Storable> : ManagedProperty
 
     public init(_ name: String)
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.attributeType, allowsNilValue: Value.isOptional)
+        propertyInfo = AttributeInfo(name: name, type: Value.StoredType.attributeType, allowsNilValue: Value.StoredType.isOptional)
       }
 
     public init(_ name: String)  where Value : Ingestible
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.attributeType, allowsNilValue: Value.isOptional, ingest: (.element(name), Self.ingest))
+        propertyInfo = AttributeInfo(name: name, type: Value.StoredType.attributeType, allowsNilValue: Value.StoredType.isOptional, ingest: (.element(name), Self.ingest))
       }
 
     public init(_ name: String, ingestKey k: IngestKey) where Value : Ingestible
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.attributeType, allowsNilValue: Value.isOptional, ingest: (k, Self.ingest))
+        propertyInfo = AttributeInfo(name: name, type: Value.StoredType.attributeType, allowsNilValue: Value.StoredType.isOptional, ingest: (k, Self.ingest))
       }
 
 
     public init(wrappedValue v: Value, _ name: String)
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.attributeType, defaultValue: v, allowsNilValue: Value.isOptional)
+        propertyInfo = AttributeInfo(name: name, type: Value.StoredType.attributeType, defaultValue: v, allowsNilValue: Value.StoredType.isOptional)
       }
 
     public init(wrappedValue v: Value, _ name: String) where Value : Ingestible
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.attributeType, defaultValue: v, allowsNilValue: Value.isOptional, ingest: (.element(name), Self.ingest))
+        propertyInfo = AttributeInfo(name: name, type: Value.StoredType.attributeType, defaultValue: v, allowsNilValue: Value.StoredType.isOptional, ingest: (.element(name), Self.ingest))
       }
 
     public init(wrappedValue v: Value, _ name: String, ingestKey k: IngestKey) where Value : Ingestible
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.attributeType, defaultValue: v, allowsNilValue: Value.isOptional, ingest: (k, Self.ingest))
+        propertyInfo = AttributeInfo(name: name, type: Value.StoredType.attributeType, defaultValue: v, allowsNilValue: Value.StoredType.isOptional, ingest: (k, Self.ingest))
       }
 
 
@@ -57,7 +57,7 @@ public struct Attribute<Value: Storable> : ManagedProperty
             fatalError("failed to transform default value '\($0)' of attribute \(name): \(error)")
           }
         }
-        propertyInfo = AttributeInfo(name: name, type: Value.attributeType, defaultValue: tv, allowsNilValue: Value.isOptional, ingest: (k ?? .element(name), ingest))
+        propertyInfo = AttributeInfo(name: name, type: Value.StoredType.attributeType, defaultValue: tv, allowsNilValue: Value.StoredType.isOptional, ingest: (k ?? .element(name), ingest))
       }
 
 
@@ -65,28 +65,27 @@ public struct Attribute<Value: Storable> : ManagedProperty
     public static subscript<Object: NSManagedObject>(_enclosingInstance instance: Object, wrapped wrappedKeyPath: ReferenceWritableKeyPath<Object, Value>, storage storageKeyPath: ReferenceWritableKeyPath<Object, Self>) -> Value
       {
         get {
-          // Retrieve and decode the stored object value
           let wrapper = instance[keyPath: storageKeyPath]
           do {
-            switch (instance.value(forKey: wrapper.propertyInfo.name), Value.isOptional) {
-              case (.some(let objectValue), _) :
-                let storedValue = try throwingCast(objectValue, as: Value.StoredType.self)
-                return try Value.decodeStoredValue(storedValue)
-              case (.none, true) :
-                return Value.nullValue
-              case (.none, false) :
-                throw Exception("no stored value for '\(wrapper.propertyInfo.name)'")
+            // The value maintained by CoreData is of type Value.StoredType; nil is acceptable if Value.isOptional, but otherwise means the property is uninitialized.
+            let storedValue : Value.StoredType
+            switch instance.value(forKey: wrapper.propertyInfo.name) {
+              case .some(let objectValue) :
+                storedValue = try throwingCast(objectValue, as: Value.StoredType.self)
+              case .none :
+                guard Value.StoredType.isOptional else { throw Exception("value is not initialized") }
+                storedValue = .nullValue
             }
+            return try Value.decodeStoredValue(storedValue)
           }
           catch let error as NSError {
-            fatalError("failed to get value of type \(Value.self) for property '\(wrapper.propertyInfo.name)': \(error)")
+            fatalError("Failed to get value for \(Object.self).\(wrapper.propertyInfo.name): \(error)")
           }
         }
         set {
-          // Encode and store the new value
           let wrapper = instance[keyPath: storageKeyPath]
           do {
-            let storedValue = newValue.isNullValue ? nil : try newValue.storedValue()
+            let storedValue = try newValue.storedValue()
             instance.setValue(storedValue, forKey: wrapper.propertyInfo.name)
           }
           catch let error as NSError {
