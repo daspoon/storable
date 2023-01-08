@@ -29,5 +29,5 @@ extension Enumeration
       { name }
 
     public var iconSpec : IconSpec
-      { .init(name: "questionmark", source: .system) }
+      { .init(name: name, source: .bundle) }
   }
