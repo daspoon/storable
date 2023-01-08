@@ -28,6 +28,11 @@ open class Object : NSManagedObject
       { .anonymous }
 
 
+    /// This method is used to determine whether or not the corresponding NSEntityDescription should be marked abstract, and should only be overridden in classes intended to be abstract by returning their concrete type. The default implementation returns Object.
+    open class var abstractClass : Object.Type
+      { Object.self }
+
+
     /// Return a mirror for instances of this class.
     class var instanceMirror : Mirror
       {

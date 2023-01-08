@@ -36,5 +36,6 @@ public struct ObjectInfo
         entityDescription = .init()
         entityDescription.name = objectType.entityName
         entityDescription.managedObjectClassName = objectType.entityName
+        entityDescription.isAbstract = objectType == objectType.abstractClass
       }
   }
