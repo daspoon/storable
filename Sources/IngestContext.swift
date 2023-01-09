@@ -45,7 +45,7 @@ public class IngestContext
       }
 
 
-    func objectInfo(for entityName: String) throws -> ObjectInfo
+    func entityInfo(for entityName: String) throws -> EntityInfo
       {
         guard let entity = schema.entitiesByName[entityName] else { throw Exception("unknown entity name '\(entityName)'") }
         return entity

@@ -10,49 +10,30 @@ import CoreData
 public struct Schema
   {
     public let name : String
-    public let entitiesByName : [String: ObjectInfo]
     public let managedObjectModel : NSManagedObjectModel
+    public private(set) var entitiesByName : [String: EntityInfo] = [:]
 
 
     public init(name: String, objectTypes: [Object.Type]) throws
       {
         self.name = name
 
-        // Perform a post-order traversal on the implied class hierarchy to populate the mapping of names to Entity values and establish the inheritance relations between NSEntityDescriptions.
-        var _entitiesByName : [String: ObjectInfo] = [:]
-        _ = NSObject.inheritanceHierarchy(with: objectTypes).fold { objectType, subentities in
-          guard objectType != Object.self else { return NSEntityDescription() }
-          // Create and register an Entity instance;  it creates an NSEntityDescription with the appropriate name and managedObjectClassName.
-          let entity = ObjectInfo(objectType: objectType)
-          _entitiesByName[entity.name] = entity
-          // Populate the entity's attribute descriptions
-          for (name, attribute) in entity.attributes {
-            let attributeDescription = NSAttributeDescription()
-            attributeDescription.name = name
-            attributeDescription.type = attribute.attributeType
-            attributeDescription.isOptional = attribute.allowsNilValue
-            entity.entityDescription.properties.append(attributeDescription)
-          }
-          // Establish the inheritance relation with subentities, if any.
-          entity.entityDescription.subentities = subentities
-          // Return the entity description for use by the superentity
-          return entity.entityDescription
-        }
-        entitiesByName = _entitiesByName
+        // Perform a post-order traversal on the implied class hierarchy to populate the mapping of entity names to EntityInfo.
+        entitiesByName = try NSObject.inheritanceHierarchy(with: objectTypes).fold({try Self.processObjectType($0, subtreeResults: $1)}).1
 
         // Extend each NSEntityDescription with the specified relationships and their inverses, which we synthesize where not given explicitly.
-        for (sourceName, sourceEntity) in entitiesByName {
-          for (relationshipName, relationship) in sourceEntity.relationships {
+        for (sourceName, sourceInfo) in entitiesByName {
+          for (relationshipName, relationship) in sourceInfo.objectInfo.relationships {
             // Skip the relationship if it is already defined, which happens when the inverse relationship is processed first.
-            guard sourceEntity.entityDescription.relationshipsByName[relationshipName] == nil
+            guard sourceInfo.entityDescription.relationshipsByName[relationshipName] == nil
               else { continue }
             // Ensure the target entity exists
             let targetName = relationship.relatedEntityName
-            guard let targetEntity = entitiesByName[targetName]
+            guard let targetInfo = entitiesByName[targetName]
               else { throw Exception("relationship \(sourceName).\(relationshipName) has unknown target entity name '\(targetName)'") }
             // Get or synthesize the inverse relationship.
             let inverse : RelationshipInfo
-            switch targetEntity.relationships[relationship.inverseName] {
+            switch targetInfo.objectInfo.relationships[relationship.inverseName] {
               case .none :
                 throw Exception("specified inverse \(targetName).\(relationship.inverseName) of \(sourceName).\(relationshipName) is undefined")
               case .some(let explicit) :
@@ -65,18 +46,18 @@ public struct Schema
             // Create NSRelationshipDescriptions for the relationship pair.
             let (forwardDescription, inverseDescription) = (NSRelationshipDescription(), NSRelationshipDescription())
             forwardDescription.name = relationship.name
-            forwardDescription.destinationEntity = targetEntity.entityDescription
+            forwardDescription.destinationEntity = targetInfo.entityDescription
             forwardDescription.inverseRelationship = inverseDescription
             forwardDescription.deleteRule = relationship.deleteRule
             forwardDescription.rangeOfCount = relationship.arity
             inverseDescription.name = relationship.inverseName
-            inverseDescription.destinationEntity = sourceEntity.entityDescription
+            inverseDescription.destinationEntity = sourceInfo.entityDescription
             inverseDescription.inverseRelationship = forwardDescription
             inverseDescription.deleteRule = inverse.deleteRule
             inverseDescription.rangeOfCount = inverse.arity
             // Add the NSRelationshipDescriptions to the corresponding NSEntityDescriptions
-            sourceEntity.entityDescription.properties.append(forwardDescription)
-            targetEntity.entityDescription.properties.append(inverseDescription)
+            sourceInfo.entityDescription.properties.append(forwardDescription)
+            targetInfo.entityDescription.properties.append(inverseDescription)
           }
         }
 
@@ -84,4 +65,40 @@ public struct Schema
         managedObjectModel = .init()
         managedObjectModel.entities = entitiesByName.map { $0.value.entityDescription }
       }
+
+
+    private static func processObjectType(_ objectType: Object.Type, subtreeResults: [(EntityInfo, [String: EntityInfo])]) throws -> (EntityInfo, [String: EntityInfo])
+      {
+        // Create an ObjectInfo containing the managed property wrappers
+        let objectInfo = ObjectInfo(objectType: objectType)
+
+        // Create an entity description for CoreData
+        let entity = NSEntityDescription()
+        entity.name = objectInfo.name
+        entity.managedObjectClassName = objectInfo.name
+        entity.isAbstract = objectType == objectType.abstractClass
+
+        // Populate the entity's attribute descriptions
+        for (name, attribute) in objectInfo.attributes {
+          let attributeDescription = NSAttributeDescription()
+          attributeDescription.name = name
+          attributeDescription.type = attribute.attributeType
+          attributeDescription.isOptional = attribute.allowsNilValue
+          entity.properties.append(attributeDescription)
+        }
+
+        // Establish the inheritance relation with the entities for immediate subclasses.
+        entity.subentities = subtreeResults.map { $0.0.entityDescription }
+
+        // Form the combined dictionary of EntityInfo for the given class and its subclasses.
+        var combinedEntityInfoMap : [String: EntityInfo] = [objectInfo.name: .init(objectInfo, entity)]
+        for subtreeResult in subtreeResults {
+          try combinedEntityInfoMap.merge(subtreeResult.1) {
+            throw Exception("\($0.name) and \($1.name) have the same name")
+          }
+        }
+
+        return (EntityInfo(objectInfo, entity), combinedEntityInfoMap)
+      }
+
   }

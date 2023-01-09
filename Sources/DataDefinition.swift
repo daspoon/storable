@@ -26,7 +26,7 @@ public struct EntitySetDefinition : DataDefinition
 
     public func ingest(from dataSource: DataSource, into context: IngestContext) throws
       {
-        let entity = try context.objectInfo(for: entityName)
+        let entity = try context.entityInfo(for: entityName)
         if let content {
           switch content.format {
             case .any :
@@ -80,7 +80,7 @@ public struct RaceFusionDefinition : DataDefinition
 
     public func ingest(from dataSource: DataSource, into context: IngestContext) throws
       {
-        let entity = try context.objectInfo(for: "RaceFusion")
+        let entity = try context.entityInfo(for: "RaceFusion")
 
         let fusion_chart = try dataSource.load(content, of: [String: Any].self)
         let raceNames = try fusion_chart.requiredValue(of: [String].self, for: "races")

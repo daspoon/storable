@@ -26,10 +26,10 @@ extension NSObject
             }
           }
 
-        public func fold<Result>(_ combine: (Root.Type, [Result]) -> Result) -> Result
+        public func fold<Result>(_ combine: (Root.Type, [Result]) throws -> Result) rethrows -> Result
           {
             guard case .node(let type, let childrenById) = self else { fatalError("as if") }
-            return combine(type, childrenById.values.map { $0.fold(combine) })
+            return try combine(type, childrenById.values.map { try $0.fold(combine) })
           }
       }
 

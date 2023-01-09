@@ -54,7 +54,7 @@ open class Object : NSManagedObject
 
 
     /// Initialize a new instance, assigning default attribute values. This method is not intended to be overidden.
-    public required convenience init(_ info: ObjectInfo, in managedObjectContext: NSManagedObjectContext) throws
+    public required convenience init(_ info: EntityInfo, in managedObjectContext: NSManagedObjectContext) throws
       {
         // Delegate to the designated initializer for NSManagedObject.
         self.init(entity: info.entityDescription, insertInto: managedObjectContext)
@@ -68,7 +68,7 @@ open class Object : NSManagedObject
 
 
     /// Initialize a new instance, taking property values from the given ingest data. This method is not intended to be overidden.
-    public required convenience init(_ info: ObjectInfo, with ingestData: IngestData, in context: IngestContext) throws
+    public required convenience init(_ info: EntityInfo, with ingestData: IngestData, in context: IngestContext) throws
       {
         // Delegate to the designated initializer for NSManagedObject.
         self.init(entity: info.entityDescription, insertInto: context.managedObjectContext)
@@ -102,7 +102,7 @@ open class Object : NSManagedObject
         for relationship in info.relationships.values {
           guard let ingest = relationship.ingest else { continue }
           do {
-            let relatedEntity = try context.objectInfo(for: relationship.relatedEntityName)
+            let relatedEntity = try context.entityInfo(for: relationship.relatedEntityName)
             let relatedClass = relatedEntity.managedObjectClass
             switch (ingestData[ingest.key], ingest.mode, relationship.arity) {
               case (.some(let jsonValue), .create, let arity) where arity.upperBound > 1 :
