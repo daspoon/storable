@@ -5,8 +5,8 @@
 import CoreData
 
 
-/// StorableAsData provides an implementation of Storable using NSData as the storage type.
-public protocol StorableAsData : Codable, Storable where StoredType == Data
+/// StorableAsData provides an implementation of Storable using Data as the storage type.
+public protocol StorableAsData : Codable, Storable where EncodingType == Data
   { }
 
 

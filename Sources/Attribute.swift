@@ -16,33 +16,33 @@ public struct Attribute<Value: Storable> : ManagedProperty
 
     public init(_ name: String)
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.StoredType.attributeType, allowsNilValue: Value.StoredType.isOptional)
+        propertyInfo = AttributeInfo(name: name, type: Value.EncodingType.typeId, allowsNilValue: Value.EncodingType.isOptional)
       }
 
     public init(_ name: String)  where Value : Ingestible
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.StoredType.attributeType, allowsNilValue: Value.StoredType.isOptional, ingest: (.element(name), Self.ingest))
+        propertyInfo = AttributeInfo(name: name, type: Value.EncodingType.typeId, allowsNilValue: Value.EncodingType.isOptional, ingest: (.element(name), Self.ingest))
       }
 
     public init(_ name: String, ingestKey k: IngestKey) where Value : Ingestible
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.StoredType.attributeType, allowsNilValue: Value.StoredType.isOptional, ingest: (k, Self.ingest))
+        propertyInfo = AttributeInfo(name: name, type: Value.EncodingType.typeId, allowsNilValue: Value.EncodingType.isOptional, ingest: (k, Self.ingest))
       }
 
 
     public init(wrappedValue v: Value, _ name: String)
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.StoredType.attributeType, defaultValue: v, allowsNilValue: Value.StoredType.isOptional)
+        propertyInfo = AttributeInfo(name: name, type: Value.EncodingType.typeId, defaultValue: v, allowsNilValue: Value.EncodingType.isOptional)
       }
 
     public init(wrappedValue v: Value, _ name: String) where Value : Ingestible
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.StoredType.attributeType, defaultValue: v, allowsNilValue: Value.StoredType.isOptional, ingest: (.element(name), Self.ingest))
+        propertyInfo = AttributeInfo(name: name, type: Value.EncodingType.typeId, defaultValue: v, allowsNilValue: Value.EncodingType.isOptional, ingest: (.element(name), Self.ingest))
       }
 
     public init(wrappedValue v: Value, _ name: String, ingestKey k: IngestKey) where Value : Ingestible
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.StoredType.attributeType, defaultValue: v, allowsNilValue: Value.StoredType.isOptional, ingest: (k, Self.ingest))
+        propertyInfo = AttributeInfo(name: name, type: Value.EncodingType.typeId, defaultValue: v, allowsNilValue: Value.EncodingType.isOptional, ingest: (k, Self.ingest))
       }
 
 
@@ -57,7 +57,7 @@ public struct Attribute<Value: Storable> : ManagedProperty
             fatalError("failed to transform default value '\($0)' of attribute \(name): \(error)")
           }
         }
-        propertyInfo = AttributeInfo(name: name, type: Value.StoredType.attributeType, defaultValue: tv, allowsNilValue: Value.StoredType.isOptional, ingest: (k ?? .element(name), ingest))
+        propertyInfo = AttributeInfo(name: name, type: Value.EncodingType.typeId, defaultValue: tv, allowsNilValue: Value.EncodingType.isOptional, ingest: (k ?? .element(name), ingest))
       }
 
 
@@ -68,12 +68,12 @@ public struct Attribute<Value: Storable> : ManagedProperty
           let wrapper = instance[keyPath: storageKeyPath]
           do {
             // The value maintained by CoreData is of type Value.StoredType; nil is acceptable if Value.isOptional, but otherwise means the property is uninitialized.
-            let storedValue : Value.StoredType
+            let storedValue : Value.EncodingType
             switch instance.value(forKey: wrapper.propertyInfo.name) {
               case .some(let objectValue) :
-                storedValue = try throwingCast(objectValue, as: Value.StoredType.self)
+                storedValue = try throwingCast(objectValue, as: Value.EncodingType.self)
               case .none :
-                guard Value.StoredType.isOptional else { throw Exception("value is not initialized") }
+                guard Value.EncodingType.isOptional else { throw Exception("value is not initialized") }
                 storedValue = .nullValue
             }
             return try Value.decodeStoredValue(storedValue)
@@ -85,8 +85,9 @@ public struct Attribute<Value: Storable> : ManagedProperty
         set {
           let wrapper = instance[keyPath: storageKeyPath]
           do {
+            // Note: if storeValue.isNullValue then storedValue is nil, but is translated by Swift to an instance of NSNull which is unacceptable to CoreData.
             let storedValue = try newValue.storedValue()
-            instance.setValue(storedValue, forKey: wrapper.propertyInfo.name)
+            instance.setValue(storedValue.isNullValue ? nil : storedValue, forKey: wrapper.propertyInfo.name)
           }
           catch let error as NSError {
             fatalError("failed to set value of type \(Value.self) for property '\(wrapper.propertyInfo.name)': \(error)")

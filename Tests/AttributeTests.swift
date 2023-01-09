@@ -109,6 +109,9 @@ fileprivate class WronglyAttributed : Object
 
     @Attribute("myOptional")
     var myOptional : MyStruct?
+
+    @Attribute("optionalOptional")
+    var myOptionalOptional : Int??
   }
 #endif
 

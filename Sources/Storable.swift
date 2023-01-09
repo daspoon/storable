@@ -5,62 +5,23 @@
 import CoreData
 
 
-// NativeStorable identifies types which are supported directly by CoreData attribute storage.
-// The nullValue methods is required to retrieve property values of optional type.
-
-public protocol NativeStorable
-  {
-    static var attributeType : NSAttributeDescription.AttributeType { get }
-
-    static var isOptional : Bool { get }
-
-    static var nullValue : Self { get }
-  }
-
-
-// Storable identifies types which can be transformed to and from natively storable types and will serve as the constraint on our managed attribute types.
+// Storable identifies types which can be transformed to and from AttributeType, and serves as the generic constraint for our attribute property wrapper.
 
 public protocol Storable
   {
-    associatedtype StoredType : NativeStorable
+    associatedtype EncodingType : AttributeType
 
-    func storedValue() throws -> StoredType
+    /// Encode a value into its stored representation.
+    func storedValue() throws -> EncodingType
 
-    static func decodeStoredValue(_ storedValue: StoredType) throws -> Self
+    /// Decode a stored value back to its
+    static func decodeStoredValue(_ storedValue: EncodingType) throws -> Self
   }
 
 
-// An Optional type is NativeStorable when its wrapped type is NativeStorable.
-// NOTE: how is T?? not problematic...
+// All attribute types are trivially Storable, although conformance must be declared explicitly.
 
-extension Optional : NativeStorable where Wrapped : NativeStorable
-  {
-    public static var attributeType : NSAttributeDescription.AttributeType
-      { Wrapped.attributeType }
-
-    public static var isOptional : Bool
-      { true }
-
-    public static var nullValue : Self
-      { .none }
-  }
-
-
-// We simplify NativeStorable conformance for non-optional types with an extension.
-
-extension NativeStorable
-  {
-    public static var isOptional : Bool
-      { false }
-
-    public static var nullValue : Self
-      { fatalError("required when isOptional returns true") }
-  }
-
-
-// Any natively storable type is storable, although conformance must be declared explicitly.
-
-extension NativeStorable
+extension AttributeType
   {
     public func storedValue() throws -> Self
       { self }
@@ -69,100 +30,23 @@ extension NativeStorable
       { value }
   }
 
+extension Bool : Storable {}
+extension Data : Storable {}
+extension Date : Storable {}
+extension Double : Storable {}
+extension Float : Storable {}
+extension Int : Storable {}
+extension Int16 : Storable {}
+extension Int32 : Storable {}
+extension Int64 : Storable {}
+extension String : Storable {}
 
-extension Bool : NativeStorable, Storable
+
+// An Optional is Storable when its wrapped value is Storable, although the required type constraints are complicated by the constraints on Optional's conformance to AttributeType.
+
+extension Optional : Storable where Wrapped : Storable, Wrapped.EncodingType.StorageType == Wrapped, Wrapped.EncodingType == Wrapped
   {
-    public static var attributeType : NSAttributeDescription.AttributeType
-      { .boolean }
-  }
-
-
-extension Data : NativeStorable, Storable
-  {
-    public static var attributeType : NSAttributeDescription.AttributeType
-      { .binaryData }
-  }
-
-
-extension Date : NativeStorable, Storable
-  {
-    public static var attributeType : NSAttributeDescription.AttributeType
-      { .date }
-  }
-
-
-extension Double : NativeStorable, Storable
-  {
-    public static var attributeType : NSAttributeDescription.AttributeType
-      { .double }
-  }
-
-
-extension Float : NativeStorable, Storable
-  {
-    public static var attributeType : NSAttributeDescription.AttributeType
-      { .float }
-  }
-
-
-extension Int : NativeStorable, Storable
-  {
-    public static var attributeType : NSAttributeDescription.AttributeType
-      { .integer64 }
-  }
-
-
-extension Int16 : NativeStorable, Storable
-  {
-    public static var attributeType : NSAttributeDescription.AttributeType
-      { .integer16}
-  }
-
-
-extension Int32 : NativeStorable, Storable
-  {
-    public static var attributeType : NSAttributeDescription.AttributeType
-      { .integer32 }
-  }
-
-
-extension Int64 : NativeStorable, Storable
-  {
-    public static var attributeType : NSAttributeDescription.AttributeType
-      { .integer64 }
-  }
-
-
-extension String : NativeStorable, Storable
-  {
-    public static var attributeType : NSAttributeDescription.AttributeType
-      { .string }
-  }
-
-
-// A RawRepresentable is Storable when its RawValue is natively storable; conformance must be declared explicitly.
-
-extension RawRepresentable where RawValue : NativeStorable
-  {
-    public typealias NativeType = RawValue
-
-    public func storedValue() throws -> RawValue
-      { try rawValue.storedValue() }
-
-    public static func decodeStoredValue(_ storedValue: RawValue) throws -> Self
-      {
-        let storedRawValue = try RawValue.decodeStoredValue(storedValue)
-        guard let value = Self(rawValue: storedRawValue) else { throw Exception("'\(storedRawValue)' is not an acceptible raw value of \(Self.self)") }
-        return value
-      }
-  }
-
-
-// An Optional is Storable when its wrapped value is Storable.
-
-extension Optional : Storable where Wrapped : Storable
-  {
-    public func storedValue() throws -> Wrapped.StoredType?
+    public func storedValue() throws -> Wrapped.EncodingType?
       {
         switch self {
           case .some(let wrapped) : return try wrapped.storedValue()
@@ -170,11 +54,26 @@ extension Optional : Storable where Wrapped : Storable
         }
       }
 
-    public static func decodeStoredValue(_ storedValue: Wrapped.StoredType?) throws -> Self
+    public static func decodeStoredValue(_ storedValue: Wrapped.EncodingType?) throws -> Self
       {
         switch storedValue {
           case .some(let storedValue) : return try Wrapped.decodeStoredValue(storedValue)
           case .none : return nil
         }
+      }
+  }
+
+
+// A RawRepresentable is Storable when its RawValue is an attribute type, although conformance must be declared explicitly on concrete types.
+
+extension RawRepresentable where RawValue : AttributeType
+  {
+    public func storedValue() throws -> RawValue
+      { rawValue }
+
+    public static func decodeStoredValue(_ storedValue: RawValue) throws -> Self
+      {
+        guard let value = Self(rawValue: storedValue) else { throw Exception("'\(storedValue)' is not an acceptible raw value of \(Self.self)") }
+        return value
       }
   }
