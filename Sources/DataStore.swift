@@ -81,7 +81,7 @@ public class DataStore
     func create<T: Object>(_ type: T.Type = T.self, initialize: (T) throws -> Void) throws -> T
       {
         guard let entity = schema.entitiesByName[type.entityName] else { throw Exception("unknown entity \(type.entityName)") }
-        let instance = try type.init(entity, in: managedObjectContext)
+        let instance = type.init(entity: entity.entityDescription, insertInto: managedObjectContext)
         try initialize(instance)
         return instance
       }

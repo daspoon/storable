@@ -44,54 +44,32 @@ open class Object : NSManagedObject
         templateEntity.managedObjectClassName = entityName
         templateObjectModel.entities = [templateEntity]
 
-        return Mirror(reflecting: Self.init(templateEntityDescription: templateEntity))
+        return Mirror(reflecting: Self.init(entity: templateEntity, insertInto: nil))
       }
 
 
-    /// This method is 'required' because it is invoked on class objects. This method is not intended to be overidden.
-    public required convenience init(templateEntityDescription desc: NSEntityDescription)
-      { self.init(entity: desc, insertInto: nil) }
-
-
-    /// Initialize a new instance, assigning default attribute values. This method is not intended to be overidden.
-    public required convenience init(_ info: EntityInfo, in managedObjectContext: NSManagedObjectContext) throws
-      {
-        // Delegate to the designated initializer for NSManagedObject.
-        self.init(entity: info.entityDescription, insertInto: managedObjectContext)
-
-        // Assign default attribute values
-        for attribute in info.attributes.values {
-          guard let defaultValue = attribute.defaultValue else { continue }
-          setValue(try defaultValue.storedValue(), forKey: attribute.name)
-        }
-      }
+    /// Override init(entity:insertInto:) to be 'required' in order to create instances from class objects. This method is not intended to be overidden.
+    public required override init(entity: NSEntityDescription, insertInto context: NSManagedObjectContext?)
+      { super.init(entity: entity, insertInto: context) }
 
 
     /// Initialize a new instance, taking property values from the given ingest data. This method is not intended to be overidden.
-    public required convenience init(_ info: EntityInfo, with ingestData: IngestData, in context: IngestContext) throws
+    public required init(_ info: EntityInfo, with ingestData: IngestData, in context: IngestContext) throws
       {
         // Delegate to the designated initializer for NSManagedObject.
-        self.init(entity: info.entityDescription, insertInto: context.managedObjectContext)
+        super.init(entity: info.entityDescription, insertInto: context.managedObjectContext)
 
         // Ingest attributes.
         for attribute in info.attributes.values {
           do {
-            let storableValue : (any Storable)?
-            if let ingest = attribute.ingest {
-              switch (ingestData[ingest.key], attribute.defaultValue) {
-                case (.some(let jsonValue), _) :
-                  storableValue = try ingest.method(jsonValue)
-                case (.none, .some(let defaultValue)) :
-                  storableValue = defaultValue
-                case (.none, .none) :
-                  storableValue = nil
-              }
+            guard let ingest = attribute.ingest else { continue }
+            if let jsonValue = ingestData[ingest.key] {
+              let storableValue = try ingest.method(jsonValue)
+              setValue(try storableValue.storedValue(), forKey: attribute.name)
             }
             else {
-              storableValue = attribute.defaultValue
+              guard attribute.defaultValue != nil || attribute.allowsNilValue else { throw Exception("a value is required") }
             }
-            guard storableValue != nil || attribute.allowsNilValue else { throw Exception("a value is required") }
-            setValue(try storableValue?.storedValue(), forKey: attribute.name)
           }
           catch let error {
             throw Exception("failed to ingest attribute '\(attribute.name)' of '\(info.name)' -- " + error.localizedDescription)
@@ -135,6 +113,25 @@ open class Object : NSManagedObject
           catch let error {
             throw Exception("failed to ingest relationship '\(relationship.name)' of '\(info.name)' -- " + error.localizedDescription)
           }
+        }
+      }
+
+
+    /// Override awakeFromInsert to assign default values to attributes which have default values not assigned by init(entity:insertInto:)
+    public override func awakeFromInsert()
+      {
+        guard let objectInfo = entity.objectInfo else { preconditionFailure("entity \(Unmanaged.passUnretained(entity).toOpaque()) has no assigned ObjectInfo") }
+
+        super.awakeFromInsert()
+
+        for attribute in objectInfo.attributes.values {
+          guard let defaultValue = attribute.defaultValue else { continue }
+          guard primitiveValue(forKey: attribute.name) == nil else { continue }
+          guard let storedValue = try? defaultValue.storedValue() else {
+            log("failed to encode default value for \(attribute.name)")
+            continue
+          }
+          setValue(storedValue, forKey: attribute.name)
         }
       }
   }
