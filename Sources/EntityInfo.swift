@@ -22,10 +22,4 @@ public struct EntityInfo
 
     public subscript <Value>(dynamicMember path: KeyPath<ObjectInfo, Value>) -> Value
       { objectInfo[keyPath: path] }
-
-//    public var name : String
-//      { objectInfo.name }
-//
-//    public var managedObjectClass : Object.Type
-//      { objectInfo.managedObjectClass }
   }
