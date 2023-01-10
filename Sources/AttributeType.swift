@@ -110,6 +110,20 @@ extension String : AttributeType
   }
 
 
+extension URL : AttributeType
+  {
+    public static var typeId : NSAttributeDescription.AttributeType
+      { .uri }
+  }
+
+
+extension UUID : AttributeType
+  {
+    public static var typeId : NSAttributeDescription.AttributeType
+      { .uuid }
+  }
+
+
 // An Optional is an AttributeType when its wrapped type is an AttributeType.
 
 extension Optional : AttributeType where Wrapped : AttributeType, Wrapped.StorageType == Wrapped

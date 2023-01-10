@@ -43,6 +43,12 @@ fileprivate class FullyAttributed : Object
     @Attribute("dataValue")
     var dataValue : Data
 
+    @Attribute("urlValue")
+    var urlValue : URL
+
+    @Attribute("uuidValue")
+    var uuidValue : UUID
+
     @Attribute("optionalIntValue")
     var optionalIntValue : Int?
   }
@@ -135,6 +141,8 @@ final class AttributeTests : XCTestCase
         let stringValue : String = "heynow"
         let dateValue : Date = .now
         let dataValue : Data = "heynow".data(using: .utf8)!
+        let urlValue : URL = .init(string: "https://apple.com")!
+        let uuidValue : UUID = .init()
 
         // Create an object instance, assigning the previously defined attribute values
         let object = try store.create(FullyAttributed.self) { object in
@@ -148,6 +156,8 @@ final class AttributeTests : XCTestCase
           object.stringValue = stringValue
           object.dateValue = dateValue
           object.dataValue = dataValue
+          object.urlValue = urlValue
+          object.uuidValue = uuidValue
         }
 
         store.save()
@@ -163,6 +173,8 @@ final class AttributeTests : XCTestCase
         XCTAssertEqual(stringValue, object.stringValue)
         XCTAssertEqual(dateValue, object.dateValue)
         XCTAssertEqual(dataValue, object.dataValue)
+        XCTAssertEqual(urlValue, object.urlValue)
+        XCTAssertEqual(uuidValue, object.uuidValue)
 
         // Ensure the optional attribute has value nil
         XCTAssertEqual(object.optionalIntValue, nil)

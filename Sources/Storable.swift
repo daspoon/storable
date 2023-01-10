@@ -40,6 +40,8 @@ extension Int16 : Storable {}
 extension Int32 : Storable {}
 extension Int64 : Storable {}
 extension String : Storable {}
+extension URL : Storable {}
+extension UUID : Storable {}
 
 
 // An Optional is Storable when its wrapped value is Storable, although the required type constraints are complicated by the constraints on Optional's conformance to AttributeType.
