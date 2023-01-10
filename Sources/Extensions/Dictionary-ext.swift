@@ -3,16 +3,6 @@
 */
 
 
-extension Dictionary
-  {
-    public init<S: Sequence>(uniqueKey key: (Value) -> Key, elements: S) where S.Element == Value
-      { self.init(uniqueKeysWithValues: elements.map { (key($0), $0) }) }
-
-    public func merging<S: Sequence>(_ dictionaries: S, uniquingKeysWith arbitrate: (Value, Value) throws -> Value) rethrows -> [Key: Value] where S.Element == [Key: Value]
-      { try self.merging(dictionaries.flatMap {$0.map {($0, $1)}}, uniquingKeysWith: arbitrate) }
-  }
-
-
 extension Dictionary where Key == String, Value == Any
   {
     public func optionalValue<V>(of type: V.Type = V.self, for key: String, in context: @autoclosure () -> String? = {nil}()) throws -> V?

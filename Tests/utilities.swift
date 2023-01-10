@@ -10,6 +10,20 @@ import XCTest
 
 // MARK: --
 
+extension ProcessInfo
+  {
+    var argumentsByName : [String: String]
+      {
+        Dictionary(uniqueKeysWithValues: arguments.dropFirst().compactMap { arg in
+          let components = arg.components(separatedBy: "=")
+          guard components.count == 2 else { return nil }
+          return (components[0], components[1])
+        })
+      }
+  }
+
+// MARK: --
+
 extension XCTestCase
   {
     /// Create a DataStore instance with a schema for the given object types. Note that the filename of the store, which is derived from the schema, must be unique across instances.
