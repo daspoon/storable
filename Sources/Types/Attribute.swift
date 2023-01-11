@@ -65,33 +65,43 @@ public struct Attribute<Value: Storable> : ManagedProperty
     public static subscript<Object: NSManagedObject>(_enclosingInstance instance: Object, wrapped wrappedKeyPath: ReferenceWritableKeyPath<Object, Value>, storage storageKeyPath: ReferenceWritableKeyPath<Object, Self>) -> Value
       {
         get {
-          let wrapper = instance[keyPath: storageKeyPath]
-          do {
-            // The value maintained by CoreData is of type Value.StoredType; nil is acceptable if Value.isOptional, but otherwise means the property is uninitialized.
-            let storedValue : Value.EncodingType
-            switch instance.value(forKey: wrapper.propertyInfo.name) {
-              case .some(let objectValue) :
-                storedValue = try throwingCast(objectValue, as: Value.EncodingType.self)
-              case .none :
-                guard Value.EncodingType.isOptional else { throw Exception("value is not initialized") }
-                storedValue = .nullValue
-            }
-            return try Value.decodeStoredValue(storedValue)
-          }
-          catch let error as NSError {
-            fatalError("Failed to get value for \(Object.self).\(wrapper.propertyInfo.name): \(error)")
-          }
+          instance[keyPath: storageKeyPath].getWrappedValue(from: instance)
         }
         set {
-          let wrapper = instance[keyPath: storageKeyPath]
-          do {
-            // Note: if storeValue.isNullValue then storedValue is nil, but is translated by Swift to an instance of NSNull which is unacceptable to CoreData.
-            let storedValue = try newValue.storedValue()
-            instance.setValue(storedValue.isNullValue ? nil : storedValue, forKey: wrapper.propertyInfo.name)
+          instance[keyPath: storageKeyPath].setWrappedValue(newValue, on: instance)
+        }
+      }
+
+
+    private func getWrappedValue<Object: NSManagedObject>(from instance: Object) -> Value
+      {
+        // Note that the value maintained by CoreData is of type Value.StoredType?, but nil is an acceptable value only if Value.isOptional; otherwise the property is uninitialized.
+        do {
+          let storedValue : Value.EncodingType
+          switch instance.value(forKey: propertyInfo.name) {
+            case .some(let objectValue) :
+              storedValue = try throwingCast(objectValue, as: Value.EncodingType.self)
+            case .none :
+              guard Value.EncodingType.isOptional else { throw Exception("value is not initialized") }
+              storedValue = .nullValue
           }
-          catch let error as NSError {
-            fatalError("failed to set value of type \(Value.self) for property '\(wrapper.propertyInfo.name)': \(error)")
-          }
+          return try Value.decodeStoredValue(storedValue)
+        }
+        catch let error as NSError {
+          fatalError("Failed to get value for \(Object.self).\(propertyInfo.name): \(error)")
+        }
+      }
+
+
+    private func setWrappedValue<Object: NSManagedObject>(_ value: Value, on instance: Object)
+      {
+        // Note that if storeValue.isNullValue then storedValue is nil, but would be translated by Swift to NSNull and so we must explicitly substitute nil.
+        do {
+          let storedValue = try value.storedValue()
+          instance.setValue(storedValue.isNullValue ? nil : storedValue, forKey: propertyInfo.name)
+        }
+        catch let error as NSError {
+          fatalError("failed to set value of type \(Value.self) for property '\(propertyInfo.name)': \(error)")
         }
       }
 
