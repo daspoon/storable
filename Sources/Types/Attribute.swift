@@ -16,33 +16,33 @@ public struct Attribute<Value: Storable> : ManagedProperty
 
     public init(_ name: String)
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.EncodingType.typeId, allowsNilValue: Value.EncodingType.isOptional)
+        propertyInfo = AttributeInfo(name: name, type: Value.EncodingType.typeId, transformerName: Value.valueTransformerName, allowsNilValue: Value.EncodingType.isOptional)
       }
 
     public init(_ name: String)  where Value : Ingestible
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.EncodingType.typeId, allowsNilValue: Value.EncodingType.isOptional, ingest: (.element(name), Self.ingest))
+        propertyInfo = AttributeInfo(name: name, type: Value.EncodingType.typeId, transformerName: Value.valueTransformerName, allowsNilValue: Value.EncodingType.isOptional, ingest: (.element(name), Self.ingest))
       }
 
     public init(_ name: String, ingestKey k: IngestKey) where Value : Ingestible
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.EncodingType.typeId, allowsNilValue: Value.EncodingType.isOptional, ingest: (k, Self.ingest))
+        propertyInfo = AttributeInfo(name: name, type: Value.EncodingType.typeId, transformerName: Value.valueTransformerName, allowsNilValue: Value.EncodingType.isOptional, ingest: (k, Self.ingest))
       }
 
 
     public init(wrappedValue v: Value, _ name: String)
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.EncodingType.typeId, defaultValue: v, allowsNilValue: Value.EncodingType.isOptional)
+        propertyInfo = AttributeInfo(name: name, type: Value.EncodingType.typeId, transformerName: Value.valueTransformerName, defaultValue: v, allowsNilValue: Value.EncodingType.isOptional)
       }
 
     public init(wrappedValue v: Value, _ name: String) where Value : Ingestible
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.EncodingType.typeId, defaultValue: v, allowsNilValue: Value.EncodingType.isOptional, ingest: (.element(name), Self.ingest))
+        propertyInfo = AttributeInfo(name: name, type: Value.EncodingType.typeId, transformerName: Value.valueTransformerName, defaultValue: v, allowsNilValue: Value.EncodingType.isOptional, ingest: (.element(name), Self.ingest))
       }
 
     public init(wrappedValue v: Value, _ name: String, ingestKey k: IngestKey) where Value : Ingestible
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.EncodingType.typeId, defaultValue: v, allowsNilValue: Value.EncodingType.isOptional, ingest: (k, Self.ingest))
+        propertyInfo = AttributeInfo(name: name, type: Value.EncodingType.typeId, transformerName: Value.valueTransformerName, defaultValue: v, allowsNilValue: Value.EncodingType.isOptional, ingest: (k, Self.ingest))
       }
 
 
@@ -57,7 +57,7 @@ public struct Attribute<Value: Storable> : ManagedProperty
             fatalError("failed to transform default value '\($0)' of attribute \(name): \(error)")
           }
         }
-        propertyInfo = AttributeInfo(name: name, type: Value.EncodingType.typeId, defaultValue: tv, allowsNilValue: Value.EncodingType.isOptional, ingest: (k ?? .element(name), ingest))
+        propertyInfo = AttributeInfo(name: name, type: Value.EncodingType.typeId, transformerName: Value.valueTransformerName, defaultValue: tv, allowsNilValue: Value.EncodingType.isOptional, ingest: (k ?? .element(name), ingest))
       }
 
 

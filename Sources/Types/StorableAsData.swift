@@ -6,17 +6,20 @@ import CoreData
 
 
 /// StorableAsData provides an implementation of Storable using Data as the storage type.
-public protocol StorableAsData : Codable, Storable where EncodingType == Data
+public protocol StorableAsData : Storable where Self : Codable, EncodingType == Boxed<Self>
   { }
 
 
 extension StorableAsData
   {
-    public func storedValue() throws -> Data
-      { try JSONEncoder().encode(self) }
+    public func storedValue() throws -> Boxed<Self>
+      { Boxed(value: self) }
 
-    public static func decodeStoredValue(_ data: Data) throws -> Self
-      { try JSONDecoder().decode(Self.self, from: data) }
+    public static func decodeStoredValue(_ boxed: Boxed<Self>) throws -> Self
+      { boxed.value }
+
+    public static var valueTransformerName : NSValueTransformerName?
+      { .boxedValueTransformerName(for: Self.self) }
   }
 
 

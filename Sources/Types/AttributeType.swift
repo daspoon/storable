@@ -145,3 +145,12 @@ extension Optional : AttributeType where Wrapped : AttributeType, Wrapped.Storag
         return true
       }
   }
+
+
+// Boxed<Value> is an AttributeType (via ValueTransformer) when its Value is Codable.
+
+extension Boxed : AttributeType where Value : Codable
+  {
+    public static var typeId : NSAttributeDescription.AttributeType
+      { .transformable }
+  }

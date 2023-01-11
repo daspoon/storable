@@ -14,8 +14,11 @@ public protocol Storable
     /// Encode a value into its stored representation.
     func storedValue() throws -> EncodingType
 
-    /// Decode a stored value back to its
+    /// Decode a stored value back to its native representation.
     static func decodeStoredValue(_ storedValue: EncodingType) throws -> Self
+
+    /// Indicates whether or not the translation from stored to native type should be cached.
+    static var valueTransformerName : NSValueTransformerName? { get }
   }
 
 
@@ -28,6 +31,9 @@ extension AttributeType
 
     public static func decodeStoredValue(_ value: Self) throws -> Self
       { value }
+
+    public static var valueTransformerName : NSValueTransformerName?
+      { nil }
   }
 
 extension Bool : Storable {}
@@ -63,6 +69,9 @@ extension Optional : Storable where Wrapped : Storable, Wrapped.EncodingType.Sto
           case .none : return nil
         }
       }
+
+    public static var valueTransformerName : NSValueTransformerName?
+      { Wrapped.valueTransformerName }
   }
 
 
@@ -78,4 +87,7 @@ extension RawRepresentable where RawValue : AttributeType
         guard let value = Self(rawValue: storedValue) else { throw Exception("'\(storedValue)' is not an acceptible raw value of \(Self.self)") }
         return value
       }
+
+    public static var valueTransformerName : NSValueTransformerName?
+      { nil }
   }

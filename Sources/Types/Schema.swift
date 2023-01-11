@@ -87,6 +87,7 @@ public struct Schema
           attributeDescription.name = name
           attributeDescription.type = attribute.attributeType
           attributeDescription.isOptional = attribute.allowsNilValue
+          attributeDescription.valueTransformerName = attribute.valueTransformerName?.rawValue
           entity.properties.append(attributeDescription)
         }
 
