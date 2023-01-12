@@ -65,7 +65,7 @@ open class Object : NSManagedObject
             guard let ingest = attribute.ingest else { continue }
             if let jsonValue = ingestData[ingest.key] {
               let storableValue = try ingest.method(jsonValue)
-              setValue(try storableValue.storedValue(), forKey: attribute.name)
+              setValue(storableValue.storedValue(), forKey: attribute.name)
             }
             else {
               guard attribute.defaultValue != nil || attribute.allowsNilValue else { throw Exception("a value is required") }
