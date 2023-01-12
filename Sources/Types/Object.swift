@@ -115,23 +115,4 @@ open class Object : NSManagedObject
           }
         }
       }
-
-
-    /// Override awakeFromInsert to assign default values to attributes which have default values not assigned by init(entity:insertInto:)
-    public override func awakeFromInsert()
-      {
-        guard let objectInfo = entity.objectInfo else { preconditionFailure("entity \(Unmanaged.passUnretained(entity).toOpaque()) has no assigned ObjectInfo") }
-
-        super.awakeFromInsert()
-
-        for attribute in objectInfo.attributes.values {
-          guard let defaultValue = attribute.defaultValue else { continue }
-          guard primitiveValue(forKey: attribute.name) == nil else { continue }
-          guard let storedValue = try? defaultValue.storedValue() else {
-            log("failed to encode default value for \(attribute.name)")
-            continue
-          }
-          setValue(storedValue, forKey: attribute.name)
-        }
-      }
   }

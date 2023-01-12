@@ -59,9 +59,6 @@ public struct Schema
             sourceInfo.entityDescription.properties.append(forwardDescription)
             targetInfo.entityDescription.properties.append(inverseDescription)
           }
-          // Add the ObjectInfo to the NSEntityDescription's userInfo so it can be retrieved by NSManagedObject instances/
-          sourceInfo.entityDescription.objectInfo = sourceInfo.objectInfo
-          assert(sourceInfo.entityDescription.objectInfo != nil)
         }
 
         // Create and populate an managed object model with the defined entities
@@ -88,6 +85,7 @@ public struct Schema
           attributeDescription.type = attribute.attributeType
           attributeDescription.isOptional = attribute.allowsNilValue
           attributeDescription.valueTransformerName = attribute.valueTransformerName?.rawValue
+          attributeDescription.defaultValue = attribute.defaultValue?.storedValue()
           entity.properties.append(attributeDescription)
         }
 
