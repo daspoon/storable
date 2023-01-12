@@ -12,10 +12,10 @@ public protocol Storable
     associatedtype EncodingType : AttributeType
 
     /// Encode a value into its stored representation.
-    func storedValue() throws -> EncodingType
+    func storedValue() -> EncodingType
 
     /// Decode a stored value back to its native representation.
-    static func decodeStoredValue(_ storedValue: EncodingType) throws -> Self
+    static func decodeStoredValue(_ storedValue: EncodingType) -> Self
 
     /// Indicates whether or not the translation from stored to native type should be cached.
     static var valueTransformerName : NSValueTransformerName? { get }
@@ -26,10 +26,10 @@ public protocol Storable
 
 extension AttributeType
   {
-    public func storedValue() throws -> Self
+    public func storedValue() -> Self
       { self }
 
-    public static func decodeStoredValue(_ value: Self) throws -> Self
+    public static func decodeStoredValue(_ value: Self) -> Self
       { value }
 
     public static var valueTransformerName : NSValueTransformerName?
@@ -54,18 +54,18 @@ extension UUID : Storable {}
 
 extension Optional : Storable where Wrapped : Storable, Wrapped.EncodingType.StorageType == Wrapped, Wrapped.EncodingType == Wrapped
   {
-    public func storedValue() throws -> Wrapped.EncodingType?
+    public func storedValue() -> Wrapped.EncodingType?
       {
         switch self {
-          case .some(let wrapped) : return try wrapped.storedValue()
+          case .some(let wrapped) : return wrapped.storedValue()
           case .none : return nil
         }
       }
 
-    public static func decodeStoredValue(_ storedValue: Wrapped.EncodingType?) throws -> Self
+    public static func decodeStoredValue(_ storedValue: Wrapped.EncodingType?) -> Self
       {
         switch storedValue {
-          case .some(let storedValue) : return try Wrapped.decodeStoredValue(storedValue)
+          case .some(let storedValue) : return Wrapped.decodeStoredValue(storedValue)
           case .none : return nil
         }
       }
@@ -79,12 +79,12 @@ extension Optional : Storable where Wrapped : Storable, Wrapped.EncodingType.Sto
 
 extension RawRepresentable where RawValue : AttributeType
   {
-    public func storedValue() throws -> RawValue
+    public func storedValue() -> RawValue
       { rawValue }
 
-    public static func decodeStoredValue(_ storedValue: RawValue) throws -> Self
+    public static func decodeStoredValue(_ storedValue: RawValue) -> Self
       {
-        guard let value = Self(rawValue: storedValue) else { throw Exception("'\(storedValue)' is not an acceptible raw value of \(Self.self)") }
+        guard let value = Self(rawValue: storedValue) else { fatalError("'\(storedValue)' is not an acceptible raw value of \(Self.self)") }
         return value
       }
 

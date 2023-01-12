@@ -76,33 +76,24 @@ public struct Attribute<Value: Storable> : ManagedProperty
     private func getWrappedValue<Object: NSManagedObject>(from instance: Object) -> Value
       {
         // Note that the value maintained by CoreData is of type Value.StoredType?, but nil is an acceptable value only if Value.isOptional; otherwise the property is uninitialized.
-        do {
-          let storedValue : Value.EncodingType
-          switch instance.value(forKey: propertyInfo.name) {
-            case .some(let objectValue) :
-              storedValue = try throwingCast(objectValue, as: Value.EncodingType.self)
-            case .none :
-              guard Value.EncodingType.isOptional else { throw Exception("value is not initialized") }
-              storedValue = .nullValue
-          }
-          return try Value.decodeStoredValue(storedValue)
+        let storedValue : Value.EncodingType
+        switch instance.value(forKey: propertyInfo.name) {
+          case .some(let objectValue) :
+            guard let decodedValue = objectValue as? Value.EncodingType else { fatalError("\(Object.self).\(propertyInfo.name) is not of expected type \(Value.EncodingType.self)") }
+            storedValue = decodedValue
+          case .none :
+            guard Value.EncodingType.isOptional else { fatalError("\(Object.self).\(propertyInfo.name) is not initialized") }
+            storedValue = .nullValue
         }
-        catch let error as NSError {
-          fatalError("Failed to get value for \(Object.self).\(propertyInfo.name): \(error)")
-        }
+        return Value.decodeStoredValue(storedValue)
       }
 
 
     private func setWrappedValue<Object: NSManagedObject>(_ value: Value, on instance: Object)
       {
         // Note that if storeValue.isNullValue then storedValue is nil, but would be translated by Swift to NSNull and so we must explicitly substitute nil.
-        do {
-          let storedValue = try value.storedValue()
-          instance.setValue(storedValue.isNullValue ? nil : storedValue, forKey: propertyInfo.name)
-        }
-        catch let error as NSError {
-          fatalError("failed to set value of type \(Value.self) for property '\(propertyInfo.name)': \(error)")
-        }
+        let storedValue = value.storedValue()
+        instance.setValue(storedValue.isNullValue ? nil : storedValue, forKey: propertyInfo.name)
       }
 
 

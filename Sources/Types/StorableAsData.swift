@@ -12,10 +12,10 @@ public protocol StorableAsData : Storable where Self : Codable, EncodingType == 
 
 extension StorableAsData
   {
-    public func storedValue() throws -> Boxed<Self>
+    public func storedValue() -> Boxed<Self>
       { Boxed(value: self) }
 
-    public static func decodeStoredValue(_ boxed: Boxed<Self>) throws -> Self
+    public static func decodeStoredValue(_ boxed: Boxed<Self>) -> Self
       { boxed.value }
 
     public static var valueTransformerName : NSValueTransformerName?
