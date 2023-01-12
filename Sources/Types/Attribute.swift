@@ -48,9 +48,11 @@ public struct Attribute<Value: Storable> : ManagedProperty
 
     public init<Transform>(_ name: String, ingestKey k: IngestKey? = nil, transform t: Transform, defaultIngestValue v: Transform.Input? = nil) where Value : Ingestible, Transform : IngestTransform, Transform.Output == Value.Input
       {
+        // The ingestion method must first apply the given transform to its argument.
         func ingest(_ json: Any) throws -> Value {
           try Value(json: try t.transform(try throwingCast(json)))
         }
+        // Transform the given default value.
         let tv = v.map {
           do { return try ingest($0) }
           catch let error as NSError {
