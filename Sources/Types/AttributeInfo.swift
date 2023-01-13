@@ -5,7 +5,8 @@
 import CoreData
 
 
-/// Represents a managed object attribute.
+/// AttributeInfo represents an managed attribute declared via the Attribute property wrapper. It is essentially an enhancement of NSAttributeDescription which maintains additional data required for object ingestion.
+
 public struct AttributeInfo : PropertyInfo
   {
     /// The managed property name.

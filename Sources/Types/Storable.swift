@@ -5,7 +5,7 @@
 import CoreData
 
 
-// Storable identifies types which can be transformed to and from AttributeType, and serves as the generic constraint for our attribute property wrapper.
+/// Storable identifies types which can be transformed to and from AttributeType, and serves as the generic constraint for our Attribute property wrapper.
 
 public protocol Storable
   {

@@ -5,6 +5,8 @@
 import Foundation
 
 
+/// BoxedValueTransformer is a generic ValueTransformer which translates between a Boxed codable type and Data.
+
 public final class BoxedValueTransformer<Value: Codable> : ValueTransformer
   {
     public override class func transformedValueClass() -> AnyClass

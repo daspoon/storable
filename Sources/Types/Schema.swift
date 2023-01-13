@@ -6,7 +6,7 @@ import CoreData
 
 
 /// A Schema corresponds to an NSManagedObjectModel, but is generated from a list of Object subclasses and maintains additional information about those classes.
-///
+
 public struct Schema
   {
     public let name : String

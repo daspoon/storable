@@ -4,7 +4,7 @@
 
 
 /// IngestKey determines how an object property value is extracted from the IngestData provided on initialization.
-///
+
 public enum IngestKey : Equatable
   {
     /// The property value is the key component of the dictionary entry represented by the ingest data.

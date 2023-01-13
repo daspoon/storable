@@ -5,6 +5,8 @@
 import CoreData
 
 
+/// DataStore creates and maintains a persistent store for an object model generated from a given Schema.
+
 public class DataStore
   {
     let schema : Schema

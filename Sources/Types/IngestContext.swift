@@ -5,6 +5,8 @@
 import CoreData
 
 
+/// IngestContext provides an interface for populating a DataStore...
+
 public class IngestContext
   {
     let schema : Schema

@@ -5,7 +5,7 @@
 import Foundation
 
 
-// Wrap a Codable type as an NSObject which implements NSSecureCoding, as is required of default values specified in an NSAttributeDescription.
+/// Wrap a Codable type as an NSObject which implements NSSecureCoding, as is required of default values specified in an NSAttributeDescription.
 
 public final class Boxed<Value: Codable> : NSObject, NSSecureCoding
   {

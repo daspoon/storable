@@ -5,7 +5,8 @@
 import CoreData
 
 
-/// Represents a relation between entities.  Note that every relationship has an inverse, but only one endpoint is specified explicitly.
+/// RelationshipInfo represents an managed relationship declared via the Relationship property wrapper. It is essentially an enhancement of NSDescriptionDescription which maintains additional data required for object ingestion.
+
 public struct RelationshipInfo : PropertyInfo
   {
     /// Determines how related objects are obtained from object ingest data.

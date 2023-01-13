@@ -8,7 +8,6 @@ import Foundation
 extension NSObject
   {
     /// A tree of classes representing a (partial) inheritance hierarchy. The tree is partial in the sense that not all descendant classes are members, but all ancestors of all members are also members.
-    ///
     public enum InheritanceHierarchy<Root: NSObject>
       {
         case node(Root.Type, [ObjectIdentifier: InheritanceHierarchy<Root>])

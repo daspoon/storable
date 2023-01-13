@@ -6,6 +6,7 @@ import CoreData
 
 
 /// StorableAsData provides an implementation of Storable using Data as the storage type.
+
 public protocol StorableAsData : Storable where Self : Codable, EncodingType == Boxed<Self>
   { }
 

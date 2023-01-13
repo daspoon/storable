@@ -5,6 +5,7 @@
 
 extension String
   {
+    /// Return a copy of the receiver after removing the given prefix and suffix, when they exist.
     public func removing(prefix p: String? = nil, suffix s: String? = nil) -> String
       {
         var trimmed = self

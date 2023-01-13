@@ -5,6 +5,8 @@
 import CoreData
 
 
+/// ObjectInfo is conceptually equivalent to NSEntityDescription, but maintains additional data required to perform object ingestion.
+
 public struct ObjectInfo
   {
     public let name : String
@@ -13,6 +15,7 @@ public struct ObjectInfo
     public let managedObjectClass : Object.Type
 
 
+    /// Create a new instance for the given subclass of Object.
     public init(objectType: Object.Type)
       {
         name = objectType.entityName

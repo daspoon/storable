@@ -5,8 +5,8 @@
 import Foundation
 
 
-/// Abstracts the functionality of Bundle required by DataSource to simplify testing.
-///
+/// DataBundle abstracts the subset of Bundle functionality required by DataSource, primarily to simplify testing.
+
 public protocol DataBundle
   {
     func url(forResource resourceName: String?, withExtension fileExtension: String?) -> URL?

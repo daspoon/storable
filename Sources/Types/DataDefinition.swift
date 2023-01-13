@@ -3,16 +3,20 @@
 */
 
 
-/// Conforming types determine how json content translates to a set of object instances.
+/// The DataDefinition protocol is used to enable object ingestion from a variety of data formats.
+
 public protocol DataDefinition
   {
+    /// Taking the required data from the given source, create the defined objects in the given context.
     func ingest(from dataSource: DataSource, into context: IngestContext) throws
 
+    /// Describe the data being ingested, for logging purposes.
     var ingestDescription : String { get }
   }
 
 
-/// Create a set of instances of a named entity from a specified file.
+/// EntitySetDefinition is used to create a set of instances of a named entity from the specified content.
+
 public struct EntitySetDefinition : DataDefinition
   {
     public let entityName : String

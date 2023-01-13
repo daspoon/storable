@@ -5,6 +5,8 @@
 import CoreData
 
 
+/// Attribute is a property wrapper used to declared managed attributes on subclasses of Object.
+
 @propertyWrapper
 public struct Attribute<Value: Storable> : ManagedProperty
   {
@@ -13,6 +15,8 @@ public struct Attribute<Value: Storable> : ManagedProperty
     private static func ingest(_ json: Any) throws -> Value where Value : Ingestible
       { try Value(json: try throwingCast(json)) }
 
+
+    // Initializers without explicit initial values.
 
     public init(_ name: String)
       {
@@ -30,6 +34,8 @@ public struct Attribute<Value: Storable> : ManagedProperty
       }
 
 
+    // Initializers with explicit initial values
+
     public init(wrappedValue v: Value, _ name: String)
       {
         propertyInfo = AttributeInfo(name: name, type: Value.EncodingType.typeId, transformerName: Value.valueTransformerName, defaultValue: v, allowsNilValue: Value.EncodingType.isOptional)
@@ -45,6 +51,8 @@ public struct Attribute<Value: Storable> : ManagedProperty
         propertyInfo = AttributeInfo(name: name, type: Value.EncodingType.typeId, transformerName: Value.valueTransformerName, defaultValue: v, allowsNilValue: Value.EncodingType.isOptional, ingest: (k, Self.ingest))
       }
 
+
+    // Initializers with values transformed on ingestion
 
     public init<Transform>(_ name: String, ingestKey k: IngestKey? = nil, transform t: Transform, defaultIngestValue v: Transform.Input? = nil) where Value : Ingestible, Transform : IngestTransform, Transform.Output == Value.Input
       {
@@ -63,7 +71,7 @@ public struct Attribute<Value: Storable> : ManagedProperty
       }
 
 
-    /// Retrieving the property value requires access to the enclosing object instance.
+    /// The enclosing-self subscript which implements access and update of the associated property value.
     public static subscript<Object: NSManagedObject>(_enclosingInstance instance: Object, wrapped wrappedKeyPath: ReferenceWritableKeyPath<Object, Value>, storage storageKeyPath: ReferenceWritableKeyPath<Object, Self>) -> Value
       {
         get {
@@ -89,8 +97,7 @@ public struct Attribute<Value: Storable> : ManagedProperty
       }
 
 
-    // Unavailable
-
+    /// The wrappedValue cannot be implemented without access to the enclosing object, and so is marked unavailable.
     @available(*, unavailable, message: "Unsupported")
     public var wrappedValue : Value { get { fatalError() } set { fatalError() } }
   }

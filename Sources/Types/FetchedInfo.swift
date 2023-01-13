@@ -5,6 +5,8 @@
 import CoreData
 
 
+/// FetchedInfo maintains the data required to define a fetched property on a subclass of Object.
+
 public struct FetchedInfo : PropertyInfo
   {
     public let name : String

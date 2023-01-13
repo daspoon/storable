@@ -5,7 +5,8 @@
 import Foundation
 
 
-/// Ingestible identifies data types which can be translated from JSON and persisted as Data.
+/// Ingestible identifies data types which can be created from JSON.
+
 public protocol Ingestible
   {
     /// The associated JSON type.

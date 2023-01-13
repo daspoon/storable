@@ -5,7 +5,7 @@
 import CoreData
 
 
-// EntityInfo is a convenience struct combining ObjectInfo and NSEntityDescription.
+/// EntityInfo is a convenience struct combining ObjectInfo and NSEntityDescription.
 
 @dynamicMemberLookup
 public struct EntityInfo

@@ -3,6 +3,8 @@
 */
 
 
+/// Methods added to Dictionary to simplify ingestion of object property values from JSON.
+
 extension Dictionary where Key == String, Value == Any
   {
     public func optionalValue<V>(of type: V.Type = V.self, for key: String, in context: @autoclosure () -> String? = {nil}()) throws -> V?

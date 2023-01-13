@@ -5,6 +5,8 @@
 import Foundation
 
 
+/// Exception is the custom Error type thrown by the components of this package.
+
 public struct Exception : LocalizedError
   {
     public let localizedDescription : String
@@ -15,7 +17,9 @@ public struct Exception : LocalizedError
       }
   }
 
-  
+
+// Some convenience constructors.
+
 extension Exception
   {
     public static func missingValue(key: String, in context: String?) -> Exception

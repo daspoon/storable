@@ -5,6 +5,8 @@
 import CoreData
 
 
+/// Relationship is a property wrapper used to declared managed relationships on subclasses of Object.
+
 @propertyWrapper
 public struct Relationship<Value> : ManagedProperty
   {
@@ -50,8 +52,7 @@ public struct Relationship<Value> : ManagedProperty
       }
 
 
-    // MARK: - enclosing self -
-
+    /// The enclosing-self subscript which implements access and update of the associated property value.
     public static subscript<Object: NSManagedObject>(_enclosingInstance instance: Object, wrapped wrappedKeyPath: ReferenceWritableKeyPath<Object, Value>, storage storageKeyPath: ReferenceWritableKeyPath<Object, Self>) -> Value
       {
         get {
@@ -69,6 +70,7 @@ public struct Relationship<Value> : ManagedProperty
       }
 
 
+    /// The wrappedValue cannot be implemented without access to the enclosing object, and so is marked unavailable.
     @available(*, unavailable, message: "Unsupported")
     public var wrappedValue : Value { get { fatalError() } set { fatalError() } }
   }

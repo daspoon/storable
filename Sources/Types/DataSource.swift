@@ -6,7 +6,7 @@ import Foundation
 
 
 /// DataSource determines how a data model is populated from json data residing in the associated bundle.
-///
+
 public struct DataSource
   {
     /// Content indentifies a json value used to ingest a set of object instances.

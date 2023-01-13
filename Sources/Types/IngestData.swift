@@ -4,7 +4,7 @@
 
 
 /// IngestData provides a common interface to the variably-structured json data provided on ingestion of Object instances. Property values are extracted from IngestData using IngestKeys.
-///
+
 public enum IngestData
   {
     /// The object ingest data is an arbitrary json value.

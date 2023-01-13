@@ -5,7 +5,8 @@
 import CoreData
 
 
-/// The base class of managed object.
+/// Object is the base class of NSManagedObject which supports model generation and ingestion through managed property wrappers.
+
 open class Object : NSManagedObject
   {
     /// The notion of instance identity (within class).
