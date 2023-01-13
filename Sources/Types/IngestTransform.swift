@@ -14,16 +14,6 @@ public protocol IngestTransform
   }
 
 
-public func ingestTransform(named name: String) throws -> any IngestTransform
-  {
-    switch name {
-      case "unpack" :
-        return Unpack()
-      default :
-        throw Exception("unknown transform '\(name)'")
-    }
-  }
-
 
 public struct Unpack : IngestTransform
   {
