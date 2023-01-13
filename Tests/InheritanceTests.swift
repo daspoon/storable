@@ -18,8 +18,11 @@ fileprivate class Skill : Object
 
 
 @objc(Combatant)
-fileprivate class Combatant : Object // TODO: abstract
+fileprivate class Combatant : Object
   {
+    override class var abstractClass : Object.Type
+      { Combatant.self }
+
     @Attribute("name")
     var name : String
 
