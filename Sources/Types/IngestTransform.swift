@@ -3,7 +3,7 @@
 */
 
 
-public protocol IngestTransform : CustomStringConvertible
+public protocol IngestTransform
   {
     associatedtype Input
     associatedtype Output
@@ -11,13 +11,6 @@ public protocol IngestTransform : CustomStringConvertible
     func validate(_ input: Any) throws -> Input
 
     func transform(_ input: Input) throws -> Output
-  }
-
-
-extension IngestTransform
-  {
-    public var description : String
-      { "\(Self.self)()" }
   }
 
 
