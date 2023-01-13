@@ -15,7 +15,6 @@ extension NSValueTransformerName
       {
         let name = NSValueTransformerName(rawValue: "boxedValueTransformer<\(T.self)>")
         if registeredNames.contains(name) == false {
-          log("registering \(name.rawValue)")
           ValueTransformer.setValueTransformer(BoxedValueTransformer<T>(), forName: name)
           registeredNames.insert(name)
         }
