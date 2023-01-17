@@ -5,19 +5,23 @@
 import CoreData
 
 
-/// Fetched is a property wrapper for declaring fetched properties on subclasses of Object. It provides an initializer for each of the four cases of NSFetchedResultType.
+/// FetchedProperty is a property wrapper for declaring fetched properties on subclasses of Object. It provides an initializer for each of the four cases of NSFetchedResultType.
+/// Note that the predicate of a FetchedProperty can access the enclosing object via $FETCH_SOURCE.
 
 @propertyWrapper
-public struct Fetched<Value> : ManagedProperty
+public struct FetchedProperty<Value> : ManagedProperty
   {
-    public let propertyInfo : PropertyInfo
+    let fetchedPropertyInfo : FetchedPropertyInfo
+
+    public var propertyInfo : PropertyInfo
+      { fetchedPropertyInfo }
 
 
     /// Create an instance corresponding to an array of managed objects
     public init<T: NSManagedObject>(_ name: String, fetchRequest: NSFetchRequest<T>) where Value == [T]
       {
         fetchRequest.resultType = .managedObjectResultType
-        propertyInfo = FetchedInfo(name: name, fetchRequest: fetchRequest)
+        fetchedPropertyInfo = FetchedPropertyInfo(name: name, fetchRequest: fetchRequest)
       }
 
     /// Create an instance corresponding to an array of managed object identifiers
@@ -25,21 +29,22 @@ public struct Fetched<Value> : ManagedProperty
       {
         fetchRequest.resultType = .managedObjectIDResultType
         fetchRequest.includesPropertyValues = false
-        propertyInfo = FetchedInfo(name: name, fetchRequest: fetchRequest)
+        fetchedPropertyInfo = FetchedPropertyInfo(name: name, fetchRequest: fetchRequest)
       }
 
     /// Create an instance corresponding to a dictionary of property name/value pairs. Set the fetchRequest's propertiesToFetch to determine the entries of the resulting dictionaries.
     public init<T: NSManagedObject>(_ name: String, fetchRequest: NSFetchRequest<T>) where Value == [[String: Any]]
       {
         fetchRequest.resultType = .dictionaryResultType
-        propertyInfo = FetchedInfo(name: name, fetchRequest: fetchRequest)
+        fetchedPropertyInfo = FetchedPropertyInfo(name: name, fetchRequest: fetchRequest)
       }
 
-    /// Create an instance corresponding to an an integer count of matching objects.
+    /// Create an instance corresponding to an an integer count of matching objects. Note that entity type of the fetch request must be explicit, as it canot be determined by the property type Int.
     public init<T: NSManagedObject>(_ name: String, fetchRequest: NSFetchRequest<T>) where Value == Int
       {
         fetchRequest.resultType = .countResultType
-        propertyInfo = FetchedInfo(name: name, fetchRequest: fetchRequest)
+        fetchRequest.includesPropertyValues = false
+        fetchedPropertyInfo = FetchedPropertyInfo(name: name, fetchRequest: fetchRequest)
       }
 
 
@@ -47,12 +52,23 @@ public struct Fetched<Value> : ManagedProperty
     public static subscript<Object: NSManagedObject>(_enclosingInstance instance: Object, wrapped wrappedKeyPath: ReferenceWritableKeyPath<Object, Value>, storage storageKeyPath: ReferenceWritableKeyPath<Object, Self>) -> Value
       {
         get {
-          let info = instance[keyPath: storageKeyPath].propertyInfo
-          guard let value = instance.value(forKey: info.name) else {
-            fatalError("nil value for fetched property")
+          let info = instance[keyPath: storageKeyPath].fetchedPropertyInfo
+          let result = instance.value(forKey: info.name)
+          switch info.fetchRequest.resultType {
+            case .countResultType :
+              // In this case the result is an array of int.
+              guard let array = result as? [Value], array.count == 1 else {
+                fatalError("expecting [Int] as fetched result type: \(String(describing: result))")
+              }
+              return array[0]
+            default :
+              guard let value = result as? Value else {
+                fatalError("expecting \(Value.self) as fetched result type: \(String(describing: result))")
+              }
+              return value
           }
-          return value as! Value
         }
+        set { }
       }
 
 
@@ -62,9 +78,9 @@ public struct Fetched<Value> : ManagedProperty
   }
 
 
-// A convenience method for creating instances of NSFetchRequest for use in Fetched-wrapped properties.
+// A convenience method for creating instances of NSFetchRequest for use in FetchedProperty-wrapped properties.
 
-public func makeFetchRequest<T: NSManagedObject>(for type: T.Type = T.self,
+public func makeFetchRequest<T: Object>(for type: T.Type = T.self,
     predicate: NSPredicate? = nil,
     sortDescriptors: [NSSortDescriptor] = [],
     propertiesToFetch: [String]? = nil,
@@ -73,7 +89,7 @@ public func makeFetchRequest<T: NSManagedObject>(for type: T.Type = T.self,
     includesSubentities: Bool = true
   ) -> NSFetchRequest<T>
   {
-    let request = NSFetchRequest<T>()
+    let request = NSFetchRequest<T>(entityName: T.entityName)
     request.predicate = predicate
     request.sortDescriptors = sortDescriptors
     request.propertiesToFetch = propertiesToFetch

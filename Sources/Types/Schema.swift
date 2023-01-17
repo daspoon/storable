@@ -61,6 +61,20 @@ public struct Schema
           }
         }
 
+        // Define the fetched properties of each entity...
+        for sourceInfo in entitiesByName.values {
+          for (propertyName, fetchedPropertyInfo) in sourceInfo.objectInfo.fetchedProperties {
+            let fetchedEntityName = fetchedPropertyInfo.fetchRequest.entityName! // TODO: eliminate optional
+            guard let fetchedEntity = entitiesByName[fetchedEntityName]?.entityDescription else { throw Exception("unknown entity '\(fetchedEntityName)'") }
+            // Note that the fetched property description must have a resolved entity
+            fetchedPropertyInfo.fetchRequest.entity = fetchedEntity
+            let fetchedPropertyDescription = NSFetchedPropertyDescription()
+            fetchedPropertyDescription.name = propertyName
+            fetchedPropertyDescription.fetchRequest = fetchedPropertyInfo.fetchRequest
+            sourceInfo.entityDescription.properties.append(fetchedPropertyDescription)
+          }
+        }
+
         // Create and populate an managed object model with the defined entities
         managedObjectModel = .init()
         managedObjectModel.entities = entitiesByName.map { $0.value.entityDescription }

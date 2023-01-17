@@ -12,6 +12,7 @@ public struct ObjectInfo
     public let name : String
     public private(set) var attributes : [String: AttributeInfo] = [:]
     public private(set) var relationships : [String: RelationshipInfo] = [:]
+    public private(set) var fetchedProperties : [String: FetchedPropertyInfo] = [:]
     public let managedObjectClass : Object.Type
 
 
@@ -33,6 +34,8 @@ public struct ObjectInfo
               attributes[propertyName] = attribute
             case let relationship as RelationshipInfo :
               relationships[propertyName] = relationship
+            case let fetchedProperty as FetchedPropertyInfo :
+              fetchedProperties[propertyName] = fetchedProperty
             default :
               continue
           }
