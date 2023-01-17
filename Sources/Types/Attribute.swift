@@ -80,8 +80,8 @@ public struct Attribute<Value: Storable> : ManagedProperty
           let storedValue : Value.EncodingType
           switch instance.value(forKey: propertyInfo.name) {
             case .some(let objectValue) :
-              guard let decodedValue = objectValue as? Value.EncodingType else { fatalError("\(Object.self).\(propertyInfo.name) is not of expected type \(Value.EncodingType.self)") }
-              storedValue = decodedValue
+              guard let encodedValue = objectValue as? Value.EncodingType else { fatalError("\(Object.self).\(propertyInfo.name) is not of expected type \(Value.EncodingType.self)") }
+              storedValue = encodedValue
             case .none :
               guard Value.EncodingType.isOptional else { fatalError("\(Object.self).\(propertyInfo.name) is not initialized") }
               storedValue = .nullValue
