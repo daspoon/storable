@@ -37,7 +37,7 @@ public struct ObjectInfo
             case let fetchedProperty as FetchedPropertyInfo :
               fetchedProperties[propertyName] = fetchedProperty
             default :
-              continue
+              log("unsupported PropertyInfo type: \(type(of: wrapper.propertyInfo))")
           }
         }
       }
