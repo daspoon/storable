@@ -51,7 +51,7 @@ final class InheritanceTests : XCTestCase
   {
     func test() throws
       {
-        let store = try dataStore(for: [Skill.self, Combatant.self, Companion.self, Enemy.self])
+        let store = try dataStore(for: [Skill.self, Companion.self, Enemy.self])
 
         let hack = try store.create(Skill.self) { $0.name = "hack" }
         let slash = try store.create(Skill.self) { $0.name = "slash" }
