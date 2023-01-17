@@ -19,7 +19,7 @@ public struct Schema
         self.name = name
 
         // Perform a post-order traversal on the implied class hierarchy to populate the mapping of entity names to EntityInfo.
-        entitiesByName = try NSObject.inheritanceHierarchy(with: objectTypes).fold({try Self.processObjectType($0, subtreeResults: $1)}).1
+        entitiesByName = try InheritanceHierarchy(containing: objectTypes).fold({try Self.processObjectType($0, subtreeResults: $1)}).1
 
         // Extend each NSEntityDescription with the specified relationships and their inverses, which we synthesize where not given explicitly.
         for (sourceName, sourceInfo) in entitiesByName {
