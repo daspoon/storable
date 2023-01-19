@@ -17,7 +17,7 @@ public struct ObjectInfo
 
 
     /// Create a new instance for the given subclass of Object.
-    public init(objectType: Object.Type)
+    public init(objectType: Object.Type) throws
       {
         name = objectType.entityName
         managedObjectClass = objectType
@@ -27,9 +27,12 @@ public struct ObjectInfo
 
         for (label, value) in objectType.instanceMirror.children {
           guard let label, label.hasPrefix("_") else { continue }
-          guard let wrapper = value as? ManagedProperty else { continue }
+          guard let info = (value as? ManagedProperty)?.propertyInfo else { continue }
           let propertyName = label.removing(prefix: "_")
-          switch wrapper.propertyInfo {
+          guard info.name == propertyName else {
+            throw Exception("declared property name must match wrapper argument")
+          }
+          switch info {
             case let attribute as AttributeInfo :
               attributes[propertyName] = attribute
             case let relationship as RelationshipInfo :
@@ -37,7 +40,7 @@ public struct ObjectInfo
             case let fetchedProperty as FetchedPropertyInfo :
               fetchedProperties[propertyName] = fetchedProperty
             default :
-              log("unsupported PropertyInfo type: \(type(of: wrapper.propertyInfo))")
+              log("unsupported PropertyInfo type: \(type(of: info))")
           }
         }
       }

@@ -84,7 +84,7 @@ public struct Schema
     private static func processObjectType(_ objectType: Object.Type, subtreeResults: [(EntityInfo, [String: EntityInfo])]) throws -> (EntityInfo, [String: EntityInfo])
       {
         // Create an ObjectInfo containing the managed property wrappers
-        let objectInfo = ObjectInfo(objectType: objectType)
+        let objectInfo = try ObjectInfo(objectType: objectType)
 
         // Create an entity description for CoreData
         let entity = NSEntityDescription()
