@@ -31,7 +31,7 @@ public struct Schema
             let targetName = relationship.relatedEntityName
             guard let targetInfo = entitiesByName[targetName]
               else { throw Exception("relationship \(sourceName).\(relationshipName) has unknown target entity name '\(targetName)'") }
-            // Get or synthesize the inverse relationship.
+            // Get the inverse relationship (TODO: synthesize if possible)
             let inverse : RelationshipInfo
             switch targetInfo.objectInfo.relationships[relationship.inverseName] {
               case .none :
