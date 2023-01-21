@@ -65,7 +65,7 @@ final class RelationshipTests : XCTestCase
         let full = try store.create(Item.self) { $0.name = "full"; $0.category = staplers; $0.box = good }
         let broken = try store.create(Item.self) { $0.name = "broken"; $0.category = staplers }
 
-        store.save()
+        try store.save()
 
         XCTAssertEqual(pencils.items, [sharp, dull])
         XCTAssertEqual(staplers.items, [full, empty, broken])

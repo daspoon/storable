@@ -59,7 +59,7 @@ final class FetchedTests : XCTestCase
         let betty   = try store.create(Occupant.self) { $0.name = "betty";   $0.age = 32; $0.dwelling = rubble }
         let bambam  = try store.create(Occupant.self) { $0.name = "bambam";  $0.age =  2; $0.dwelling = rubble }
 
-        store.save()
+        try store.save()
 
         XCTAssertEqual(flintstone.occupantsByName, [fred, pebbles, wilma])
         XCTAssertEqual(flintstone.minorOccupantsByAge, [pebbles])

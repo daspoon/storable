@@ -44,7 +44,7 @@ public class DataStore
         managedObjectContext.persistentStoreCoordinator = persistentStoreCoordinator
 
         // Observe notifications to trigger saving changes
-        NotificationCenter.default.addObserver(self, selector: #selector(save(_:)), name: .dataStoreNeedsSave, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(performSave(_:)), name: .dataStoreNeedsSave, object: nil)
       }
 
 
@@ -63,7 +63,7 @@ public class DataStore
           case 1 :
             break
           case 0 :
-            try IngestContext.populate(schema: schema, managedObjectContext: managedObjectContext, dataSource: dataSource)
+            try IngestContext.populate(dataStore: self, from: dataSource)
             configurations = try managedObjectContext.fetch(NSFetchRequest<Object>(entityName: stateEntityName))
             guard configurations.count == 1 else {
               throw Exception("inconsistency after ingestion: \(configurations.count) configurations detected")
@@ -89,12 +89,14 @@ public class DataStore
       }
 
 
+    public func save() throws
+      { try managedObjectContext.save() }
+
+
     @objc
-    func save(_ sender: Any? = nil)
+    func performSave(_ sender: Any? = nil)
       {
-        do {
-          try managedObjectContext.save()
-        }
+        do { try save() }
         catch let error as NSError {
           log("failed to save: \(error)")
         }

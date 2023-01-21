@@ -7,18 +7,18 @@ import CoreData
 
 /// IngestContext provides an interface for populating a DataStore...
 
+@dynamicMemberLookup
 public class IngestContext
   {
-    let schema : Schema
-    let managedObjectContext : NSManagedObjectContext
+    let dataStore : DataStore
 
     private var ingesting : Bool = false
     private var delayedEffects : [() throws -> Void] = []
 
 
-    static func populate(schema s: Schema, managedObjectContext moc: NSManagedObjectContext, dataSource: DataSource) throws
+    static func populate(dataStore: DataStore, from dataSource: DataSource) throws
       {
-        let context = try IngestContext(schema: s, managedObjectContext: moc)
+        let context = try IngestContext(dataStore: dataStore)
 
         context.beginIngestion()
 
@@ -32,11 +32,14 @@ public class IngestContext
       }
 
 
-    init(schema s: Schema, managedObjectContext moc: NSManagedObjectContext) throws
+    init(dataStore s: DataStore) throws
       {
-        schema = s
-        managedObjectContext = moc
+        dataStore = s
       }
+
+
+    public subscript <Value>(dynamicMember path: KeyPath<DataStore, Value>) -> Value
+      { dataStore[keyPath: path] }
 
 
     func beginIngestion()
@@ -49,7 +52,7 @@ public class IngestContext
 
     public func entityInfo(for entityName: String) throws -> EntityInfo
       {
-        guard let entity = schema.entitiesByName[entityName] else { throw Exception("unknown entity name '\(entityName)'") }
+        guard let entity = dataStore.schema.entitiesByName[entityName] else { throw Exception("unknown entity name '\(entityName)'") }
         return entity
       }
 
@@ -59,7 +62,7 @@ public class IngestContext
         let fetchRequest = NSFetchRequest<Object>(entityName: entityName)
         fetchRequest.predicate = NSPredicate(format: "name = %@", name)
 
-        let results = try managedObjectContext.fetch(fetchRequest)
+        let results = try dataStore.managedObjectContext.fetch(fetchRequest)
         switch results.count {
           case 1 :
             return results[0]
@@ -90,6 +93,6 @@ public class IngestContext
 
         ingesting = false
 
-        try managedObjectContext.save()
+        try dataStore.save()
       }
   }

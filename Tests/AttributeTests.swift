@@ -160,7 +160,7 @@ final class AttributeTests : XCTestCase
           object.uuidValue = uuidValue
         }
 
-        store.save()
+        try store.save()
 
         // Ensure attributes have the expected values
         XCTAssertEqual(boolValue, object.boolValue)

@@ -60,7 +60,7 @@ final class InheritanceTests : XCTestCase
         let dwarf = try store.create(Companion.self) { $0.name = "dwarf"; $0.joinDate = Date(); $0.skills = [hack] }
         let elf = try store.create(Companion.self) { $0.name = "elf"; $0.joinDate = Date(); $0.skills = [slash]}
 
-        store.save()
+        try store.save()
 
         XCTAssertEqual(hack.wielders, [orc, dwarf])
         XCTAssertEqual(slash.wielders, [goblin, elf])
