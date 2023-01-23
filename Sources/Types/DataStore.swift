@@ -80,13 +80,36 @@ public class DataStore
       }
 
 
-    func create<T: Object>(_ type: T.Type = T.self, initialize: (T) throws -> Void) throws -> T
+    public func create<T: Object>(_ type: T.Type = T.self, initialize: (T) throws -> Void) throws -> T
       {
         guard let entity = schema.entitiesByName[type.entityName] else { throw Exception("unknown entity \(type.entityName)") }
         let instance = type.init(entity: entity.entityDescription, insertInto: managedObjectContext)
         try initialize(instance)
         return instance
       }
+
+
+    public func fetchObjects<T: Object>(_ request: NSFetchRequest<T>) throws -> [T]
+      { return try managedObjectContext.fetch(request) }
+
+    public func fetchObject<T: Object>(_ request: NSFetchRequest<T>) throws -> T
+      {
+        let results = try fetchObjects(request)
+        switch results.count {
+          case 1 :
+            return results[0]
+          case 0 :
+          throw Exception("no \(String(describing: request.entityName)) instance satisfying '\(String(describing: request.predicate))'")
+          default :
+          throw Exception("multiple \(String(describing: request.entityName)) instances satisfying '\(String(describing: request.predicate))'")
+        }
+      }
+
+    public func fetchObjects<T: Object>(of type: T.Type = T.self, satisfying predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor] = []) throws -> [T]
+      { try fetchObjects(makeFetchRequest(for: type, predicate: predicate, sortDescriptors: sortDescriptors)) }
+
+    public func fetchObject<T: Object>(of type: T.Type = T.self, satisfying predicate: NSPredicate) throws -> T
+      { try fetchObject(makeFetchRequest(for: type, predicate: predicate)) }
 
 
     public func save() throws

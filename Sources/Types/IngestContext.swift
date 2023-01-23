@@ -57,20 +57,9 @@ public class IngestContext
       }
 
 
-    func fetchObject(id name: String, of entityName: String) throws -> Object
+    func fetchObject(id name: String, of type: Object.Type) throws -> Object
       {
-        let fetchRequest = NSFetchRequest<Object>(entityName: entityName)
-        fetchRequest.predicate = NSPredicate(format: "name = %@", name)
-
-        let results = try dataStore.managedObjectContext.fetch(fetchRequest)
-        switch results.count {
-          case 1 :
-            return results[0]
-          case 0 :
-            throw Exception("no \(entityName) instance with name '\(name)'")
-          default :
-            throw Exception("multiple \(entityName) instances with name '\(name)'")
-        }
+        try dataStore.fetchObject(makeFetchRequest(for: type, predicate: .init(format: "name = %@", name)))
       }
 
 
