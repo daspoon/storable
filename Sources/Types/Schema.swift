@@ -10,7 +10,7 @@ import CoreData
 public struct Schema
   {
     public let name : String
-    public let managedObjectModel : NSManagedObjectModel
+    public let managedObjectModel : NSManagedObjectModel = .init()
     public private(set) var entitiesByName : [String: EntityInfo] = [:]
 
 
@@ -18,8 +18,35 @@ public struct Schema
       {
         self.name = name
 
-        // Perform a post-order traversal on the implied class hierarchy to populate the mapping of entity names to EntityInfo.
-        entitiesByName = try InheritanceHierarchy(containing: objectTypes).fold({try Self.processObjectType($0, subtreeResults: $1)}).1
+        // Perform a post-order traversal on the implied class hierarchy to populate entitiesByName.
+        _ = try InheritanceHierarchy(containing: objectTypes).fold { (objectType, subentities) -> NSEntityDescription in
+          // Ignore the root class which is not modeled.
+          guard objectType != Object.self else { return .init() }
+          // Create an ObjectInfo containing the managed property wrappers
+          let objectInfo = try ObjectInfo(objectType: objectType)
+          // Create an NSEntityDescription
+          let entity = NSEntityDescription()
+          entity.name = objectInfo.name
+          entity.managedObjectClassName = objectInfo.name
+          entity.isAbstract = objectType == objectType.abstractClass
+          entity.subentities = subentities
+          // Extend entitiesByName
+          entitiesByName[objectInfo.name] = EntityInfo(objectInfo, entity)
+          return entity
+        }
+
+        // Extend each NSEntityDescription with the specified attributes.
+        for (_, entityInfo) in entitiesByName {
+          for (name, attribute) in entityInfo.objectInfo.attributes {
+            let attributeDescription = NSAttributeDescription()
+            attributeDescription.name = name
+            attributeDescription.type = attribute.attributeType
+            attributeDescription.isOptional = attribute.allowsNilValue
+            attributeDescription.valueTransformerName = attribute.valueTransformerName?.rawValue
+            attributeDescription.defaultValue = attribute.defaultValue?.storedValue()
+            entityInfo.entityDescription.properties.append(attributeDescription)
+          }
+        }
 
         // Extend each NSEntityDescription with the specified relationships and their inverses, which we synthesize where not given explicitly.
         for (sourceName, sourceInfo) in entitiesByName {
@@ -75,46 +102,7 @@ public struct Schema
           }
         }
 
-        // Create and populate an managed object model with the defined entities
-        managedObjectModel = .init()
+        // Add the defined entities to the object model
         managedObjectModel.entities = entitiesByName.map { $0.value.entityDescription }
       }
-
-
-    private static func processObjectType(_ objectType: Object.Type, subtreeResults: [(EntityInfo, [String: EntityInfo])]) throws -> (EntityInfo, [String: EntityInfo])
-      {
-        // Create an ObjectInfo containing the managed property wrappers
-        let objectInfo = try ObjectInfo(objectType: objectType)
-
-        // Create an entity description for CoreData
-        let entity = NSEntityDescription()
-        entity.name = objectInfo.name
-        entity.managedObjectClassName = objectInfo.name
-        entity.isAbstract = objectType == objectType.abstractClass
-
-        // Populate the entity's attribute descriptions
-        for (name, attribute) in objectInfo.attributes {
-          let attributeDescription = NSAttributeDescription()
-          attributeDescription.name = name
-          attributeDescription.type = attribute.attributeType
-          attributeDescription.isOptional = attribute.allowsNilValue
-          attributeDescription.valueTransformerName = attribute.valueTransformerName?.rawValue
-          attributeDescription.defaultValue = attribute.defaultValue?.storedValue()
-          entity.properties.append(attributeDescription)
-        }
-
-        // Establish the inheritance relation with the entities for immediate subclasses.
-        entity.subentities = subtreeResults.map { $0.0.entityDescription }
-
-        // Form the combined dictionary of EntityInfo for the given class and its subclasses.
-        var combinedEntityInfoMap : [String: EntityInfo] = [objectInfo.name: .init(objectInfo, entity)]
-        for subtreeResult in subtreeResults {
-          try combinedEntityInfoMap.merge(subtreeResult.1) {
-            throw Exception("\($0.name) and \($1.name) have the same name")
-          }
-        }
-
-        return (EntityInfo(objectInfo, entity), combinedEntityInfoMap)
-      }
-
   }
