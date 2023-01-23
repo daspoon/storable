@@ -33,10 +33,10 @@ fileprivate class Dwelling : Object
     @FetchedProperty("minorOccupantsByAge", fetchRequest: makeFetchRequest(predicate: .init(format: "dwelling = $FETCH_SOURCE && age < 18"), sortDescriptors: [.init(key: "age", ascending: true)]))
     var minorOccupantsByAge : [Occupant]
 
-    @FetchedProperty("occupantIdsByName", fetchRequest: makeFetchRequest(predicate: .init(format: "dwelling = $FETCH_SOURCE"), sortDescriptors: [.init(key: "name", ascending: true)]))
+    @FetchedProperty("occupantIdsByName", fetchRequest: makeFetchRequest(for: Occupant.self, predicate: .init(format: "dwelling = $FETCH_SOURCE"), sortDescriptors: [.init(key: "name", ascending: true)]))
     var occupantIdsByName : [NSManagedObjectID]
 
-    @FetchedProperty("occupantNamesAndAges", fetchRequest: makeFetchRequest(predicate: .init(format: "dwelling = $FETCH_SOURCE"), sortDescriptors: [.init(key: "name", ascending: true)]))
+    @FetchedProperty("occupantNamesAndAges", fetchRequest: makeFetchRequest(for: Occupant.self, predicate: .init(format: "dwelling = $FETCH_SOURCE"), sortDescriptors: [.init(key: "name", ascending: true)]))
     var occupantNamesAndAges : [[String: Any]]
 
     @FetchedProperty("numberOfOccupants", fetchRequest: makeFetchRequest(for: Occupant.self, predicate: .init(format: "dwelling = $FETCH_SOURCE")))
