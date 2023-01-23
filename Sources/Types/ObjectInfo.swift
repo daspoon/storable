@@ -19,7 +19,7 @@ public struct ObjectInfo
     /// Create a new instance for the given subclass of Object.
     public init(objectType: Object.Type) throws
       {
-        name = objectType.entityName
+        name = objectType.entityNameAndVersion.entityName
         managedObjectClass = objectType
 
         // Skip the base class Object since it has no properties, and attempting to create a mirror crashes...

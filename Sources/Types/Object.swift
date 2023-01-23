@@ -22,7 +22,25 @@ open class Object : NSManagedObject
 
 
     public class var entityName : String
-      { "\(Self.self)" }
+      { entityNameAndVersion.entityName }
+
+
+    private static let entityNameAndVersionRegex = try! NSRegularExpression(pattern: "(\\w+)_v(\\d+)", options: [])
+
+    class var entityNameAndVersion : (entityName: String, version: Int)
+      {
+        let objcName = "\(Self.self)" as NSString
+        let objcNameRange = NSMakeRange(0, objcName.length)
+
+        let matches = entityNameAndVersionRegex.matches(in: (objcName as String), options: [], range: objcNameRange)
+
+        return matches.count == 1 && matches[0].range == objcNameRange
+          ? (
+            entityName: objcName.substring(with: matches[0].range(at: 1)) as String,
+            version: Int(objcName.substring(with: matches[0].range(at: 2)))!
+          )
+          : (entityName: objcName as String, version: 0)
+      }
 
 
     open class var identity : Identity
@@ -37,12 +55,10 @@ open class Object : NSManagedObject
     /// Return a mirror for instances of this class.
     class var instanceMirror : Mirror
       {
-        let entityName = Self.entityName
-
         let templateObjectModel = NSManagedObjectModel()
         let templateEntity = NSEntityDescription()
-        templateEntity.name = entityName
-        templateEntity.managedObjectClassName = entityName
+        templateEntity.name = Self.entityName
+        templateEntity.managedObjectClassName = NSStringFromClass(Self.self)
         templateObjectModel.entities = [templateEntity]
 
         return Mirror(reflecting: Self.init(entity: templateEntity, insertInto: nil))

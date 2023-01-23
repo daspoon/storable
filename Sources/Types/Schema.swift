@@ -27,7 +27,7 @@ public struct Schema
           // Create an NSEntityDescription
           let entity = NSEntityDescription()
           entity.name = objectInfo.name
-          entity.managedObjectClassName = objectInfo.name
+          entity.managedObjectClassName = NSStringFromClass(objectInfo.managedObjectClass)
           entity.isAbstract = objectType == objectType.abstractClass
           entity.subentities = subentities
           // Extend entitiesByName
