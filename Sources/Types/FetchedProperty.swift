@@ -89,7 +89,7 @@ public func makeFetchRequest<T: Object>(for type: T.Type = T.self,
     includesSubentities: Bool = true
   ) -> NSFetchRequest<T>
   {
-    let request = NSFetchRequest<T>(entityName: T.entityName)
+    let request = NSFetchRequest<T>(entityName: type.entityName)
     request.predicate = predicate
     request.sortDescriptors = sortDescriptors
     request.propertiesToFetch = propertiesToFetch
