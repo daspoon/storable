@@ -76,26 +76,3 @@ public struct FetchedProperty<Value> : ManagedProperty
     @available(*, unavailable, message: "Unsupported")
     public var wrappedValue : Value { get { fatalError() } set { fatalError() } }
   }
-
-
-// A convenience method for creating instances of NSFetchRequest for use in FetchedProperty-wrapped properties.
-
-public func makeFetchRequest<T: Object>(for type: T.Type = T.self,
-    predicate: NSPredicate? = nil,
-    sortDescriptors: [NSSortDescriptor] = [],
-    propertiesToFetch: [String]? = nil,
-    includesPendingChanges: Bool = true,
-    includesPropertyValues: Bool = true,
-    includesSubentities: Bool = true
-  ) -> NSFetchRequest<T>
-  {
-    let request = NSFetchRequest<T>(entityName: type.entityName)
-    request.predicate = predicate
-    request.sortDescriptors = sortDescriptors
-    request.propertiesToFetch = propertiesToFetch
-    request.includesPendingChanges = includesPendingChanges
-    request.includesPropertyValues = includesPropertyValues
-    request.includesSubentities = includesSubentities
-    return request
-  }
-
