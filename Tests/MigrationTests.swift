@@ -27,7 +27,7 @@ fileprivate class Person_v2 : Object
     var date : Date = .now
   }
 
-fileprivate let schema_v2 = try! Schema(name: "Model", objectTypes: [Person_v2.self])
+fileprivate let schema_v2 = try! Schema(name: "Model", version: 2, objectTypes: [Person_v2.self])
 
 
 final class MigrationTests : XCTestCase
@@ -43,7 +43,7 @@ final class MigrationTests : XCTestCase
         }()
 
         // Re-open the store using v2.
-        let store = try DataStore(schema: schema_v2, reset: false)
+        let store = try DataStore(schema: schema_v2, priorVersions: [schema_v1], reset: false)
 
         // Retrieve the expected objects...
         _ = try store.fetchObject(of: Person_v2.self, satisfying: .init(format: "name = %@", "Bill"))

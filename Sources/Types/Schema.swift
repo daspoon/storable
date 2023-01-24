@@ -10,13 +10,17 @@ import CoreData
 public struct Schema
   {
     public let name : String
+    public let version : Int
     public let managedObjectModel : NSManagedObjectModel = .init()
     public private(set) var entitiesByName : [String: EntityInfo] = [:]
 
 
-    public init(name: String, objectTypes: [Object.Type]) throws
+    public init(name: String, version: Int = 1, objectTypes: [Object.Type]) throws
       {
+        precondition(version >= 1)
+
         self.name = name
+        self.version = version
 
         // Perform a post-order traversal on the implied class hierarchy to populate entitiesByName.
         _ = try InheritanceHierarchy(containing: objectTypes).fold { (objectType, subentities) -> NSEntityDescription in

@@ -9,20 +9,26 @@ import CoreData
 
 public class DataStore
   {
-    let schema : Schema
+    let schemaVersions : [Schema]
     let managedObjectModel : NSManagedObjectModel
     public let managedObjectContext : NSManagedObjectContext
 
 
-    public init(schema s: Schema, reset: Bool) throws
+    public init(schema s: Schema, priorVersions vs: [Schema] = [], reset: Bool = false) throws
       {
-        schema = s
+        precondition((vs + [s]).enumerated().allSatisfy {$1.name == s.name && $1.version == $0 + 1})
+
+        schemaVersions = vs + [s]
 
         // Construct the managed object model and the mapping of entity names to info required for instance creation.
-        managedObjectModel = schema.managedObjectModel
+        managedObjectModel = s.managedObjectModel
 
-        // Create the persistent store coordinator
+        // Create the managed object context
+        managedObjectContext = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
+
+        // Associate the persistent store coordinator
         let persistentStoreCoordinator = NSPersistentStoreCoordinator(managedObjectModel: managedObjectModel)
+        managedObjectContext.persistentStoreCoordinator = persistentStoreCoordinator
 
         // Determine the location of the data store
         let applicationDocumentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).last!
@@ -33,29 +39,27 @@ public class DataStore
           try FileManager.default.removeItem(at: dataStoreURL)
         }
 
-        // Open the data store, migrating if necessary
-        _ = try persistentStoreCoordinator.addPersistentStore(ofType: NSSQLiteStoreType, configurationName: nil, at: dataStoreURL, options: [
-          NSMigratePersistentStoresAutomaticallyOption: true,
-          NSInferMappingModelAutomaticallyOption: true,
-        ])
+        // Migrate if necessary
+        if FileManager.default.fileExists(atPath: dataStoreURL.path) {
+          try migrateIfNecessary(dataStoreURL)
+        }
 
-        // Create and configure the managed object context
-        managedObjectContext = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
-        managedObjectContext.persistentStoreCoordinator = persistentStoreCoordinator
+        // Open the persistent store
+        _ = try persistentStoreCoordinator.addPersistentStore(type: .sqlite, at: dataStoreURL)
 
         // Observe notifications to trigger saving changes
         NotificationCenter.default.addObserver(self, selector: #selector(performSave(_:)), name: .dataStoreNeedsSave, object: nil)
       }
 
 
-    public convenience init(schema: Schema, stateEntityName: String = "State", dataSource: DataSource, reset: Bool) throws
+    public convenience init(schema: Schema, priorVersions vs: [Schema] = [], stateEntityName: String = "State", dataSource: DataSource, reset: Bool) throws
       {
         // Ensure the State entity is defined and as has a single instance.
         guard let stateEntity = schema.entitiesByName[stateEntityName] else { throw Exception("Entity '\(stateEntityName)' is not defined") }
         guard case .singleton = stateEntity.managedObjectClass.identity else { throw Exception("Entity '\(stateEntityName)' must have a single instance") }
 
         // Defer to the designated initializer
-        try self.init(schema: schema, reset: reset)
+        try self.init(schema: schema, priorVersions: vs, reset: reset)
 
         // Retrieve the configuration if one exists; otherwise trigger ingestion from the data source.
         var configurations = try managedObjectContext.fetch(NSFetchRequest<Object>(entityName: stateEntityName))
@@ -78,6 +82,30 @@ public class DataStore
       {
         NotificationCenter.default.removeObserver(self, name: .dataStoreNeedsSave, object: nil)
       }
+
+
+    private func migrateIfNecessary(_ storeURL: URL) throws
+      {
+        // Get the metadata for the current persistent store
+        let metadata = try NSPersistentStoreCoordinator.metadataForPersistentStore(type: .sqlite, at: storeURL)
+
+        // Find the index of the most-recent compatible schema version
+        guard let index = schemaVersions.lastIndex(where: {$0.managedObjectModel.isConfiguration(withName: nil, compatibleWithStoreMetadata: metadata)})
+          else { throw Exception("no compatible schema version") }
+
+        // Perform incremental migration between adjacent model versions
+        for (prev, next) in schemaVersions.suffix(from: index).adjacentPairs {
+          log("migrating \(prev.name) from \(prev.version) to \(next.version)")
+          guard let lightweight = try? NSMappingModel.inferredMappingModel(forSourceModel: prev.managedObjectModel, destinationModel: next.managedObjectModel)
+            else { throw Exception("no inferred mapping model between versions \(prev.version) and \(next.version)") }
+          let manager = NSMigrationManager(sourceModel: prev.managedObjectModel, destinationModel: next.managedObjectModel)
+          try manager.migrateStore(from: storeURL, type: .sqlite, options: [:], mapping: lightweight, to: storeURL, type: .sqlite, options: [:])
+        }
+      }
+
+
+    public var schema : Schema
+      { schemaVersions.last! }
 
 
     public func create<T: Object>(_ type: T.Type = T.self, initialize: (T) throws -> Void) throws -> T
