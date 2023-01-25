@@ -109,4 +109,17 @@ public struct Schema
         // Add the defined entities to the object model
         managedObjectModel.entities = entitiesByName.map { $0.value.entityDescription }
       }
+
+
+    /// Indicates whether or not a mapping model can be inferred for migration from the previous version.
+    var supportsLightweightMigration : Bool
+      { true }
+
+
+    /// Return the custom NSMappingModel required to migrate from the previous version. This method is called only if supportsLightweightMigration returns false.
+    func customMigration(from predecessor: Schema) throws -> NSMappingModel
+      {
+        precondition(supportsLightweightMigration == false && predecessor.name == name && predecessor.version == version - 1)
+        throw Exception("\(#function) not implemented")
+      }
   }

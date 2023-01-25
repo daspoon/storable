@@ -81,26 +81,69 @@ public class DataStore
     deinit
       {
         NotificationCenter.default.removeObserver(self, name: .dataStoreNeedsSave, object: nil)
+
+        // Note: without the following, running migration unit tests results in a console message stating "BUG IN CLIENT OF libsqlite3.dylib: database integrity compromised by API violation: vnode unlinked while in use"
+        if let persistentStoreCoordinator = managedObjectContext.persistentStoreCoordinator {
+          for store in persistentStoreCoordinator.persistentStores {
+            do { try persistentStoreCoordinator.remove(store) }
+            catch let error {
+              log("failed to remove persistent store \(String(describing: store.url)) -- \(error)")
+            }
+          }
+        }
       }
 
 
-    private func migrateIfNecessary(_ storeURL: URL) throws
+    private func migrateIfNecessary(_ sourceURL: URL) throws
       {
         // Get the metadata for the current persistent store
-        let metadata = try NSPersistentStoreCoordinator.metadataForPersistentStore(type: .sqlite, at: storeURL)
+        let metadata = try NSPersistentStoreCoordinator.metadataForPersistentStore(type: .sqlite, at: sourceURL)
+
+        // Note the index of the current schema version for convenience
+        let currentIndex = schemaVersions.count - 1
 
         // Find the index of the most-recent compatible schema version
-        guard let index = schemaVersions.lastIndex(where: {$0.managedObjectModel.isConfiguration(withName: nil, compatibleWithStoreMetadata: metadata)})
+        guard var sourceIndex = schemaVersions.lastIndex(where: {$0.managedObjectModel.isConfiguration(withName: nil, compatibleWithStoreMetadata: metadata)})
           else { throw Exception("no compatible schema version") }
 
-        // Perform incremental migration between adjacent model versions
-        for (prev, next) in schemaVersions.suffix(from: index).adjacentPairs {
-          log("migrating \(prev.name) from \(prev.version) to \(next.version)")
-          guard let lightweight = try? NSMappingModel.inferredMappingModel(forSourceModel: prev.managedObjectModel, destinationModel: next.managedObjectModel)
-            else { throw Exception("no inferred mapping model between versions \(prev.version) and \(next.version)") }
-          let manager = NSMigrationManager(sourceModel: prev.managedObjectModel, destinationModel: next.managedObjectModel)
-          try manager.migrateStore(from: storeURL, type: .sqlite, options: [:], mapping: lightweight, to: storeURL, type: .sqlite, options: [:])
+        // Perform a sequence of incremental migrations from the stored schema version to the current schema version...
+        while sourceIndex < currentIndex {
+          // Source is the schema corresponding to the (possibly updated) persistent store.
+          let source = schemaVersions[sourceIndex]
+
+          // Determine the index of the next version which does not support lightweight migration.
+          let indexOrNil = schemaVersions[sourceIndex + 1 ... currentIndex].firstIndex {$0.supportsLightweightMigration == false}
+
+          // The migration is lightweight iff the calculated index is not i+1.
+          let lightweight = indexOrNil != .some(sourceIndex + 1)
+
+          // The index of the target schema depends on whether or not a lightweight migration exists.
+          let targetIndex = lightweight ? (indexOrNil.map({$0 - 1}) ?? currentIndex) : sourceIndex + 1
+          let target = schemaVersions[targetIndex]
+
+          // If necessary, establish a temporary URL to serve as the target for heavyweight migration.
+          let targetURL = lightweight ? sourceURL : URL.temporaryDirectory.appending(components: sourceURL.lastPathComponent)
+
+          // Calculate the mapping model
+          let migration = lightweight
+            ? try NSMappingModel.inferredMappingModel(forSourceModel: source.managedObjectModel, destinationModel: target.managedObjectModel)
+            : try target.customMigration(from: source)
+
+          // Perform the migration.
+          log("performing \(lightweight ? "inferred" : "custom") migration of \(source.name) from \(source.version) to \(target.version)")
+          let manager = NSMigrationManager(sourceModel: source.managedObjectModel, destinationModel: target.managedObjectModel)
+          try manager.migrateStore(from: sourceURL, type: .sqlite, options: [:], mapping: migration, to: targetURL, type: .sqlite, options: [:])
+
+          // Move the target store overtop of the source store if necessary
+          if sourceURL != targetURL {
+            try FileManager.default.moveItem(at: targetURL, to: sourceURL)
+          }
+
+          // Update the index indicating the stored model
+          sourceIndex = targetIndex
         }
+
+        assert(sourceIndex == currentIndex)
       }
 
 
