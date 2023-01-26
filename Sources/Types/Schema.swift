@@ -14,13 +14,15 @@ public struct Schema
     public let managedObjectModel : NSManagedObjectModel = .init()
     public private(set) var entitiesByName : [String: EntityInfo] = [:]
 
+    // Note: maintain optional predecessor as a list since structs can't contain optional values of Self...
+    private let predecessors : [Schema]
 
-    public init(name: String, version: Int = 1, objectTypes: [Object.Type]) throws
+
+    public init(name: String, predecessor: Schema? = nil, objectTypes: [Object.Type]) throws
       {
-        precondition(version >= 1)
-
         self.name = name
-        self.version = version
+        self.version = (predecessor?.version ?? 0) + 1
+        self.predecessors = [predecessor].compactMap {$0}
 
         // Perform a post-order traversal on the implied class hierarchy to populate entitiesByName.
         _ = try InheritanceHierarchy(containing: objectTypes).fold { (objectType, subentities) -> NSEntityDescription in
@@ -111,15 +113,26 @@ public struct Schema
       }
 
 
-    /// Indicates whether or not a mapping model can be inferred for migration from the previous version.
-    var supportsLightweightMigration : Bool
-      { true }
+    var predecessor : Schema?
+      { predecessors.isEmpty ? nil : predecessors[0] }
 
 
-    /// Return the custom NSMappingModel required to migrate from the previous version. This method is called only if supportsLightweightMigration returns false.
-    func customMigration(from predecessor: Schema) throws -> NSMappingModel
+    /// Return the list of steps required to migrate a store from the previous version.
+    func migrationPath(forStoreMetadata metadata: [String: Any]) throws -> (sourceModel: NSManagedObjectModel, migrationSteps: [MigrationStep])
       {
-        precondition(supportsLightweightMigration == false && predecessor.name == name && predecessor.version == version - 1)
-        throw Exception("\(#function) not implemented")
+        // If our model matches the given metadata then we're done
+        guard managedObjectModel.isConfiguration(withName: nil, compatibleWithStoreMetadata: metadata) == false
+          else { return (managedObjectModel, []) }
+
+        // Otherwise we must have a predecessor which determines the source model and initial sequence of steps.
+        guard let prefix = try predecessor?.migrationPath(forStoreMetadata: metadata)
+          else { throw Exception("no compatible schema version") }
+
+        // Note: if the receiver has a script then its contribution will have the form [.lightweight(intermediate), .script(...), .lightweight(managedObjectModel)],
+        // where intermediate is the predecessor's object model plus the additive changes leading to current object model, plus the ScriptMarker entity.
+        let additionalSteps : [MigrationStep] = [.lightweight(managedObjectModel)]
+
+        // Append our contribution to the path returned by the predecessory.
+        return (prefix.sourceModel, prefix.migrationSteps + additionalSteps)
       }
   }

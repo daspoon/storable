@@ -28,7 +28,7 @@ fileprivate class Person_v1 : Object
 // MARK: --
 // Define a second schema which adds an attribute to Person.
 
-fileprivate let schema_v2 = try! Schema(name: "Model", version: 2, objectTypes: [Person_v2.self])
+fileprivate let schema_v2 = try! Schema(name: "Model", predecessor: schema_v1, objectTypes: [Person_v2.self])
 
 @objc
 fileprivate class Person_v2 : Object
@@ -53,7 +53,7 @@ extension MigrationTests
 
         try {
           // Re-open the store using v2.
-          let store = try DataStore(schema: schema_v2, priorVersions: [schema_v1], reset: false)
+          let store = try DataStore(schema: schema_v2, reset: false)
 
           // Retrieve the expected objects...
           _ = try store.fetchObject(of: Person_v2.self, satisfying: .init(format: "name = %@", "Bill"))
@@ -66,7 +66,7 @@ extension MigrationTests
 // MARK: --
 // Define a third schema which adds a Place entity with a to-many/to-optional relationship to Person.
 
-fileprivate let schema_v3 = try! Schema(name: "Model", version: 3, objectTypes: [Person_v3.self, Place_v3.self])
+fileprivate let schema_v3 = try! Schema(name: "Model", predecessor: schema_v2, objectTypes: [Person_v3.self, Place_v3.self])
 
 @objc
 fileprivate class Person_v3 : Object
@@ -102,7 +102,7 @@ extension MigrationTests
 
         try {
           // Re-open the store using v3.
-          let store = try DataStore(schema: schema_v3, priorVersions: [schema_v1, schema_v2], reset: false)
+          let store = try DataStore(schema: schema_v3, reset: false)
 
           // Retrieve the expected objects...
           let bill = try store.fetchObject(of: Person_v3.self, satisfying: .init(format: "name = %@", "Bill"))

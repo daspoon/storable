@@ -9,25 +9,23 @@ import CoreData
 
 public class DataStore
   {
-    let schemaVersions : [Schema]
+    let schema : Schema
     let managedObjectModel : NSManagedObjectModel
     public let managedObjectContext : NSManagedObjectContext
 
 
-    public init(schema s: Schema, priorVersions vs: [Schema] = [], reset: Bool = false) throws
+    public init(schema s: Schema, reset: Bool = false) throws
       {
-        precondition((vs + [s]).enumerated().allSatisfy {$1.name == s.name && $1.version == $0 + 1})
+        schema = s
 
-        schemaVersions = vs + [s]
-
-        // Construct the managed object model and the mapping of entity names to info required for instance creation.
+        // Retain the schema's object model.
         managedObjectModel = s.managedObjectModel
 
         // Create the managed object context
         managedObjectContext = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
 
         // Associate the persistent store coordinator
-        let persistentStoreCoordinator = NSPersistentStoreCoordinator(managedObjectModel: managedObjectModel)
+        let persistentStoreCoordinator = NSPersistentStoreCoordinator(managedObjectModel: schema.managedObjectModel)
         managedObjectContext.persistentStoreCoordinator = persistentStoreCoordinator
 
         // Determine the location of the data store
@@ -41,7 +39,17 @@ public class DataStore
 
         // Migrate if necessary
         if FileManager.default.fileExists(atPath: dataStoreURL.path) {
-          try migrateIfNecessary(dataStoreURL)
+          // Get the metadata for the persistent store
+          let metadata = try NSPersistentStoreCoordinator.metadataForPersistentStore(type: .sqlite, at: dataStoreURL)
+
+          // Get the model for the given metadata along with the list of steps required to migrate the store to the current object model.
+          let path = try schema.migrationPath(forStoreMetadata: metadata)
+
+          // Iteratively perform the migration steps on the persistent store, passing along the store model
+          _ = try path.migrationSteps.reduce(path.sourceModel) { (sourceModel, migrationStep) in
+            log("\(migrationStep)")
+            return try migrationStep.apply(to: dataStoreURL, of: sourceModel)
+          }
         }
 
         // Open the persistent store
@@ -52,14 +60,14 @@ public class DataStore
       }
 
 
-    public convenience init(schema: Schema, priorVersions vs: [Schema] = [], stateEntityName: String = "State", dataSource: DataSource, reset: Bool) throws
+    public convenience init(schema: Schema, stateEntityName: String = "State", dataSource: DataSource, reset: Bool) throws
       {
         // Ensure the State entity is defined and as has a single instance.
         guard let stateEntity = schema.entitiesByName[stateEntityName] else { throw Exception("Entity '\(stateEntityName)' is not defined") }
         guard case .singleton = stateEntity.managedObjectClass.identity else { throw Exception("Entity '\(stateEntityName)' must have a single instance") }
 
         // Defer to the designated initializer
-        try self.init(schema: schema, priorVersions: vs, reset: reset)
+        try self.init(schema: schema, reset: reset)
 
         // Retrieve the configuration if one exists; otherwise trigger ingestion from the data source.
         var configurations = try managedObjectContext.fetch(NSFetchRequest<Object>(entityName: stateEntityName))
@@ -91,72 +99,6 @@ public class DataStore
             }
           }
         }
-      }
-
-
-    private func migrateIfNecessary(_ sourceURL: URL) throws
-      {
-        // Get the metadata for the current persistent store
-        let metadata = try NSPersistentStoreCoordinator.metadataForPersistentStore(type: .sqlite, at: sourceURL)
-
-        // Note the index of the current schema version for convenience
-        let currentIndex = schemaVersions.count - 1
-
-        // Find the index of the most-recent compatible schema version
-        guard var sourceIndex = schemaVersions.lastIndex(where: {$0.managedObjectModel.isConfiguration(withName: nil, compatibleWithStoreMetadata: metadata)})
-          else { throw Exception("no compatible schema version") }
-
-        // Perform a sequence of incremental migrations from the stored schema version to the current schema version...
-        while sourceIndex < currentIndex {
-          // Source is the schema corresponding to the (possibly updated) persistent store.
-          let source = schemaVersions[sourceIndex]
-
-          // Determine the index of the next version which does not support lightweight migration.
-          let indexOrNil = schemaVersions[sourceIndex + 1 ... currentIndex].firstIndex {$0.supportsLightweightMigration == false}
-
-          // The migration is lightweight iff the calculated index is not i+1.
-          let lightweight = indexOrNil != .some(sourceIndex + 1)
-
-          // The index of the target schema depends on whether or not a lightweight migration exists.
-          let targetIndex = lightweight ? (indexOrNil.map({$0 - 1}) ?? currentIndex) : sourceIndex + 1
-          let target = schemaVersions[targetIndex]
-
-          // If necessary, establish a temporary URL to serve as the target for heavyweight migration.
-          let targetURL = lightweight ? sourceURL : URL.temporaryDirectory.appending(components: sourceURL.lastPathComponent)
-
-          // Calculate the mapping model
-          let migration = lightweight
-            ? try NSMappingModel.inferredMappingModel(forSourceModel: source.managedObjectModel, destinationModel: target.managedObjectModel)
-            : try target.customMigration(from: source)
-
-          // Perform the migration.
-          log("performing \(lightweight ? "inferred" : "custom") migration of \(source.name) from \(source.version) to \(target.version)")
-          let manager = NSMigrationManager(sourceModel: source.managedObjectModel, destinationModel: target.managedObjectModel)
-          try manager.migrateStore(from: sourceURL, type: .sqlite, options: [:], mapping: migration, to: targetURL, type: .sqlite, options: [:])
-
-          // Move the target store overtop of the source store if necessary
-          if sourceURL != targetURL {
-            try FileManager.default.moveItem(at: targetURL, to: sourceURL)
-          }
-
-          // Update the index indicating the stored model
-          sourceIndex = targetIndex
-        }
-
-        assert(sourceIndex == currentIndex)
-      }
-
-
-    public var schema : Schema
-      { schemaVersions.last! }
-
-
-    public func create<T: Object>(_ type: T.Type = T.self, initialize: (T) throws -> Void) throws -> T
-      {
-        guard let entity = schema.entitiesByName[type.entityName] else { throw Exception("unknown entity \(type.entityName)") }
-        let instance = type.init(entity: entity.entityDescription, insertInto: managedObjectContext)
-        try initialize(instance)
-        return instance
       }
 
 
