@@ -46,7 +46,7 @@ public class DataStore
           let path = try schema.migrationPath(forStoreMetadata: metadata)
 
           // Iteratively perform the migration steps on the persistent store, passing along the store model
-          _ = try path.migrationSteps.reduce(path.sourceModel) { (sourceModel, migrationStep) in
+          _ = try path.migrationSteps.compacted.reduce(path.sourceModel) { (sourceModel, migrationStep) in
             log("\(migrationStep)")
             return try migrationStep.apply(to: dataStoreURL, of: sourceModel)
           }
