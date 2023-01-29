@@ -3,10 +3,40 @@
 
 */
 
-import Foundation
+import CoreData
 import Compendium
 import XCTest
 
+
+// MARK: --
+
+extension NSAttributeDescription
+  {
+    convenience init(name: String, type: AttributeType = .undefined)
+      {
+        self.init()
+        self.name = name
+        self.type = type
+      }
+  }
+
+extension NSFetchedPropertyDescription
+  {
+    convenience init(name: String)
+      {
+        self.init()
+        self.name = name
+      }
+  }
+
+extension NSRelationshipDescription
+  {
+    convenience init(name: String)
+      {
+        self.init()
+        self.name = name
+      }
+  }
 
 // MARK: --
 
