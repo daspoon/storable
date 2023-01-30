@@ -28,15 +28,13 @@ public struct AttributeInfo : PropertyInfo
     public let ingest : (key: IngestKey, method: (Any) throws -> any Storable)?
 
 
-    public init(name: String, type: NSAttributeDescription.AttributeType, transformerName: NSValueTransformerName? = nil, defaultValue: (any Storable)? = nil, allowsNilValue: Bool = false, ingest: (key: IngestKey, method: (Any) throws -> any Storable)? = nil)
+    public init<Value: Storable>(name: String, type: Value.Type, defaultValue: Value? = nil, ingest: (key: IngestKey, method: (Any) throws -> any Storable)? = nil)
       {
-        precondition((type == .transformable) == (transformerName != nil))
-
         self.name = name
-        self.attributeType = type
-        self.valueTransformerName = transformerName
+        self.attributeType = Value.EncodingType.typeId
+        self.valueTransformerName = Value.valueTransformerName
         self.defaultValue = defaultValue
-        self.allowsNilValue = allowsNilValue
+        self.allowsNilValue = Value.EncodingType.isOptional
         self.ingest = ingest
       }
   }
