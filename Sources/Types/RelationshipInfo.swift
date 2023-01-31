@@ -33,12 +33,15 @@ public struct RelationshipInfo : PropertyInfo
     /// The name of the inverse relationship on the destination entity.
     public let inverseName : String
 
+    /// The name of the relationship in the previous entity version, if necessary.
+    public let previousName : String?
+
     /// Indicates how values are established on object ingestion.
     public let ingest : (key: IngestKey, mode: IngestMode)?
 
 
     /// Initialize a new instance.
-    public init(_ name: String, arity: ClosedRange<Int>, relatedEntityName: String, inverseName: String, deleteRule: NSDeleteRule, ingest: (key: IngestKey, mode: IngestMode)? = nil)
+    public init(_ name: String, arity: ClosedRange<Int>, relatedEntityName: String, inverseName: String, deleteRule: NSDeleteRule, previousName: String? = nil, ingest: (key: IngestKey, mode: IngestMode)? = nil)
       {
         precondition(arity.lowerBound >= 0 && arity.upperBound >= 1)
 
@@ -47,6 +50,7 @@ public struct RelationshipInfo : PropertyInfo
         self.relatedEntityName = relatedEntityName
         self.inverseName = inverseName
         self.deleteRule = deleteRule
+        self.previousName = previousName
         self.ingest = ingest
       }
   }

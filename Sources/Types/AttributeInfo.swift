@@ -27,11 +27,14 @@ public struct AttributeInfo : PropertyInfo
     /// Indicates whether or not nil is an legitimate property value.
     public let allowsNilValue : Bool
 
+    /// The name of the attribute in the previous entity version, if necessary.
+    public let previousName : String?
+
     /// If non-nil, determines how json values are extracted from object ingest data and transformed to stored values.
     public let ingest : (key: IngestKey, method: (Any) throws -> any Storable)?
 
 
-    public init<Value: Storable>(name: String, type: Value.Type, defaultValue: Value? = nil, ingest: (key: IngestKey, method: (Any) throws -> any Storable)? = nil)
+    public init<Value: Storable>(name: String, type: Value.Type, defaultValue: Value? = nil, previousName: String? = nil, ingest: (key: IngestKey, method: (Any) throws -> any Storable)? = nil)
       {
         self.name = name
         self.type = type
@@ -39,6 +42,7 @@ public struct AttributeInfo : PropertyInfo
         self.valueTransformerName = Value.valueTransformerName
         self.defaultValue = defaultValue
         self.allowsNilValue = Value.EncodingType.isOptional
+        self.previousName = previousName
         self.ingest = ingest
       }
   }

@@ -18,43 +18,43 @@ public struct Attribute<Value: Storable> : ManagedProperty
 
     // Initializers without explicit initial values.
 
-    public init(_ name: String)
+    public init(_ name: String, previousName: String? = nil)
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.self)
+        propertyInfo = AttributeInfo(name: name, type: Value.self, previousName: previousName)
       }
 
-    public init(_ name: String)  where Value : Ingestible
+    public init(_ name: String, previousName: String? = nil)  where Value : Ingestible
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.self, ingest: (.element(name), Self.ingest))
+        propertyInfo = AttributeInfo(name: name, type: Value.self, previousName: previousName, ingest: (.element(name), Self.ingest))
       }
 
-    public init(_ name: String, ingestKey k: IngestKey) where Value : Ingestible
+    public init(_ name: String, previousName: String? = nil, ingestKey k: IngestKey) where Value : Ingestible
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.self, ingest: (k, Self.ingest))
+        propertyInfo = AttributeInfo(name: name, type: Value.self, previousName: previousName, ingest: (k, Self.ingest))
       }
 
 
     // Initializers with explicit initial values
 
-    public init(wrappedValue v: Value, _ name: String)
+    public init(wrappedValue v: Value, _ name: String, previousName: String? = nil)
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.self, defaultValue: v)
+        propertyInfo = AttributeInfo(name: name, type: Value.self, defaultValue: v, previousName: previousName)
       }
 
-    public init(wrappedValue v: Value, _ name: String) where Value : Ingestible
+    public init(wrappedValue v: Value, _ name: String, previousName: String? = nil) where Value : Ingestible
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.self, defaultValue: v, ingest: (.element(name), Self.ingest))
+        propertyInfo = AttributeInfo(name: name, type: Value.self, defaultValue: v, previousName: previousName, ingest: (.element(name), Self.ingest))
       }
 
-    public init(wrappedValue v: Value, _ name: String, ingestKey k: IngestKey) where Value : Ingestible
+    public init(wrappedValue v: Value, _ name: String, previousName: String? = nil, ingestKey k: IngestKey) where Value : Ingestible
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.self, defaultValue: v, ingest: (k, Self.ingest))
+        propertyInfo = AttributeInfo(name: name, type: Value.self, defaultValue: v, previousName: previousName, ingest: (k, Self.ingest))
       }
 
 
     // Initializers with values transformed on ingestion
 
-    public init<Transform>(_ name: String, ingestKey k: IngestKey? = nil, transform t: Transform, defaultIngestValue v: Transform.Input? = nil) where Value : Ingestible, Transform : IngestTransform, Transform.Output == Value.Input
+    public init<Transform>(_ name: String, previousName: String? = nil, ingestKey k: IngestKey? = nil, transform t: Transform, defaultIngestValue v: Transform.Input? = nil) where Value : Ingestible, Transform : IngestTransform, Transform.Output == Value.Input
       {
         // The ingestion method must first apply the given transform to its argument.
         func ingest(_ json: Any) throws -> Value {
@@ -67,7 +67,7 @@ public struct Attribute<Value: Storable> : ManagedProperty
             fatalError("failed to transform default value '\($0)' of attribute \(name): \(error)")
           }
         }
-        propertyInfo = AttributeInfo(name: name, type: Value.self, defaultValue: tv, ingest: (k ?? .element(name), ingest))
+        propertyInfo = AttributeInfo(name: name, type: Value.self, defaultValue: tv, previousName: previousName, ingest: (k ?? .element(name), ingest))
       }
 
 
