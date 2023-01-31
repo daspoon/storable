@@ -52,6 +52,11 @@ open class Object : NSManagedObject
       { Object.self }
 
 
+    /// Return true iff the receiver is intended to represent an abstract entity.
+    public class var isAbstract : Bool
+      { Self.self == abstractClass }
+
+
     /// Return a mirror for instances of this class.
     class var instanceMirror : Mirror
       {
