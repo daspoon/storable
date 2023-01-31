@@ -54,7 +54,7 @@ public struct Schema
           }
         }
 
-        // Extend each NSEntityDescription with the specified relationships and their inverses, which we synthesize where not given explicitly.
+        // Extend each NSEntityDescription with the specified relationships and their inverses, which must be given explicitly.
         for (sourceName, sourceInfo) in entitiesByName {
           for (relationshipName, relationship) in sourceInfo.objectInfo.relationships {
             // Skip the relationship if it is already defined, which happens when the inverse relationship is processed first.
