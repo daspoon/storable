@@ -45,3 +45,49 @@ public struct ObjectInfo
         }
       }
   }
+
+
+extension ObjectInfo : Diffable
+  {
+    /// Changes which affect the version hash of the generated NSEntityDescription.
+    public enum DescriptorChange : CaseIterable
+      {
+        case name
+        //case versionHashModifier
+
+        func didChange(from old: ObjectInfo, to new: ObjectInfo) -> Bool
+          {
+            switch self {
+              case .name : return new.name != old.name
+              //case .versionHashModifier : return new.versionHashModifier != old.versionHashModifier
+            }
+          }
+      }
+
+    /// The difference between two ObjectInfo instances combines the changes to the entity description with the differences between attributes/relationships.
+    public struct Difference
+      {
+        public let descriptorChanges : [DescriptorChange]
+        public let attributesDifference : Dictionary<String, AttributeInfo>.Difference?
+        public let relationshipsDifference : Dictionary<String, RelationshipInfo>.Difference?
+
+        public init?(descriptorChanges: [DescriptorChange] = [], attributesDifference: Dictionary<String, AttributeInfo>.Difference?, relationshipsDifference: Dictionary<String, RelationshipInfo>.Difference?)
+          {
+            guard !(descriptorChanges.isEmpty && attributesDifference == nil && relationshipsDifference == nil) else { return nil }
+
+            self.descriptorChanges = descriptorChanges
+            self.attributesDifference = attributesDifference
+            self.relationshipsDifference = relationshipsDifference
+          }
+      }
+
+    /// Return the list of changes from the given prior definition.
+    public func difference(from old: Self) -> Difference?
+      {
+        Difference(
+          descriptorChanges: DescriptorChange.allCases.compactMap { $0.didChange(from: old, to: self) ? $0 : nil },
+          attributesDifference: attributes.difference(from: old.attributes),
+          relationshipsDifference: relationships.difference(from: old.relationships)
+        )
+      }
+  }

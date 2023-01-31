@@ -50,3 +50,38 @@ public struct RelationshipInfo : PropertyInfo
         self.ingest = ingest
       }
   }
+
+
+// MARK: --
+
+extension RelationshipInfo : Diffable
+  {
+    /// Changes which affect the version hash of the generated NSRelationshipDescription.
+    public enum Change : CaseIterable
+      {
+        case name
+        case destinationEntity    // ?
+        case inverseRelationship  // ?
+        //case isOrdered
+        //case isTransient
+        case rangeOfCount
+        //case versionHashModifier
+
+        func didChange(from old: RelationshipInfo, to new: RelationshipInfo) -> Bool
+          {
+            switch self {
+              case .name : return new.name != old.name
+              case .destinationEntity : return new.relatedEntityName != old.relatedEntityName
+              case .inverseRelationship : return new.inverseName != old.inverseName
+              //case .isOrdered : return new.isOrdered != old.isOrdered
+              //case .isTransient : return new.isTransient != old.isTransient
+              case .rangeOfCount : return new.arity != old.arity
+              //case .versionHashModifier : return new.versionHashModifier != old.versionHashModifier
+            }
+          }
+      }
+
+    /// Return the list of changes from the given prior definition.
+    public func difference(from old: Self) -> [Change]?
+      { Change.allCases.compactMap { $0.didChange(from: old, to: self) ? $0 : nil } }
+  }
