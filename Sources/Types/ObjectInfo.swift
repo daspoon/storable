@@ -72,49 +72,17 @@ extension ObjectInfo : Diffable
         public let descriptorChanges : [DescriptorChange]
         public let attributesDifference : Dictionary<String, AttributeInfo>.Difference?
         public let relationshipsDifference : Dictionary<String, RelationshipInfo>.Difference?
-
-        init?(from old: ObjectInfo, to new: ObjectInfo)
-          {
-            descriptorChanges = DescriptorChange.allCases.compactMap { $0.didChange(from: old, to: new) ? $0 : nil }
-            attributesDifference = Self.propertiesDifference(from: old.attributes, to: new.attributes)
-            relationshipsDifference = Self.propertiesDifference(from: old.relationships, to: new.relationships)
-
-            guard !(descriptorChanges.isEmpty && attributesDifference == nil && relationshipsDifference == nil) else { return nil }
-          }
-
-        static func propertiesDifference<T: PropertyInfo & Diffable>(from sourceProperties: [String: T], to targetProperties: [String: T]) -> Dictionary<String, T>.Difference?
-          {
-            // NOTE: it is expected that the properties dictionaries belong to (entities of) a Schema (the target) and its predecessor (the source),
-            // and that Schema initialization has enforced the following restrictions on (non-nil) property renaming:
-            //   1) the specified name differs from the property name
-            //   2) the previous model has a same-kinded property of the specified name
-            //   3) each source property has at most one corresponding target property
-
-            var difference = Dictionary<String, T>.Difference()
-
-            // The removed properties are the source properties without a corresponding target property, as determined by the following procedure...
-            difference.removed = sourceProperties
-
-            // Enumerate the target properties to determine (modulo renaming) whether or not they correspond to source properties: if so, account for modification and mark as having a correspondent; otherwise, the property must be newly added.
-            for (targetName, targetProperty) in targetProperties {
-              if let sourceProperty = sourceProperties[targetProperty.previousName ?? targetName] {
-                precondition(difference.removed[sourceProperty.name] != nil)
-                if let delta = targetProperty.difference(from: sourceProperty) {
-                  difference.modified[targetName] = delta
-                }
-                difference.removed.removeValue(forKey: sourceProperty.name)
-              }
-              else {
-                precondition(targetProperty.previousName == nil)
-                difference.added[targetName] = targetProperty
-              }
-            }
-
-            return difference
-          }
       }
 
-    /// Return the list of changes from the given prior definition.
-    public func difference(from old: Self) -> Difference?
-      { Difference(from: old, to: self) }
+    /// Return the difference between the receiver and its prior version.
+    public func difference(from old: Self) throws -> Difference?
+      {
+        let descriptorChanges = DescriptorChange.allCases.compactMap { $0.didChange(from: old, to: self) ? $0 : nil }
+        let attributesDifference = try attributes.difference(from: old.attributes, moduloRenaming: \.previousName)
+        let relationshipsDifference = try relationships.difference(from: old.relationships, moduloRenaming: \.previousName)
+
+        guard !(descriptorChanges.isEmpty && attributesDifference == nil && relationshipsDifference == nil) else { return nil }
+
+        return Difference(descriptorChanges: descriptorChanges, attributesDifference: attributesDifference, relationshipsDifference: relationshipsDifference)
+      }
   }

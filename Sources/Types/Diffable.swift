@@ -9,7 +9,7 @@ public protocol Diffable
   {
     associatedtype Difference
 
-    func difference(from other: Self) -> Difference?
+    func difference(from other: Self) throws -> Difference?
   }
 
 
@@ -17,7 +17,7 @@ public protocol Diffable
 
 extension Numeric
   {
-    public func difference(from other: Self) -> Self?
+    public func difference(from other: Self) throws -> Self?
       {
         let delta = self - other
         return delta != 0 ? delta : nil
@@ -54,26 +54,39 @@ extension Dictionary : Diffable where Value : Diffable
       }
 
     /// Calculate the difference between the receiver and another dictionary.
-    public func difference(from old: Self) -> Difference?
-      {
-        var diff = Difference()
+    public func difference(from old: Self) throws -> Difference?
+      { try difference(from: old, moduloRenaming: {_ in nil}) }
 
-        // All entries of self are either added or modified...
-        for (key, newValue) in self {
-          if let oldValue = old[key] {
-            if let delta = newValue.difference(from: oldValue) {
-              diff.modified[key] = delta
+    /// Calculate the difference between the receiver and another dictionary, modulo a renaming function; this function specifies the source key to which each of the receiver's entries correspond, with nil indicating the same-named entry.
+    /// Note that all renamed entries are processed first to allow enable renaming an existing entry while simultaneously adding a new entry with the same name.
+    /// The method will throw if a non-nil renaming either does not exist in the source or is assigned to multiple receiver entries.
+    public func difference(from old: Self, moduloRenaming rename: (Value) -> Key?) throws -> Difference?
+      {
+        // Use diff.removed to account for source entries which are not yet correlated with target entries.
+        var diff = Difference(removed: old)
+
+        // First process the renamed entries; each represents a potential modification.
+        for (newKey, pair) in self.compactMap({k, v in rename(v).map {(k, ($0, v))}}) {
+          let (oldKey, newValue) = pair
+          guard let oldValue = diff.removed[oldKey] else {
+            switch old[oldKey] {
+              case .some : throw Exception("renamed key '\(oldKey)' has multiple assignments in target dictionary")
+              case .none : throw Exception("renamed key '\(oldKey)' does not exist in source dictionary")
             }
+          }
+          try newValue.difference(from: oldValue).map { diff.modified[newKey] = $0 }
+          diff.removed.removeValue(forKey: oldKey)
+        }
+
+        // Then process the entries which are not renamed; each represents either an addition or a potential modification.
+        for (key, newValue) in self.compactMap({ rename($1) == nil ? ($0, $1) : nil }) {
+          if let oldValue = old[key] {
+            try newValue.difference(from: oldValue).map { diff.modified[key] = $0 }
+            diff.removed.removeValue(forKey: key)
           }
           else {
             diff.added[key] = newValue
           }
-        }
-
-        // The removed entries are those in old but not in self...
-        for (key, oldInfo) in old {
-          guard self[key] == nil else { continue }
-          diff.removed[key] = oldInfo
         }
 
         return diff
