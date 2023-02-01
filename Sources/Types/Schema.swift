@@ -14,6 +14,7 @@ public struct Schema
     public let name : String
     public let version : Int
     public let objectInfoHierarchy : ObjectInfoHierarchy
+    public let objectInfoByName : [String: ObjectInfo]
 
     // Note: maintain optional predecessor as a list since structs can't contain optional values of Self...
     private let predecessors : [Schema]
@@ -25,6 +26,9 @@ public struct Schema
         self.version = (predecessor?.version ?? 0) + 1
         self.predecessors = [predecessor].compactMap {$0}
         self.objectInfoHierarchy = try ObjectInfoHierarchy(objectTypes)
+        self.objectInfoByName = try Dictionary(objectInfoHierarchy.fold {[($0.name, $0)] + $1.flatMap {$0}}) {
+          throw Exception("entity name \($0.name) is defined by both \($0.managedObjectClass) and \($1.managedObjectClass)")
+        }
       }
 
 
@@ -145,5 +149,15 @@ public struct Schema
 
         // Append our contribution to the path returned by the predecessory.
         return (prefix.sourceModel, prefix.migrationSteps + additionalSteps)
+      }
+  }
+
+
+extension Schema : Diffable
+  {
+    public func difference(from old: Schema) throws -> Dictionary<String, ObjectInfo>.Difference?
+      {
+        // assert: predecessor == .some(old)
+        try objectInfoByName.difference(from: old.objectInfoByName, moduloRenaming: \.previousName)
       }
   }

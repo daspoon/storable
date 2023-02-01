@@ -43,6 +43,11 @@ open class Object : NSManagedObject
       }
 
 
+    /// This method must be overridden to return non-nil if and only if the previous version exists with a different entity name. The default implementation returns nil.
+    open class var previousEntityName : String?
+      { nil }
+
+
     open class var identity : Identity
       { .anonymous }
 

@@ -44,6 +44,10 @@ public struct ObjectInfo
           }
         }
       }
+
+
+    public var previousName : String?
+      { managedObjectClass.previousEntityName }
   }
 
 
