@@ -8,7 +8,18 @@ import CoreData
 
 
 final class ModelIdentityTests : XCTestCase
-  { }
+  {
+    func checkObjectModelHashes(match expectedMatch: Bool, _ original: Schema, _ modified: Schema) throws
+      {
+        let originalModel = try original.createRuntimeInfo().managedObjectModel
+        let modifiedModel = try modified.createRuntimeInfo().managedObjectModel
+
+        let actualMatch = originalModel.entityVersionHashesByName == modifiedModel.entityVersionHashesByName
+        if actualMatch != expectedMatch {
+          XCTFail("model hash values are expected to " + (expectedMatch ? "match" : "differ"))
+        }
+      }
+  }
 
 
 // Define some base entities. Although the subsequently defined variations have different class names, they have matching entity names due to their versioned class names (_v<i>).
@@ -38,7 +49,7 @@ extension ModelIdentityTests
       {
         let original = try Schema(name: "", objectTypes: [Person.self, Place.self])
         let modified = try Schema(name: "", objectTypes: [Person.self, Place.self, Extra.self])
-        XCTAssertNotEqual(original.managedObjectModel.entityVersionHashesByName, modified.managedObjectModel.entityVersionHashesByName)
+        try checkObjectModelHashes(match: false, original, modified);
       }
   }
 
@@ -60,7 +71,7 @@ extension ModelIdentityTests
       {
         let original = try Schema(name: "", objectTypes: [Person.self, Place.self])
         let modified = try Schema(name: "", objectTypes: [PersonWithAge.self, Place.self])
-        XCTAssertNotEqual(original.managedObjectModel.entityVersionHashesByName, modified.managedObjectModel.entityVersionHashesByName)
+        try checkObjectModelHashes(match: false, original, modified);
       }
   }
 
@@ -92,7 +103,7 @@ extension ModelIdentityTests
       {
         let original = try Schema(name: "", objectTypes: [Person.self, Place.self])
         let modified = try Schema(name: "", objectTypes: [PersonWithPlace.self, PlaceWithOccupants.self])
-        XCTAssertNotEqual(original.managedObjectModel.entityVersionHashesByName, modified.managedObjectModel.entityVersionHashesByName)
+        try checkObjectModelHashes(match: false, original, modified);
       }
   }
 
@@ -117,7 +128,7 @@ extension ModelIdentityTests
       {
         let original = try Schema(name: "", objectTypes: [PersonWithPlace.self, PlaceWithOccupants.self])
         let modified = try Schema(name: "", objectTypes: [PersonWithPlace.self, PlaceWithSortedOccupants.self])
-        XCTAssertEqual(original.managedObjectModel.entityVersionHashesByName, modified.managedObjectModel.entityVersionHashesByName)
+        try checkObjectModelHashes(match: true, original, modified);
       }
   }
 

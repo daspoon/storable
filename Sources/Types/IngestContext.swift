@@ -52,7 +52,7 @@ public class IngestContext
 
     public func entityInfo(for entityName: String) throws -> EntityInfo
       {
-        guard let entity = dataStore.schema.entitiesByName[entityName] else { throw Exception("unknown entity name '\(entityName)'") }
+        guard let entity = dataStore.entityInfoByName[entityName] else { throw Exception("unknown entity name '\(entityName)'") }
         return entity
       }
 

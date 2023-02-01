@@ -9,23 +9,23 @@ import CoreData
 
 public class DataStore
   {
-    let schema : Schema
-    let managedObjectModel : NSManagedObjectModel
     public let managedObjectContext : NSManagedObjectContext
+    public let managedObjectModel : NSManagedObjectModel
+    public let entityInfoByName : [String: EntityInfo]
 
 
-    public init(schema s: Schema, reset: Bool = false) throws
+    public init(schema: Schema, reset: Bool = false) throws
       {
-        schema = s
-
         // Retain the schema's object model.
-        managedObjectModel = s.managedObjectModel
+        let schemaInfo = try schema.createRuntimeInfo()
+        managedObjectModel = schemaInfo.managedObjectModel
+        entityInfoByName = schemaInfo.entityInfoByName
 
         // Create the managed object context
         managedObjectContext = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
 
         // Associate the persistent store coordinator
-        let persistentStoreCoordinator = NSPersistentStoreCoordinator(managedObjectModel: schema.managedObjectModel)
+        let persistentStoreCoordinator = NSPersistentStoreCoordinator(managedObjectModel: managedObjectModel)
         managedObjectContext.persistentStoreCoordinator = persistentStoreCoordinator
 
         // Determine the location of the data store
@@ -43,7 +43,7 @@ public class DataStore
           let metadata = try NSPersistentStoreCoordinator.metadataForPersistentStore(type: .sqlite, at: dataStoreURL)
 
           // Get the model for the given metadata along with the list of steps required to migrate the store to the current object model.
-          let path = try schema.migrationPath(forStoreMetadata: metadata)
+          let path = try schema.migrationPath(forStoreMetadata: metadata, andManagedObjectModel: managedObjectModel)
 
           // Iteratively perform the migration steps on the persistent store, passing along the store model
           _ = try path.migrationSteps.compacted.reduce(path.sourceModel) { (sourceModel, migrationStep) in
@@ -62,12 +62,12 @@ public class DataStore
 
     public convenience init(schema: Schema, stateEntityName: String = "State", dataSource: DataSource, reset: Bool) throws
       {
-        // Ensure the State entity is defined and as has a single instance.
-        guard let stateEntity = schema.entitiesByName[stateEntityName] else { throw Exception("Entity '\(stateEntityName)' is not defined") }
-        guard case .singleton = stateEntity.managedObjectClass.identity else { throw Exception("Entity '\(stateEntityName)' must have a single instance") }
-
         // Defer to the designated initializer
         try self.init(schema: schema, reset: reset)
+
+        // Ensure the State entity is defined and as has a single instance.
+        guard let stateInfo = entityInfoByName[stateEntityName] else { throw Exception("Entity '\(stateEntityName)' is not defined") }
+        guard case .singleton = stateInfo.objectInfo.managedObjectClass.identity else { throw Exception("Entity '\(stateEntityName)' must have a single instance") }
 
         // Retrieve the configuration if one exists; otherwise trigger ingestion from the data source.
         var configurations = try managedObjectContext.fetch(NSFetchRequest<Object>(entityName: stateEntityName))
