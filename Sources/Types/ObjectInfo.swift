@@ -54,7 +54,7 @@ public struct ObjectInfo
 extension ObjectInfo : Diffable
   {
     /// Changes which affect the version hash of the generated NSEntityDescription.
-    public enum DescriptorChange : CaseIterable
+    public enum DescriptorChange : CaseIterable, Equatable
       {
         case name
         case isAbstract
@@ -71,22 +71,28 @@ extension ObjectInfo : Diffable
       }
 
     /// The difference between two ObjectInfo instances combines the changes to the entity description with the differences between attributes/relationships.
-    public struct Difference
+    public struct Difference : Equatable
       {
         public let descriptorChanges : [DescriptorChange]
-        public let attributesDifference : Dictionary<String, AttributeInfo>.Difference?
-        public let relationshipsDifference : Dictionary<String, RelationshipInfo>.Difference?
+        public let attributesDifference : Dictionary<String, AttributeInfo>.Difference
+        public let relationshipsDifference : Dictionary<String, RelationshipInfo>.Difference
+
+        public init?(descriptorChanges: [DescriptorChange] = [], attributesDifference: Dictionary<String, AttributeInfo>.Difference? = nil, relationshipsDifference : Dictionary<String, RelationshipInfo>.Difference? = nil)
+          {
+            guard !(descriptorChanges.isEmpty && (attributesDifference ?? .empty).isEmpty && (relationshipsDifference ?? .empty).isEmpty) else { return nil }
+            self.descriptorChanges = descriptorChanges
+            self.attributesDifference = attributesDifference ?? .empty
+            self.relationshipsDifference = relationshipsDifference ?? .empty
+          }
       }
 
     /// Return the difference between the receiver and its prior version.
     public func difference(from old: Self) throws -> Difference?
       {
-        let descriptorChanges = DescriptorChange.allCases.compactMap { $0.didChange(from: old, to: self) ? $0 : nil }
-        let attributesDifference = try attributes.difference(from: old.attributes, moduloRenaming: \.previousName)
-        let relationshipsDifference = try relationships.difference(from: old.relationships, moduloRenaming: \.previousName)
-
-        guard !(descriptorChanges.isEmpty && attributesDifference == nil && relationshipsDifference == nil) else { return nil }
-
-        return Difference(descriptorChanges: descriptorChanges, attributesDifference: attributesDifference, relationshipsDifference: relationshipsDifference)
+        return Difference(
+          descriptorChanges: DescriptorChange.allCases.compactMap { $0.didChange(from: old, to: self) ? $0 : nil },
+          attributesDifference: try attributes.difference(from: old.attributes, moduloRenaming: \.previousName),
+          relationshipsDifference: try relationships.difference(from: old.relationships, moduloRenaming: \.previousName)
+        )
       }
   }
