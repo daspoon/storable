@@ -90,7 +90,7 @@ extension Dictionary : Diffable where Value : Diffable
 
         // Then process the entries which are not renamed; each represents either an addition or a potential modification.
         for (key, newValue) in self.compactMap({ rename($1) == nil ? ($0, $1) : nil }) {
-          if let oldValue = old[key] {
+          if let oldValue = remaining[key] {
             try newValue.difference(from: oldValue).map { diff.modified[key] = $0 }
             remaining.removeValue(forKey: key)
           }
