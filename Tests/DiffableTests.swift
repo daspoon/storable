@@ -12,13 +12,13 @@ final class DiffableTests : XCTestCase
       {
         XCTAssertEqual(try [String:Int]().difference(from: [:]), .init())
 
-        XCTAssertEqual(try ["a": 1].difference(from: [:]), .init(added: ["a": 1]))
+        XCTAssertEqual(try ["a": 1].difference(from: [:]), .init(added: ["a"]))
         XCTAssertEqual(try ["a": 1].difference(from: ["a": 2]), .init(modified: ["a": -1]))
-        XCTAssertEqual(try [:].difference(from: ["a": 1]), .init(removed: ["a": 1]))
+        XCTAssertEqual(try [:].difference(from: ["a": 1]), .init(removed: ["a"]))
 
         XCTAssertEqual(try ["a": 1, "b": 5, "d": 4].difference(from: ["a": 1, "b": 2, "c": 3]), .init(
-          added: ["d": 4],
-          removed: ["c": 3],
+          added: ["d"],
+          removed: ["c"],
           modified: ["b": 3]
         ))
       }
