@@ -73,11 +73,11 @@ extension ObjectInfo : Diffable
     /// The difference between two ObjectInfo instances combines the changes to the entity description with the differences between attributes/relationships.
     public struct Difference : Equatable
       {
-        public let descriptorChanges : [DescriptorChange]
+        public let descriptorChanges : Set<DescriptorChange>
         public let attributesDifference : Dictionary<String, AttributeInfo>.Difference
         public let relationshipsDifference : Dictionary<String, RelationshipInfo>.Difference
 
-        public init?(descriptorChanges: [DescriptorChange] = [], attributesDifference: Dictionary<String, AttributeInfo>.Difference? = nil, relationshipsDifference : Dictionary<String, RelationshipInfo>.Difference? = nil)
+        public init?(descriptorChanges: Set<DescriptorChange> = [], attributesDifference: Dictionary<String, AttributeInfo>.Difference? = nil, relationshipsDifference : Dictionary<String, RelationshipInfo>.Difference? = nil)
           {
             guard !(descriptorChanges.isEmpty && (attributesDifference ?? .empty).isEmpty && (relationshipsDifference ?? .empty).isEmpty) else { return nil }
             self.descriptorChanges = descriptorChanges
@@ -90,7 +90,7 @@ extension ObjectInfo : Diffable
     public func difference(from old: Self) throws -> Difference?
       {
         return Difference(
-          descriptorChanges: DescriptorChange.allCases.compactMap { $0.didChange(from: old, to: self) ? $0 : nil },
+          descriptorChanges: Set(DescriptorChange.allCases.compactMap { $0.didChange(from: old, to: self) ? $0 : nil }),
           attributesDifference: try attributes.difference(from: old.attributes, moduloRenaming: \.previousName),
           relationshipsDifference: try relationships.difference(from: old.relationships, moduloRenaming: \.previousName)
         )

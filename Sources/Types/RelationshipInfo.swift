@@ -86,6 +86,6 @@ extension RelationshipInfo : Diffable
       }
 
     /// Return the list of changes from the given prior definition.
-    public func difference(from old: Self) -> [Change]?
-      { Change.allCases.compactMap { $0.didChange(from: old, to: self) ? $0 : nil } }
+    public func difference(from old: Self) -> Set<Change>?
+      { Set(Change.allCases.compactMap { $0.didChange(from: old, to: self) ? $0 : nil }) }
   }

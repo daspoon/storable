@@ -74,6 +74,6 @@ extension AttributeInfo : Diffable
       }
 
     /// Return the list of changes from a previous version.
-    public func difference(from old: Self) -> [Change]?
-      { Change.allCases.compactMap { $0.didChange(from: old, to: self) ? $0 : nil } }
+    public func difference(from old: Self) -> Set<Change>?
+      { Set(Change.allCases.compactMap { $0.didChange(from: old, to: self) ? $0 : nil }) }
   }
