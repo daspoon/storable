@@ -14,7 +14,7 @@ public class DataStore
     public let entityInfoByName : [String: EntityInfo]
 
 
-    public init(schema: Schema, reset: Bool = false) throws
+    public init(schema: Schema, priorVersions: [Schema] = [], reset: Bool = false) throws
       {
         // Retain the schema's object model.
         let schemaInfo = try schema.createRuntimeInfo()
@@ -43,7 +43,7 @@ public class DataStore
           let metadata = try NSPersistentStoreCoordinator.metadataForPersistentStore(type: .sqlite, at: dataStoreURL)
 
           // Get the model for the given metadata along with the list of steps required to migrate the store to the current object model.
-          let path = try schema.migrationPath(forStoreMetadata: metadata, andManagedObjectModel: managedObjectModel)
+          let path = try Self.migrationPath(toStoreMetadata: metadata, from: (schema, managedObjectModel), previousVersions: priorVersions)
 
           // Iteratively perform the migration steps on the persistent store, passing along the store model
           _ = try path.migrationSteps.compacted.reduce(path.sourceModel) { (sourceModel, migrationStep) in
@@ -60,10 +60,10 @@ public class DataStore
       }
 
 
-    public convenience init(schema: Schema, stateEntityName: String = "State", dataSource: DataSource, reset: Bool) throws
+    public convenience init(schema: Schema, priorVersions: [Schema] = [], stateEntityName: String = "State", dataSource: DataSource, reset: Bool) throws
       {
         // Defer to the designated initializer
-        try self.init(schema: schema, reset: reset)
+        try self.init(schema: schema, priorVersions: priorVersions, reset: reset)
 
         // Ensure the State entity is defined and as has a single instance.
         guard let stateInfo = entityInfoByName[stateEntityName] else { throw Exception("Entity '\(stateEntityName)' is not defined") }
@@ -99,6 +99,27 @@ public class DataStore
             }
           }
         }
+      }
+
+
+    /// Return the list of steps required to migrate a store from the previous version.
+    static func migrationPath(toStoreMetadata metadata: [String: Any], from current: (schema: Schema, model: NSManagedObjectModel), previousVersions: [Schema]) throws -> (sourceModel: NSManagedObjectModel, migrationSteps: [MigrationStep])
+      {
+        // If the current model matches the given metadata then we're done
+        guard current.model.isConfiguration(withName: nil, compatibleWithStoreMetadata: metadata) == false
+          else { return (current.model, []) }
+
+        // Otherwise there must be a previous schema version...
+        guard let previousSchema = previousVersions.last
+          else { throw Exception("no compatible schema version") }
+
+        // to determine the source model and sequence of initial steps recursively.
+        let previousModel = try previousSchema.createRuntimeInfo().managedObjectModel
+        let initialPath = try Self.migrationPath(toStoreMetadata: metadata, from: (previousSchema, previousModel), previousVersions: previousVersions.dropLast(1))
+
+        // Append the additional steps required to migrate between the previous and current version.
+        let additionalSteps = try current.schema.migrationSteps(from: previousModel, of: previousSchema, to: current.model)
+        return (previousModel, initialPath.migrationSteps + additionalSteps)
       }
 
 
