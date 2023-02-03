@@ -118,7 +118,7 @@ extension CoreDataTests
 
 // MARK: --
 
-// The following tests demonstrate how various property renaming scenarios affect mapping model inferrence. Each test creates source and target object models with a single same-named entity, then attempts to infer a mapping between the models.
+// The following tests demonstrate how various scenarios affect mapping model inferrence. Each test creates source and target object models with a single same-named entity, then attempts to infer a mapping between the models.
 
 extension CoreDataTests
   {
@@ -189,5 +189,31 @@ extension CoreDataTests
                   NSAttributeDescription(name: "b") { $0.renamingIdentifier = "a"; $0.type = .float },
                 ]
               })
+      }
+
+    /// We can add an attribute regardless of its optionality.
+    func testAttributeAddition() throws
+      {
+        try ensureModelInferrence(succeeds: true,
+          from: NSEntityDescription(name: "E"),
+          to: NSEntityDescription(name: "E") {$0.properties = [NSAttributeDescription(name: "a", type: .transformable) {$0.isOptional = false}]}
+        )
+        try ensureModelInferrence(succeeds: true,
+          from: NSEntityDescription(name: "E"),
+          to: NSEntityDescription(name: "E") {$0.properties = [NSAttributeDescription(name: "a", type: .string) {$0.isOptional = true}]}
+        )
+      }
+
+    /// We can change an attribute's optionality.
+    func testAttributeChangeOptionality() throws
+      {
+        try ensureModelInferrence(succeeds: true,
+          from: NSEntityDescription(name: "E") {$0.properties = [NSAttributeDescription(name: "a", type: .string) {$0.isOptional = true}]},
+          to: NSEntityDescription(name: "E") {$0.properties = [NSAttributeDescription(name: "a", type: .string) {$0.isOptional = false}]}
+        )
+        try ensureModelInferrence(succeeds: true,
+          from: NSEntityDescription(name: "E") {$0.properties = [NSAttributeDescription(name: "a", type: .string) {$0.isOptional = false}]},
+          to: NSEntityDescription(name: "E") {$0.properties = [NSAttributeDescription(name: "a", type: .string) {$0.isOptional = true}]}
+        )
       }
   }
