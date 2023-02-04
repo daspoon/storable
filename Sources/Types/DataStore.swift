@@ -9,54 +9,71 @@ import CoreData
 
 public class DataStore
   {
+    let persistentStoreCoordinator : NSPersistentStoreCoordinator
     public let managedObjectContext : NSManagedObjectContext
-    public let managedObjectModel : NSManagedObjectModel
     public let entityInfoByName : [String: EntityInfo]
 
 
-    public init(schema: Schema, priorVersions: [Schema] = [], reset: Bool = false) throws
+    /// Return the URL for the persistent store with the given name.
+    static func storeURL(forName name: String) throws -> URL
       {
-        // Retain the schema's object model.
-        let schemaInfo = try schema.createRuntimeInfo()
-        managedObjectModel = schemaInfo.managedObjectModel
-        entityInfoByName = schemaInfo.entityInfoByName
+        guard let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).last else { throw Exception("failed to get URL for document directory") }
+        guard let storeURL = URL(string: "\(name).sqlite", relativeTo: documentsURL) else { throw Exception("failed to create relative URL") }
+        return storeURL
+      }
+
+
+    init(name: String, managedObjectModel: NSManagedObjectModel, entityInfoByName info: [String: EntityInfo] = [:], reset: Bool = false, migration: ((URL, [String: Any], NSManagedObjectModel) throws -> Void)? = nil) throws
+      {
+        entityInfoByName = info
 
         // Create the managed object context
         managedObjectContext = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
 
         // Associate the persistent store coordinator
-        let persistentStoreCoordinator = NSPersistentStoreCoordinator(managedObjectModel: managedObjectModel)
+        persistentStoreCoordinator = NSPersistentStoreCoordinator(managedObjectModel: managedObjectModel)
         managedObjectContext.persistentStoreCoordinator = persistentStoreCoordinator
 
         // Determine the location of the data store
-        let applicationDocumentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).last!
-        let dataStoreURL = URL(string: "\(schema.name).sqlite", relativeTo: applicationDocumentsURL)!
+        let dataStoreURL = try Self.storeURL(forName: name)
 
         // Optionally delete the data store (for debugging)
         if reset && FileManager.default.fileExists(atPath: dataStoreURL.path) {
           try FileManager.default.removeItem(at: dataStoreURL)
         }
 
-        // Migrate if necessary
-        if FileManager.default.fileExists(atPath: dataStoreURL.path) {
-          // Get the metadata for the persistent store
+        // Perform explicit migrate if necessary and possible
+        if FileManager.default.fileExists(atPath: dataStoreURL.path), let migration {
           let metadata = try NSPersistentStoreCoordinator.metadataForPersistentStore(type: .sqlite, at: dataStoreURL)
+          if managedObjectModel.isConfiguration(withName: nil, compatibleWithStoreMetadata: metadata) == false {
+            try migration(dataStoreURL, metadata, managedObjectModel)
+          }
+        }
 
+        // Open the persistent store, implicitly migrating if necessary
+        _ = try persistentStoreCoordinator.addPersistentStore(type: .sqlite, at: dataStoreURL, options: [
+          NSMigratePersistentStoresAutomaticallyOption: migration == nil,
+          NSInferMappingModelAutomaticallyOption: migration == nil,
+        ])
+
+        // Observe notifications to trigger saving changes
+        NotificationCenter.default.addObserver(self, selector: #selector(performSave(_:)), name: .dataStoreNeedsSave, object: nil)
+      }
+
+
+    public convenience init(schema: Schema, priorVersions: [Schema] = [], reset: Bool = false) throws
+      {
+        let schemaInfo = try schema.createRuntimeInfo()
+
+        try self.init(name: schema.name, managedObjectModel: schemaInfo.managedObjectModel, entityInfoByName: schemaInfo.entityInfoByName, reset: reset) { dataStoreURL, metadata, managedObjectModel in
           // Get the model for the given metadata along with the list of steps required to migrate the store to the current object model.
           let path = try Self.migrationPath(toStoreMetadata: metadata, from: (schema, managedObjectModel), previousVersions: priorVersions)
-
           // Iteratively perform the migration steps on the persistent store, passing along the store model
           _ = try path.migrationSteps.compacted.reduce(path.sourceModel) { (sourceModel, migrationStep) in
             log("\(migrationStep)")
             return try migrationStep.apply(to: dataStoreURL, of: sourceModel)
           }
         }
-
-        // Open the persistent store
-        _ = try persistentStoreCoordinator.addPersistentStore(type: .sqlite, at: dataStoreURL)
-
-        // Observe notifications to trigger saving changes
-        NotificationCenter.default.addObserver(self, selector: #selector(performSave(_:)), name: .dataStoreNeedsSave, object: nil)
       }
 
 
@@ -91,12 +108,10 @@ public class DataStore
         NotificationCenter.default.removeObserver(self, name: .dataStoreNeedsSave, object: nil)
 
         // Note: without the following, running migration unit tests results in a console message stating "BUG IN CLIENT OF libsqlite3.dylib: database integrity compromised by API violation: vnode unlinked while in use"
-        if let persistentStoreCoordinator = managedObjectContext.persistentStoreCoordinator {
-          for store in persistentStoreCoordinator.persistentStores {
-            do { try persistentStoreCoordinator.remove(store) }
-            catch let error {
-              log("failed to remove persistent store \(String(describing: store.url)) -- \(error)")
-            }
+        for store in persistentStoreCoordinator.persistentStores {
+          do { try persistentStoreCoordinator.remove(store) }
+          catch let error {
+            log("failed to remove persistent store \(String(describing: store.url)) -- \(error)")
           }
         }
       }
