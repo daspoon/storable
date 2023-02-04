@@ -217,3 +217,84 @@ extension CoreDataTests
         )
       }
   }
+
+
+// MARK: --
+
+@testable import Compendium
+
+extension CoreDataTests
+  {
+    /// Adding a non-optional attribute (with no default) value requires more than lightweight migration.
+    func testMigrateAddAttributeFail() throws
+      {
+        // The purpose of this test is to clarify the distinction between mapping model inference and lightweight migration: while CoreData will always infer a mapping model for property addition, performing a lightweight/in-place migration requires that the resulting store be consistent with the target object model -- i.e. all non-optional properties have assigned values.
+
+        // Create a base entity E and derivative E1 which adds a non-optional property of the same name and type with no default value.
+        let E  = NSEntityDescription(name: "E")
+        let E1 = NSEntityDescription(name: "E") {$0.properties = [NSAttributeDescription(name: "a", type: .integer64) {$0.isOptional = false}]}
+
+        // Create a store containing some instances of E.
+        repeat {
+          let store = try DataStore(name: "test", managedObjectModel: NSManagedObjectModel(entities: [E]), reset: true)
+          let _ = NSManagedObject(entity: E, insertInto: store.managedObjectContext)
+          let _ = NSManagedObject(entity: E, insertInto: store.managedObjectContext)
+          try store.save()
+        } while false
+
+        // Although CoreData will infer a mapping model,
+        let source = NSManagedObjectModel(entities: [NSEntityDescription(name: "E")])
+        let target = NSManagedObjectModel(entities: [E1])
+        let mapping = try NSMappingModel.inferredMappingModel(forSourceModel: source, destinationModel: target)
+
+        // it can't peform a lightweight/in-place migration...
+        let storeURL = try DataStore.storeURL(forName: "test")
+        do {
+          let manager = NSMigrationManager(sourceModel: source, destinationModel: target)
+          try manager.migrateStore(from: storeURL, type: .sqlite, mapping: mapping, to: storeURL, type: .sqlite)
+          XCTFail("failed to fail")
+        }
+        catch let error as NSError {
+          XCTAssert(error.domain == NSCocoaErrorDomain && error.code == NSMigrationError)
+        }
+      }
+
+    /// Adding a non-optional attribute requires multiple steps.
+    func testMigrateAddAttribute() throws
+      {
+        // The purpose of this test is illustrate the multi-step process for general property addition: 1) create an intermediate model which adds optional variants of the properties to the source model; 2) perform a lightweight migration from source to intermediate model; 3) open the store and assign values to all property instances; 4) perform lightweight migration to the target model.
+
+        // Create a base entity E with derivatives E1 and E2 which add a property of the same name and type, one optional and the other non-optional.
+        let E  = NSEntityDescription(name: "E")
+        let E1 = NSEntityDescription(name: "E") {$0.properties = [NSAttributeDescription(name: "a", type: .integer64) {$0.isOptional = true}]}
+        let E2 = NSEntityDescription(name: "E") {$0.properties = [NSAttributeDescription(name: "a", type: .integer64) {$0.isOptional = false}]}
+
+        // Create a store containing some instances of E.
+        let objectCount = 3
+        repeat {
+          let store = try DataStore(name: "test", managedObjectModel: NSManagedObjectModel(entities: [E]), reset: true)
+          for _ in 0 ..< objectCount {
+            _ = NSManagedObject(entity: E, insertInto: store.managedObjectContext)
+          }
+          try store.save()
+        } while false
+
+        // Open the store (with implicit lightweight migration) as E1, assign values to all property instances, and save the store.
+        repeat {
+          let store = try DataStore(name: "test", managedObjectModel: NSManagedObjectModel(entities: [E1]), reset: false)
+          let objects = try store.managedObjectContext.fetch(NSFetchRequest<NSManagedObject>(entityName: "E"))
+          XCTAssert(objects.count == objectCount)
+          for (i, object) in objects.enumerated() {
+            object.setValue(i, forKey: "a")
+          }
+          try store.save()
+        } while false
+
+        // Open the store as E2.
+        repeat {
+          let store = try DataStore(name: "test", managedObjectModel: NSManagedObjectModel(entities: [E2]), reset: false)
+          let objects = try store.managedObjectContext.fetch(NSFetchRequest<NSManagedObject>(entityName: "E"))
+          XCTAssert(objects.count == objectCount)
+        } while false
+      }
+  }
