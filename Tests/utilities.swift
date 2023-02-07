@@ -73,6 +73,34 @@ extension NSManagedObjectModel
 
 // MARK: --
 
+extension BasicStore
+  {
+    func create<T: Object>(_ type: T.Type = T.self, initialize f: (T) throws -> Void) throws -> T
+      { try managedObjectContext.create(type, initialize: f) }
+
+    public func fetchObjects<T: Object>(of type: T.Type = T.self, satisfying predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor] = []) throws -> [T]
+      { try managedObjectContext.fetchObjects(makeFetchRequest(for: type, predicate: predicate, sortDescriptors: sortDescriptors)) }
+
+    public func fetchObject<T: Object>(of type: T.Type = T.self, satisfying predicate: NSPredicate) throws -> T
+      { try managedObjectContext.fetchObject(makeFetchRequest(for: type, predicate: predicate)) }
+
+    func migrate(from sourceEntity: NSEntityDescription, to targetEntity: NSEntityDescription) throws
+      {
+        let sourceModel = NSManagedObjectModel(entities: [sourceEntity.copy() as! NSEntityDescription])
+        let targetModel = NSManagedObjectModel(entities: [targetEntity.copy() as! NSEntityDescription])
+        try self.migrate(from: sourceModel, to: targetModel)
+      }
+
+    func update(as entity: NSEntityDescription, using script: (NSManagedObjectContext) throws -> Void) throws
+      {
+        let model = NSManagedObjectModel(entities: [entity.copy() as! NSEntityDescription])
+        try self.update(as: model, using: script)
+      }
+  }
+
+
+// MARK: --
+
 extension ProcessInfo
   {
     var argumentsByName : [String: String]
@@ -87,15 +115,39 @@ extension ProcessInfo
 
 // MARK: --
 
+fileprivate var activeStores : [String: BasicStore] = [:]
+fileprivate let activeStoresSemaphore = DispatchSemaphore(value: 1)
+
 extension XCTestCase
   {
-    /// Create a DataStore instance with a schema for the given object types. Note that the filename of the store, which is derived from the schema, must be unique across instances.
-    func dataStore(for types: [Object.Type]) throws -> DataStore
+    fileprivate func createStore<T: BasicStore>(of type: T.Type = T.self, configuration configure: (T) throws -> Void) throws -> T
       {
-        let name = UUID().uuidString
-        let schema = try Schema(name: name, objectTypes: types)
-        return try DataStore(schema: schema, reset: true)
+        activeStoresSemaphore.wait()
+        defer {
+          activeStoresSemaphore.signal()
+        }
+
+        let storeName = "\(Self.self)"
+        guard activeStores[storeName] == nil else { throw Exception("store name in use: \(storeName)") }
+        let store = T.init(name: storeName)
+        activeStores[storeName] = store
+
+        addTeardownBlock {
+          activeStores.removeValue(forKey: storeName)
+          if store.isOpen { try store.close() }
+          try store.reset()
+        }
+
+        try store.reset()
+        try configure(store)
+        return store
       }
+
+    func createAndOpenStoreWith(model m: NSManagedObjectModel) throws -> BasicStore
+      { try createStore { try $0.openWith(model: m) } }
+
+    func createAndOpenStoreWith(schema s: Schema, priorVersions vs: [Schema] = []) throws -> DataStore
+      { try createStore{ try $0.openWith(schema: s, priorVersions: vs) } }
   }
 
 

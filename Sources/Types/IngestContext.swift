@@ -59,7 +59,7 @@ public class IngestContext
 
     func fetchObject(id name: String, of type: Object.Type) throws -> Object
       {
-        try dataStore.fetchObject(makeFetchRequest(for: type, predicate: .init(format: "name = %@", name)))
+        try dataStore.managedObjectContext.fetchObject(makeFetchRequest(for: type, predicate: .init(format: "name = %@", name)))
       }
 
 

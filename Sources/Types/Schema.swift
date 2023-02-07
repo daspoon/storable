@@ -17,7 +17,7 @@ public struct Schema
     public private(set) var objectInfoByName : [String: ObjectInfo] = [:]
 
 
-    public init(name: String, objectTypes: [Object.Type], migrationScript: ((NSManagedObjectContext) throws -> Void)? = nil) throws
+    public init(name: String = "schema", objectTypes: [Object.Type], migrationScript: ((NSManagedObjectContext) throws -> Void)? = nil) throws
       {
         self.name = name
         self.migrationScript = migrationScript

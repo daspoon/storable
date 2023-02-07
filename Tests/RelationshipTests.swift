@@ -53,7 +53,7 @@ final class RelationshipTests : XCTestCase
   {
     func test() throws
       {
-        let store = try dataStore(for: [Box.self, Category.self, Item.self])
+        let store = try createAndOpenStoreWith(schema: Schema(objectTypes: [Box.self, Category.self, Item.self]))
 
         let pencils = try store.create(Category.self) { $0.name = "pencils" }
         let staplers = try store.create(Category.self) { $0.name = "stapers" }

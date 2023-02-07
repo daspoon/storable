@@ -21,25 +21,19 @@ enum MigrationStep
       {
         switch self {
           case .lightweight(let targetModel) :
-            // Infer the mapping model, perform the migration and return the target model.
-            let mapping = try NSMappingModel.inferredMappingModel(forSourceModel: sourceModel, destinationModel: targetModel)
-            let manager = NSMigrationManager(sourceModel: sourceModel, destinationModel: targetModel)
-            try manager.migrateStore(from: sourceURL, type: .sqlite, mapping: mapping, to: sourceURL, type: .sqlite)
+            // Perform a lightweight migration
+            try BasicStore.migrateStore(at: sourceURL, from: sourceModel, to: targetModel)
             return targetModel
 
           case .script(let script) :
-            // Open the store
-            let coordinator = NSPersistentStoreCoordinator(managedObjectModel: sourceModel)
-            let context = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
-            context.persistentStoreCoordinator = coordinator
-            _ = try coordinator.addPersistentStore(type: .sqlite, at: sourceURL)
-            // Fetch an instance of the marker entity; if none exists, run the script, add a marker instance, and save the context.
-            if try context.tryFetchObject(makeFetchRequest(for: MigrationScriptMarker.self)) == nil {
-              try script(context)
-              try context.create(MigrationScriptMarker.self) { _ in }
-              try context.save()
+            try BasicStore.updateStore(at: sourceURL, as: sourceModel) { context in
+              // If an instance of MigrationScriptMarker doesn't exist, run the script, add a marker instance, and save the context.
+              if try context.tryFetchObject(makeFetchRequest(for: MigrationScriptMarker.self)) == nil {
+                try script(context)
+                try context.create(MigrationScriptMarker.self) { _ in }
+                try context.save()
+              }
             }
-            // Return the source model
             return sourceModel
 
           /*

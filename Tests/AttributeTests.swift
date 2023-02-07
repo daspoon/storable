@@ -128,7 +128,7 @@ final class AttributeTests : XCTestCase
   {
     func testStandard() throws
       {
-        let store = try dataStore(for: [FullyAttributed.self])
+        let store = try createAndOpenStoreWith(schema: Schema(objectTypes: [FullyAttributed.self]))
 
         // Define the attribute values assigned on creation
         let boolValue : Bool = true
@@ -189,7 +189,7 @@ final class AttributeTests : XCTestCase
 
     func tesDefaulted() throws
       {
-        let store = try dataStore(for: [FullyAttributed.self])
+        let store = try createAndOpenStoreWith(schema: Schema(objectTypes: [FullyAttributed.self]))
 
         let object = try store.create(DefaultAttributed.self) { _ in }
 

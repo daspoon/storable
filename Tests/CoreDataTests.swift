@@ -226,37 +226,6 @@ extension CoreDataTests
 
 extension CoreDataTests
   {
-    @nonobjc func performLightweightMigration(at storeURL: URL, from source: NSManagedObjectModel, to target: NSManagedObjectModel) throws
-      {
-        let mapping = try NSMappingModel.inferredMappingModel(forSourceModel: source, destinationModel: target)
-        let manager = NSMigrationManager(sourceModel: source, destinationModel: target)
-        try manager.migrateStore(from: storeURL, type: .sqlite, mapping: mapping, to: storeURL, type: .sqlite)
-      }
-
-    @nonobjc func performLightweightMigration(at storeURL: URL, from sourceEntity: NSEntityDescription, to targetEntity: NSEntityDescription) throws
-      {
-        let sourceModel = NSManagedObjectModel(entities: [sourceEntity.copy() as! NSEntityDescription])
-        let targetModel = NSManagedObjectModel(entities: [targetEntity.copy() as! NSEntityDescription])
-        try performLightweightMigration(at: storeURL, from: sourceModel, to: targetModel)
-      }
-
-    @nonobjc func updateStore(at storeURL: URL, as model: NSManagedObjectModel, using script: (NSManagedObjectContext) throws -> Void) throws
-      {
-        let coordinator = NSPersistentStoreCoordinator(managedObjectModel: model)
-        _ = try coordinator.addPersistentStore(type: .sqlite, at: storeURL)
-        let context = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
-        context.persistentStoreCoordinator = coordinator
-        try script(context)
-        try context.save()
-      }
-
-    @nonobjc func updateStore(at storeURL: URL, as entity: NSEntityDescription, using script: (NSManagedObjectContext) throws -> Void) throws
-      {
-        let model = NSManagedObjectModel(entities: [entity.copy() as! NSEntityDescription])
-        try updateStore(at: storeURL, as: model, using: script)
-      }
-
-
     /// Adding a non-optional attribute (with no default) value requires more than lightweight migration.
     func testMigrateAddAttributeFail() throws
       {
@@ -265,26 +234,18 @@ extension CoreDataTests
         // Create a base entity E and derivative E1 which adds a non-optional property of the same name and type with no default value.
         let E  = NSEntityDescription(name: "E")
         let E1 = NSEntityDescription(name: "E") {$0.properties = [NSAttributeDescription(name: "a", type: .integer64) {$0.isOptional = false}]}
+        let M  = NSManagedObjectModel(entities: [E])
+        let M1 = NSManagedObjectModel(entities: [E1])
 
         // Create a store containing some instances of E.
-        repeat {
-          let store = try DataStore(name: "test", managedObjectModel: NSManagedObjectModel(entities: [E]), reset: true)
-          let _ = NSManagedObject(entity: E, insertInto: store.managedObjectContext)
-          let _ = NSManagedObject(entity: E, insertInto: store.managedObjectContext)
-          try store.save()
-        } while false
+        let store = try createAndOpenStoreWith(model: M)
+        let _ = NSManagedObject(entity: E, insertInto: store.managedObjectContext)
+        let _ = NSManagedObject(entity: E, insertInto: store.managedObjectContext)
+        try store.close()
 
-        // Although CoreData will infer a mapping model,
-        let source = NSManagedObjectModel(entities: [NSEntityDescription(name: "E")])
-        let target = NSManagedObjectModel(entities: [E1])
-        let mapping = try NSMappingModel.inferredMappingModel(forSourceModel: source, destinationModel: target)
-
-        // it can't peform a lightweight/in-place migration...
-        let storeURL = try DataStore.storeURL(forName: "test")
+        // Although CoreData will infer a mapping model, it can't peform a lightweight/in-place migration...
         do {
-          let manager = NSMigrationManager(sourceModel: source, destinationModel: target)
-          try manager.migrateStore(from: storeURL, type: .sqlite, mapping: mapping, to: storeURL, type: .sqlite)
-          XCTFail("failed to fail")
+          try store.migrate(from: M.copy() as! NSManagedObjectModel, to: M1)
         }
         catch let error as NSError {
           XCTAssert(error.domain == NSCocoaErrorDomain && error.code == NSMigrationError)
@@ -303,31 +264,27 @@ extension CoreDataTests
 
         // Create a store containing some instances of E.
         let objectCount = 3
-        repeat {
-          let store = try DataStore(name: "test", managedObjectModel: NSManagedObjectModel(entities: [E]), reset: true)
-          for _ in 0 ..< objectCount {
-            _ = NSManagedObject(entity: E, insertInto: store.managedObjectContext)
-          }
-          try store.save()
-        } while false
+        let store = try createAndOpenStoreWith(model: NSManagedObjectModel(entities: [E]))
+        for _ in 0 ..< objectCount {
+          _ = NSManagedObject(entity: E, insertInto: store.managedObjectContext)
+        }
+        try store.close()
 
-        // Open the store (with implicit lightweight migration) as E1, assign values to all property instances, and save the store.
-        repeat {
-          let store = try DataStore(name: "test", managedObjectModel: NSManagedObjectModel(entities: [E1]), reset: false)
-          let objects = try store.managedObjectContext.fetch(NSFetchRequest<NSManagedObject>(entityName: "E"))
-          XCTAssert(objects.count == objectCount)
-          for (i, object) in objects.enumerated() {
-            object.setValue(i, forKey: "a")
-          }
-          try store.save()
-        } while false
+        // Migrate the store to model M1, open it, assign values to all property instances, and save/close it.
+        try store.migrate(from: E, to: E1)
+        try store.openWith(model: NSManagedObjectModel(entities: [E1]))
+        let objects1 = try store.managedObjectContext.fetch(NSFetchRequest<NSManagedObject>(entityName: "E"))
+        XCTAssert(objects1.count == objectCount)
+        for (i, object) in objects1.enumerated() {
+          object.setValue(i, forKey: "a")
+        }
+        try store.close()
 
-        // Open the store as E2.
-        repeat {
-          let store = try DataStore(name: "test", managedObjectModel: NSManagedObjectModel(entities: [E2]), reset: false)
-          let objects = try store.managedObjectContext.fetch(NSFetchRequest<NSManagedObject>(entityName: "E"))
-          XCTAssert(objects.count == objectCount)
-        } while false
+        // Migrate the store to model M2 and open it.
+        try store.migrate(from: E1, to: E2)
+        try store.openWith(model: NSManagedObjectModel(entities: [E2]))
+        let objects2 = try store.managedObjectContext.fetch(NSFetchRequest<NSManagedObject>(entityName: "E"))
+        XCTAssert(objects2.count == objectCount)
       }
 
     /// Changing an attribute's storage type requires multiple steps.
@@ -335,32 +292,28 @@ extension CoreDataTests
       {
         // A 3-step process is required to change an attribute's storage type.
 
-        let storeURL = try! DataStore.storeURL(forName: "test")
-
         // Create source and target entities which define non-optional attribute a as int and string respectively.
         let Es = NSEntityDescription(name: "E") {$0.properties = [NSAttributeDescription(name: "a", type: .integer64) {$0.isOptional = false}]}
         let Et = NSEntityDescription(name: "E") {$0.properties = [NSAttributeDescription(name: "a", type: .string) {$0.isOptional = false}]}
 
         // Create a store containing some instances of Es.
         let objectCount = 3
-        repeat {
-          let store = try DataStore(name: "test", managedObjectModel: NSManagedObjectModel(entities: [Es]), reset: true)
-          for i in 0 ..< objectCount{
-            let obj = NSManagedObject(entity: Es, insertInto: store.managedObjectContext)
-            obj.setValue(i, forKey: "a")
-          }
-          try store.save()
-        } while false
+        let store = try createAndOpenStoreWith(model: NSManagedObjectModel(entities: [Es]))
+        for i in 0 ..< objectCount{
+          let obj = NSManagedObject(entity: Es, insertInto: store.managedObjectContext)
+          obj.setValue(i, forKey: "a")
+        }
+        try store.close()
 
         // We must first rename the affected attribute (preserving its type) and add a new attribute (distinctly named) with the new type, but optional.
         let Ei = NSEntityDescription(name: "E") {$0.properties = [
           NSAttributeDescription(name: "$a_old", type: .integer64) {$0.isOptional = false; $0.renamingIdentifier = "a"},
           NSAttributeDescription(name: "$a_new", type: .string) {$0.isOptional = true},
         ]}
-        try performLightweightMigration(at: storeURL, from: Es, to: Ei)
+        try store.migrate(from: Es, to: Ei)
 
         // Then run a script to assign values for the new attribute.
-        try updateStore(at: storeURL, as: Ei) { context in
+        try store.update(as: Ei) { context in
           let objects = try context.fetch(NSFetchRequest<NSManagedObject>(entityName: "E"))
           XCTAssert(objects.count == objectCount)
           for object in objects {
@@ -373,6 +326,6 @@ extension CoreDataTests
         Et.attributesByName["a"]!.renamingIdentifier = "$a_new"
 
         // Finally we can migrate to the target model.
-        try performLightweightMigration(at: storeURL, from: Ei, to: Et)
+        try store.migrate(from: Ei, to: Et)
       }
   }

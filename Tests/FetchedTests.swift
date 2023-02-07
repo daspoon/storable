@@ -48,7 +48,7 @@ final class FetchedTests : XCTestCase
   {
     func test() throws
       {
-        let store = try dataStore(for: [Dwelling.self, Occupant.self])
+        let store = try createAndOpenStoreWith(schema: Schema(objectTypes: [Dwelling.self, Occupant.self]))
 
         let flintstone = try store.create(Dwelling.self) { _ in }
         let fred    = try store.create(Occupant.self) { $0.name = "fred";    $0.age = 35; $0.dwelling = flintstone }

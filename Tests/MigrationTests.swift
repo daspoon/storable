@@ -44,22 +44,17 @@ extension MigrationTests
   {
     func testLightweight() throws
       {
-        // Create, populate, and close a store for v1.
-        try {
-          let store = try DataStore(schema: schema_v1, reset: true)
-          _ = try store.create(Person_v1.self) { $0.name = "Bill" }
-          _ = try store.create(Person_v1.self) { $0.name = "Ted" }
-          try store.save()
-        }()
+        // Create, populate, save and close a store for v1.
+        let store = try createAndOpenStoreWith(schema: schema_v1)
+        _ = try store.create(Person_v1.self) { $0.name = "Bill" }
+        _ = try store.create(Person_v1.self) { $0.name = "Ted" }
+        try store.save()
+        try store.close()
 
-        try {
-          // Re-open the store using v2.
-          let store = try DataStore(schema: schema_v2, priorVersions: [schema_v1])
-
-          // Retrieve the expected objects...
-          _ = try store.fetchObject(of: Person_v2.self, satisfying: .init(format: "name = %@", "Bill"))
-          _ = try store.fetchObject(of: Person_v2.self, satisfying: .init(format: "name = %@", "Ted"))
-        }()
+        // Re-open the store using v2 and retrieve the expected objects
+        try store.openWith(schema: schema_v2, priorVersions: [schema_v1])
+        _ = try store.fetchObject(of: Person_v2.self, satisfying: .init(format: "name = %@", "Bill"))
+        _ = try store.fetchObject(of: Person_v2.self, satisfying: .init(format: "name = %@", "Ted"))
       }
   }
 
@@ -94,25 +89,21 @@ extension MigrationTests
     func testLightweightSequence() throws
       {
         // Create, populate, and close a store for v1.
-        try {
-          let store = try DataStore(schema: schema_v1, reset: true)
-          _ = try store.create(Person_v1.self) { $0.name = "Bill" }
-          _ = try store.create(Person_v1.self) { $0.name = "Ted" }
-          try store.save()
-        }()
+        let store = try createAndOpenStoreWith(schema: schema_v1)
+        _ = try store.create(Person_v1.self) { $0.name = "Bill" }
+        _ = try store.create(Person_v1.self) { $0.name = "Ted" }
+        try store.close()
 
-        try {
-          // Re-open the store using v3.
-          let store = try DataStore(schema: schema_v3, priorVersions: [schema_v1], reset: false)
+        // Re-open the store using v3.
+        try store.openWith(schema: schema_v3, priorVersions: [schema_v1])
 
-          // Retrieve the expected objects...
-          let bill = try store.fetchObject(of: Person_v3.self, satisfying: .init(format: "name = %@", "Bill"))
-          _ = try store.fetchObject(of: Person_v3.self, satisfying: .init(format: "name = %@", "Ted"))
+        // Retrieve the expected objects...
+        let bill = try store.fetchObject(of: Person_v3.self, satisfying: .init(format: "name = %@", "Bill"))
+        _ = try store.fetchObject(of: Person_v3.self, satisfying: .init(format: "name = %@", "Ted"))
 
-          // Add a place
-          let there = try store.create(Place_v3.self) { $0.name = "Here"; $0.occupants = [bill] }
-          XCTAssertEqual(bill.place, there)
-        }()
+        // Add a place
+        let there = try store.create(Place_v3.self) { $0.name = "Here"; $0.occupants = [bill] }
+        XCTAssertEqual(bill.place, there)
       }
   }
 
@@ -135,20 +126,18 @@ extension MigrationTests
 
 extension MigrationTests
   {
-    func testValueTypeChange() throws
+    func testStorageTypeChange() throws
       {
         // Create a schema with the original entity definition.
         let schema_v1 = try Schema(name: "test", objectTypes: [Attributed_v1.self])
 
         // Create the store for schema_v1 with some instances of the original entity
         let objectCount = 3
-        try {
-          let store = try DataStore(schema: schema_v1, reset: true)
-          for i in 0 ..< objectCount {
-            _ = try store.create(Attributed_v1.self) { $0.a = i }
-          }
-          try store.save()
-        }()
+        let store = try createAndOpenStoreWith(schema: schema_v1)
+        for i in 0 ..< objectCount {
+          _ = try store.create(Attributed_v1.self) { $0.a = i }
+        }
+        try store.close()
 
         // Create another schema with the modified entity definition and a migration script...
         let schema_v2 = try Schema(name: "test", objectTypes: [Attributed_v2.self], migrationScript: { context in
@@ -159,12 +148,10 @@ extension MigrationTests
         })
 
         // Re-open the store for schema_v2, performing the custom migration...
-        try {
-          let store = try DataStore(schema: schema_v2, priorVersions: [schema_v1])
-          let objects = try store.managedObjectContext.fetch(makeFetchRequest(for: Attributed_v2.self))
-          for object in objects {
-            XCTAssertNotNil(object.value(forKey: "a") as? String, "expecting string value")
-          }
-        }()
+        try store.openWith(schema: schema_v2, priorVersions: [schema_v1])
+        let objects = try store.managedObjectContext.fetch(makeFetchRequest(for: Attributed_v2.self))
+        for object in objects {
+          XCTAssertNotNil(object.value(forKey: "a") as? String, "expecting string value")
+        }
       }
   }

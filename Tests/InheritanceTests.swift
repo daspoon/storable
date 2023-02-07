@@ -51,7 +51,7 @@ final class InheritanceTests : XCTestCase
   {
     func test() throws
       {
-        let store = try dataStore(for: [Skill.self, Companion.self, Enemy.self])
+        let store = try createAndOpenStoreWith(schema: Schema(objectTypes: [Skill.self, Companion.self, Enemy.self]))
 
         let hack = try store.create(Skill.self) { $0.name = "hack" }
         let slash = try store.create(Skill.self) { $0.name = "slash" }
@@ -59,8 +59,6 @@ final class InheritanceTests : XCTestCase
         let goblin = try store.create(Enemy.self) { $0.name = "goblin"; $0.loot = "sword"; $0.skills = [slash]  }
         let dwarf = try store.create(Companion.self) { $0.name = "dwarf"; $0.joinDate = Date(); $0.skills = [hack] }
         let elf = try store.create(Companion.self) { $0.name = "elf"; $0.joinDate = Date(); $0.skills = [slash]}
-
-        try store.save()
 
         XCTAssertEqual(hack.wielders, [orc, dwarf])
         XCTAssertEqual(slash.wielders, [goblin, elf])
