@@ -223,8 +223,40 @@ extension CoreDataTests
 
 @testable import Compendium
 
+
 extension CoreDataTests
   {
+    @nonobjc func performLightweightMigration(at storeURL: URL, from source: NSManagedObjectModel, to target: NSManagedObjectModel) throws
+      {
+        let mapping = try NSMappingModel.inferredMappingModel(forSourceModel: source, destinationModel: target)
+        let manager = NSMigrationManager(sourceModel: source, destinationModel: target)
+        try manager.migrateStore(from: storeURL, type: .sqlite, mapping: mapping, to: storeURL, type: .sqlite)
+      }
+
+    @nonobjc func performLightweightMigration(at storeURL: URL, from sourceEntity: NSEntityDescription, to targetEntity: NSEntityDescription) throws
+      {
+        let sourceModel = NSManagedObjectModel(entities: [sourceEntity.copy() as! NSEntityDescription])
+        let targetModel = NSManagedObjectModel(entities: [targetEntity.copy() as! NSEntityDescription])
+        try performLightweightMigration(at: storeURL, from: sourceModel, to: targetModel)
+      }
+
+    @nonobjc func updateStore(at storeURL: URL, as model: NSManagedObjectModel, using script: (NSManagedObjectContext) throws -> Void) throws
+      {
+        let coordinator = NSPersistentStoreCoordinator(managedObjectModel: model)
+        _ = try coordinator.addPersistentStore(type: .sqlite, at: storeURL)
+        let context = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
+        context.persistentStoreCoordinator = coordinator
+        try script(context)
+        try context.save()
+      }
+
+    @nonobjc func updateStore(at storeURL: URL, as entity: NSEntityDescription, using script: (NSManagedObjectContext) throws -> Void) throws
+      {
+        let model = NSManagedObjectModel(entities: [entity.copy() as! NSEntityDescription])
+        try updateStore(at: storeURL, as: model, using: script)
+      }
+
+
     /// Adding a non-optional attribute (with no default) value requires more than lightweight migration.
     func testMigrateAddAttributeFail() throws
       {
@@ -296,5 +328,51 @@ extension CoreDataTests
           let objects = try store.managedObjectContext.fetch(NSFetchRequest<NSManagedObject>(entityName: "E"))
           XCTAssert(objects.count == objectCount)
         } while false
+      }
+
+    /// Changing an attribute's storage type requires multiple steps.
+    func testMigrateTypeChange() throws
+      {
+        // A 3-step process is required to change an attribute's storage type.
+
+        let storeURL = try! DataStore.storeURL(forName: "test")
+
+        // Create source and target entities which define non-optional attribute a as int and string respectively.
+        let Es = NSEntityDescription(name: "E") {$0.properties = [NSAttributeDescription(name: "a", type: .integer64) {$0.isOptional = false}]}
+        let Et = NSEntityDescription(name: "E") {$0.properties = [NSAttributeDescription(name: "a", type: .string) {$0.isOptional = false}]}
+
+        // Create a store containing some instances of Es.
+        let objectCount = 3
+        repeat {
+          let store = try DataStore(name: "test", managedObjectModel: NSManagedObjectModel(entities: [Es]), reset: true)
+          for i in 0 ..< objectCount{
+            let obj = NSManagedObject(entity: Es, insertInto: store.managedObjectContext)
+            obj.setValue(i, forKey: "a")
+          }
+          try store.save()
+        } while false
+
+        // We must first rename the affected attribute (preserving its type) and add a new attribute (distinctly named) with the new type, but optional.
+        let Ei = NSEntityDescription(name: "E") {$0.properties = [
+          NSAttributeDescription(name: "$a_old", type: .integer64) {$0.isOptional = false; $0.renamingIdentifier = "a"},
+          NSAttributeDescription(name: "$a_new", type: .string) {$0.isOptional = true},
+        ]}
+        try performLightweightMigration(at: storeURL, from: Es, to: Ei)
+
+        // Then run a script to assign values for the new attribute.
+        try updateStore(at: storeURL, as: Ei) { context in
+          let objects = try context.fetch(NSFetchRequest<NSManagedObject>(entityName: "E"))
+          XCTAssert(objects.count == objectCount)
+          for object in objects {
+            let i = object.value(forKey: "$a_old") as! Int
+            object.setValue("\(i)", forKey: "$a_new")
+          }
+        }
+
+        // The target entity must specify the renaming
+        Et.attributesByName["a"]!.renamingIdentifier = "$a_new"
+
+        // Finally we can migrate to the target model.
+        try performLightweightMigration(at: storeURL, from: Ei, to: Et)
       }
   }
