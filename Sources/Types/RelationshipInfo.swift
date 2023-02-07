@@ -19,25 +19,25 @@ public struct RelationshipInfo : PropertyInfo
       }
 
     /// The name of the corresponding property of the source entity.
-    public let name : String
+    public var name : String
 
     /// The arity indicates the potential number of related objects.
-    public let arity : ClosedRange<Int>
+    public var arity : ClosedRange<Int>
 
     /// The name of the related entity.
-    public let relatedEntityName : String
+    public var relatedEntityName : String
 
     /// The effect which deleting the host object has on the related object.
-    public let deleteRule : NSDeleteRule
+    public var deleteRule : NSDeleteRule
 
     /// The name of the inverse relationship on the destination entity.
-    public let inverseName : String
+    public var inverseName : String
 
     /// The name of the relationship in the previous entity version, if necessary.
-    public let previousName : String?
+    public var previousName : String?
 
     /// Indicates how values are established on object ingestion.
-    public let ingest : (key: IngestKey, mode: IngestMode)?
+    public var ingest : (key: IngestKey, mode: IngestMode)?
 
 
     /// Initialize a new instance.
@@ -61,31 +61,23 @@ public struct RelationshipInfo : PropertyInfo
 extension RelationshipInfo : Diffable
   {
     /// Changes which affect the version hash of the generated NSRelationshipDescription.
-    public enum Change : CaseIterable
+    public enum Change : Hashable
       {
-        case name
-        case destinationEntity    // ?
-        case inverseRelationship  // ?
+        case name(String, String)
+        //case destinationEntity    // ?
+        //case inverseRelationship  // ?
         //case isOrdered
         //case isTransient
-        case rangeOfCount
+        case rangeOfCount(ClosedRange<Int>, ClosedRange<Int>)
         //case versionHashModifier
-
-        func didChange(from old: RelationshipInfo, to new: RelationshipInfo) -> Bool
-          {
-            switch self {
-              case .name : return new.name != old.name
-              case .destinationEntity : return new.relatedEntityName != old.relatedEntityName
-              case .inverseRelationship : return new.inverseName != old.inverseName
-              //case .isOrdered : return new.isOrdered != old.isOrdered
-              //case .isTransient : return new.isTransient != old.isTransient
-              case .rangeOfCount : return new.arity != old.arity
-              //case .versionHashModifier : return new.versionHashModifier != old.versionHashModifier
-            }
-          }
       }
 
-    /// Return the list of changes from the given prior definition.
-    public func difference(from old: Self) -> Set<Change>?
-      { Set(Change.allCases.compactMap { $0.didChange(from: old, to: self) ? $0 : nil }) }
+    public func difference(from old: Self) throws -> Set<Change>?
+      {
+        let changes : [Change] = [
+          old.name != self.name ? .name(old.name, self.name) : nil,
+          old.arity != self.arity ? .rangeOfCount(old.arity, self.arity) : nil,
+        ].compactMap {$0}
+        return changes.count > 0 ? Set(changes) : nil
+      }
   }

@@ -12,17 +12,40 @@ public struct Schema
     public typealias RuntimeInfo = (managedObjectModel: NSManagedObjectModel, entityInfoByName: [String: EntityInfo])
 
     public let name : String
-    public let objectInfoHierarchy : ObjectInfoHierarchy
-    public let objectInfoByName : [String: ObjectInfo]
+    public let migrationScript : ((NSManagedObjectContext) throws -> Void)?
+    private var inheritanceHierarchy : InheritanceHierarchy<Object> = .init()
+    public private(set) var objectInfoByName : [String: ObjectInfo] = [:]
 
 
-    public init(name: String, objectTypes: [Object.Type]) throws
+    public init(name: String, objectTypes: [Object.Type], migrationScript: ((NSManagedObjectContext) throws -> Void)? = nil) throws
       {
         self.name = name
-        self.objectInfoHierarchy = try ObjectInfoHierarchy(objectTypes)
-        self.objectInfoByName = try Dictionary(objectInfoHierarchy.fold {[($0.name, $0)] + $1.flatMap {$0}}) {
-          throw Exception("entity name \($0.name) is defined by both \($0.managedObjectClass) and \($1.managedObjectClass)")
+        self.migrationScript = migrationScript
+
+        for objectType in objectTypes {
+          try self.addObjectType(objectType)
         }
+      }
+
+
+    /// Add a new object type, optionally providing an pre-existing ObjectInfo instance.
+    private mutating func addObjectType(_ givenType: Object.Type, objectInfo givenInfo: ObjectInfo? = nil) throws
+      {
+        precondition(objectInfoByName[givenType.entityName] == nil && givenInfo.map({$0.managedObjectClass == givenType}) != .some(false), "invalid argument")
+
+        try inheritanceHierarchy.add(givenType) { newType in
+          let entityName = newType.entityName
+          let existingInfo = objectInfoByName[entityName]
+          guard existingInfo == nil else { throw Exception("entity name \(entityName) is defined by both \(existingInfo!.managedObjectClass) and \(newType)") }
+          objectInfoByName[entityName] = try ObjectInfo(objectType: newType)
+        }
+      }
+
+
+    /// Add the given ObjectInfo instance for an object type which does not already belong to the schema.
+    public mutating func addObjectInfo(_ objectInfo: ObjectInfo) throws
+      {
+        try addObjectType(objectInfo.managedObjectClass, objectInfo: objectInfo)
       }
 
 
@@ -30,14 +53,16 @@ public struct Schema
       {
         // Perform a post-order traversal on the ObjectInfo hierarchy to create an entity description for each class, establish inheritance between entities, and populate entityInfoByName...
         var entityInfoByName : [String: EntityInfo] = [:]
-        _ = objectInfoHierarchy.fold { (objectInfo: ObjectInfo, subentities: [NSEntityDescription]) -> NSEntityDescription in
+        _ = inheritanceHierarchy.fold { (objectType: Object.Type, subentities: [NSEntityDescription]) -> NSEntityDescription in
           // Ignore the root class (i.e. Object) which is not modeled.
-          guard objectInfo.managedObjectClass != Object.self else { return .init() }
+          guard objectType != Object.self else { return .init() }
+          // Get the corresponding ObjectInfo
+          guard let objectInfo = objectInfoByName[objectType.entityName] else { fatalError() }
           // Create an NSEntityDescription
           let entityDescription = NSEntityDescription()
           entityDescription.name = objectInfo.name
-          entityDescription.managedObjectClassName = NSStringFromClass(objectInfo.managedObjectClass)
-          entityDescription.isAbstract = objectInfo.managedObjectClass.isAbstract
+          entityDescription.managedObjectClassName = NSStringFromClass(objectType)
+          entityDescription.isAbstract = objectType.isAbstract
           entityDescription.subentities = subentities
           // Add a registry entry
           entityInfoByName[objectInfo.name] = EntityInfo(objectInfo, entityDescription)
@@ -54,6 +79,7 @@ public struct Schema
             attributeDescription.isOptional = attribute.allowsNilValue
             attributeDescription.valueTransformerName = attribute.valueTransformerName?.rawValue
             attributeDescription.defaultValue = attribute.defaultValue?.storedValue()
+            attributeDescription.renamingIdentifier = attribute.previousName
             entityInfo.entityDescription.properties.append(attributeDescription)
           }
         }
@@ -120,12 +146,131 @@ public struct Schema
       }
 
 
+    mutating func withEntityNamed(_ entityName: String, update: (inout ObjectInfo) -> Void)
+      { update(&objectInfoByName[entityName]!) }
+
+
     /// Return the steps required to migrate the object model of the previous schema version to the receiver's object model.
-    func migrationSteps(from sourceModel: NSManagedObjectModel, of predecessor: Schema, to targetModel: NSManagedObjectModel) throws -> [MigrationStep]
+    func migrationSteps(from sourceModel: NSManagedObjectModel, of sourceSchema: Schema, to targetModel: NSManagedObjectModel) throws -> [MigrationStep]
       {
-        // Note: if the receiver has a script then its contribution will have the form [.lightweight(intermediate), .script(...), .lightweight(managedObjectModel)],
-        // where intermediate is the predecessor's object model plus the additive changes leading to current object model, plus the ScriptMarker entity.
-        return [.lightweight(targetModel)]
+        var customizationInfo = try Self.customizationInfoForMigration(from: sourceSchema, to: self)
+
+        let steps : [MigrationStep]
+        switch (customizationInfo.requiresMigrationScript, migrationScript) {
+          case (false, .none) :
+            // An implicit migration to the target model is sufficient.
+            steps = [.lightweight(targetModel)]
+
+          case (_, .some(let migrationScript)) :
+            // A migration script is necessary: extend the intermediate schema with a MigrationScriptMarker,
+            try customizationInfo.intermediateSchema.addObjectType(MigrationScriptMarker.self)
+            // generate the intermediate object model,
+            let intermediateModel = try customizationInfo.intermediateSchema.createRuntimeInfo().managedObjectModel
+            // and set renaming identifiers on target attributes subject to storage type changes.
+            for (entityName, attributeName) in customizationInfo.renamedTargetAttributes {
+              targetModel.entitiesByName[entityName]!.attributesByName[attributeName]!.renamingIdentifier = Self.renameNew(attributeName)
+            }
+            steps = [.lightweight(intermediateModel), .script(migrationScript), .lightweight(targetModel)]
+
+          case (true, .none) :
+            throw Exception("a migration script is required")
+        }
+
+        return steps
+      }
+
+
+    public static func renameOld(_ name: String) -> String
+      { "$\(name)_old" }
+
+    public static func renameNew(_ name: String) -> String
+      { "$\(name)_new" }
+
+
+    struct CustomMigrationInfo
+      {
+        /// The source schema with additive modifications.
+        var intermediateSchema : Schema
+        /// Indicates whether or not a migration script is required
+        var requiresMigrationScript : Bool = false
+        /// Indicates the attributes of the target schema which have alternate names in the intermediate schema.
+        var renamedTargetAttributes : [(entityName: String, attributeName: String)] = []
+      }
+
+
+    /// Return the intermediate schema required for a custom migration between the given source and target schemas, or nil if lightweight migration is sufficient.
+    static func customizationInfoForMigration(from sourceSchema: Schema, to targetSchema: Schema) throws -> CustomMigrationInfo
+      {
+        // The intermediate schema starts as a copy of the source schema.
+        var info = CustomMigrationInfo(intermediateSchema: sourceSchema)
+
+        // Traverse the differences between the source and target schemas, making changes to the intermediate schema where necessary and noting when a migration script is required.
+        if let schemaDiff = try targetSchema.difference(from: sourceSchema) {
+          // Add each new entity to the intermediate schema; these changes don't necessarily require a migration script.
+          for entityName in schemaDiff.added {
+            try info.intermediateSchema.addObjectInfo(targetSchema.objectInfoByName[entityName]!)
+          }
+          // Modify the entities of the intermediate schema to reflect the additive differences between each entity common to source and target schemas.
+          for (entityName, entityDiff) in schemaDiff.modified {
+            let targetObjectInfo = targetSchema.objectInfoByName[entityName]!
+            // Extend the intermediate entity to account for added attributes.
+            for attrName in entityDiff.attributesDifference.added {
+              info.intermediateSchema.withEntityNamed(entityName) {
+                $0.addAttribute(targetObjectInfo.attributes[attrName]!)
+              }
+            }
+            // Update the intermediate entity to account for modified attributes, where necessary.
+            for (attrName, changes) in entityDiff.attributesDifference.modified {
+              for change in changes {
+                switch change {
+                  case .isOptional(true, false) :
+                    // Becoming non-optional requires ensuring each affected attribute has a non-nil value.
+                    info.requiresMigrationScript = true
+                  case .valueType :
+                    // Changing the value type requires converting affected attribute values between old and new types.
+                    info.requiresMigrationScript = true
+                  case .storageType(_, let newType) :
+                    // Changing the storage type requires renaming both old and new attributes, marking the new attribute optional, and later specifying a renaming identifier in the target model.
+                    info.intermediateSchema.withEntityNamed(entityName) {
+                      let attr = $0.attributes[attrName]!
+                      $0.removeAttributeNamed(attrName)
+                      $0.addAttribute(attr.copy { $0.name = Self.renameOld(attrName); $0.previousName = attrName })
+                      $0.addAttribute(attr.copy { $0.name = Self.renameNew(attrName); $0.attributeType = newType; $0.allowsNilValue = true })
+                    }
+                    info.renamedTargetAttributes.append((entityName, attrName))
+                    info.requiresMigrationScript = true
+                  default :
+                    continue
+                }
+              }
+            }
+            // Extend the intermediate entity to account for added relationships.
+            for relName in entityDiff.relationshipsDifference.added {
+              info.intermediateSchema.withEntityNamed(entityName) {
+                $0.addRelationship(targetObjectInfo.relationships[relName]!)
+              }
+            }
+            // Update the intermediate entity to account for modified relationships, where necessary.
+            for (relName, changes) in entityDiff.relationshipsDifference.modified {
+              for change in changes {
+                switch change {
+                  case .rangeOfCount(let oldRange, let newRange) :
+                    // If the new arity does not contain the old arity then we must relax arity in the intermediate model and run a script to update each instance appropriately.
+                    if newRange.contains(oldRange) == false {
+                      info.intermediateSchema.withEntityNamed(entityName) {
+                        $0.withRelationshipNamed(relName) { $0.arity = 0 ... .max }
+                      }
+                      info.requiresMigrationScript = true
+                    }
+                  default :
+                    continue
+                }
+              }
+            }
+          }
+        }
+
+        return info
       }
   }
 

@@ -69,7 +69,7 @@ public class DataStore
           // Get the model for the given metadata along with the list of steps required to migrate the store to the current object model.
           let path = try Self.migrationPath(toStoreMetadata: metadata, from: (schema, managedObjectModel), previousVersions: priorVersions)
           // Iteratively perform the migration steps on the persistent store, passing along the store model
-          _ = try path.migrationSteps.compacted.reduce(path.sourceModel) { (sourceModel, migrationStep) in
+          _ = try path.migrationSteps.reduce(path.sourceModel) { (sourceModel, migrationStep) in
             log("\(migrationStep)")
             return try migrationStep.apply(to: dataStoreURL, of: sourceModel)
           }

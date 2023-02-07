@@ -108,8 +108,8 @@ extension ModelDifferenceTests
     func testPropertyRename() throws
       {
         try checkDifference(from: PropertyRename_v1.self, to: PropertyRename_v2.self, matches: .init(
-          attributesDifference: .init(modified: ["b": [.name]]),
-          relationshipsDifference: .init(modified: ["q": [.name]])
+          attributesDifference: .init(modified: ["b": [.name("a", "b")]]),
+          relationshipsDifference: .init(modified: ["q": [.name("r", "q")]])
         ))
       }
   }
@@ -138,7 +138,7 @@ extension ModelDifferenceTests
       {
         try checkDifference(from: PropertyOverride_v1.self, to: PropertyOverride_v2.self, matches: .init(attributesDifference: .init(
           added: ["a"],
-          modified: ["b": [.name]]
+          modified: ["b": [.name("a", "b")]]
         )))
       }
   }
@@ -163,8 +163,8 @@ extension ModelDifferenceTests
   {
     func testPropertyOptionality() throws
       {
-        try checkDifference(from: PropertyOptional_v1.self, to: PropertyOptional_v2.self, matches: .init(attributesDifference: .init(modified: ["a": [.type, .isOptional]])))
-        try checkDifference(from: PropertyOptional_v2.self, to: PropertyOptional_v1.self, matches: .init(attributesDifference: .init(modified: ["a": [.type, .isOptional]])))
+        try checkDifference(from: PropertyOptional_v1.self, to: PropertyOptional_v2.self, matches: .init(attributesDifference: .init(modified: ["a": [.valueType(Int.self, Int?.self), .isOptional(false, true)]])))
+        try checkDifference(from: PropertyOptional_v2.self, to: PropertyOptional_v1.self, matches: .init(attributesDifference: .init(modified: ["a": [.valueType(Int?.self, Int.self), .isOptional(true, false)]])))
       }
   }
 
@@ -188,7 +188,7 @@ extension ModelDifferenceTests
   {
     func testPropertyRetype() throws
       {
-        try checkDifference(from: PropertyRetype_v1.self, to: PropertyRetype_v2.self, matches: .init(attributesDifference: .init(modified: ["a": [.type]])))
+        try checkDifference(from: PropertyRetype_v1.self, to: PropertyRetype_v2.self, matches: .init(attributesDifference: .init(modified: ["a": [.valueType(Int.self, Float.self), .storageType(.integer64, .float)]])))
       }
   }
 
@@ -218,9 +218,9 @@ extension ModelDifferenceTests
   {
     func testRelationshipArity() throws
       {
-        try checkDifference(from: RelationshipArity_v1.self, to: RelationshipArity_v2.self, matches: .init(relationshipsDifference: .init(modified: ["r": [.rangeOfCount]])))
-        try checkDifference(from: RelationshipArity_v1.self, to: RelationshipArity_v3.self, matches: .init(relationshipsDifference: .init(modified: ["r": [.rangeOfCount]])))
-        try checkDifference(from: RelationshipArity_v2.self, to: RelationshipArity_v3.self, matches: .init(relationshipsDifference: .init(modified: ["r": [.rangeOfCount]])))
+        try checkDifference(from: RelationshipArity_v1.self, to: RelationshipArity_v2.self, matches: .init(relationshipsDifference: .init(modified: ["r": [.rangeOfCount(1 ... 1, 0 ... 1)]])))
+        try checkDifference(from: RelationshipArity_v1.self, to: RelationshipArity_v3.self, matches: .init(relationshipsDifference: .init(modified: ["r": [.rangeOfCount(1 ... 1, 0 ... .max)]])))
+        try checkDifference(from: RelationshipArity_v2.self, to: RelationshipArity_v3.self, matches: .init(relationshipsDifference: .init(modified: ["r": [.rangeOfCount(0 ... 1, 0 ... .max)]])))
       }
   }
 
@@ -301,7 +301,7 @@ extension ModelDifferenceTests
         try checkDifference(from: s1, to: s2, matches: .init(
           added: [Added.entityName],
           removed: [Removed.entityName],
-          modified: ["Modified": .init(attributesDifference: .init(modified: ["a": [.type]]))!]
+          modified: ["Modified": .init(attributesDifference: .init(modified: ["a": [.valueType(Int.self, Float.self), .storageType(.integer64, .float)]]))!]
         ))
       }
   }

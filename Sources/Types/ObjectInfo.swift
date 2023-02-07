@@ -46,28 +46,48 @@ public struct ObjectInfo
       }
 
 
+    public var isAbstract : Bool
+      { managedObjectClass.isAbstract }
+
+
     public var previousName : String?
       { managedObjectClass.previousEntityName }
+
+
+    mutating func addAttribute(_ attribute: AttributeInfo)
+      {
+        assert(attributes[attribute.name] == nil && relationships[attribute.name] == nil && fetchedProperties[attribute.name] == nil)
+        attributes[attribute.name] = attribute
+      }
+
+    mutating func addRelationship(_ relationship: RelationshipInfo)
+      {
+        assert(attributes[relationship.name] == nil && relationships[relationship.name] == nil && fetchedProperties[relationship.name] == nil)
+        relationships[relationship.name] = relationship
+      }
+
+    mutating func removeAttributeNamed(_ name: String)
+      {
+        attributes.removeValue(forKey: name)
+      }
+
+
+    mutating func withAttributeNamed(_ name: String, update: (inout AttributeInfo) -> Void)
+      { update(&attributes[name]!) }
+
+    mutating func withRelationshipNamed(_ name: String, update: (inout RelationshipInfo) -> Void)
+      { update(&relationships[name]!) }
   }
 
 
 extension ObjectInfo : Diffable
   {
     /// Changes which affect the version hash of the generated NSEntityDescription.
-    public enum DescriptorChange : CaseIterable, Equatable
+    public enum DescriptorChange : Hashable
       {
-        case name
-        case isAbstract
+        case name(String, String)
+        case isAbstract(Bool, Bool)
         //case versionHashModifier
-
-        func didChange(from old: ObjectInfo, to new: ObjectInfo) -> Bool
-          {
-            switch self {
-              case .name : return new.name != old.name
-              case .isAbstract : return new.managedObjectClass.isAbstract != old.managedObjectClass.isAbstract
-              //case .versionHashModifier : return new.versionHashModifier != old.versionHashModifier
-            }
-          }
       }
 
     /// The difference between two ObjectInfo instances combines the changes to the entity description with the differences between attributes/relationships.
@@ -77,10 +97,10 @@ extension ObjectInfo : Diffable
         public let attributesDifference : Dictionary<String, AttributeInfo>.Difference
         public let relationshipsDifference : Dictionary<String, RelationshipInfo>.Difference
 
-        public init?(descriptorChanges: Set<DescriptorChange> = [], attributesDifference: Dictionary<String, AttributeInfo>.Difference? = nil, relationshipsDifference : Dictionary<String, RelationshipInfo>.Difference? = nil)
+        public init?(descriptorChanges: [DescriptorChange] = [], attributesDifference: Dictionary<String, AttributeInfo>.Difference? = nil, relationshipsDifference: Dictionary<String, RelationshipInfo>.Difference? = nil)
           {
             guard !(descriptorChanges.isEmpty && (attributesDifference ?? .empty).isEmpty && (relationshipsDifference ?? .empty).isEmpty) else { return nil }
-            self.descriptorChanges = descriptorChanges
+            self.descriptorChanges = Set(descriptorChanges)
             self.attributesDifference = attributesDifference ?? .empty
             self.relationshipsDifference = relationshipsDifference ?? .empty
           }
@@ -89,8 +109,13 @@ extension ObjectInfo : Diffable
     /// Return the difference between the receiver and its prior version.
     public func difference(from old: Self) throws -> Difference?
       {
+        let descriptorChanges : [DescriptorChange] = [
+          old.name != self.name ? .name(old.name, self.name) : nil,
+          old.isAbstract != self.isAbstract ? .isAbstract(old.isAbstract, self.isAbstract) : nil,
+        ].compactMap {$0}
+
         return Difference(
-          descriptorChanges: Set(DescriptorChange.allCases.compactMap { $0.didChange(from: old, to: self) ? $0 : nil }),
+          descriptorChanges: descriptorChanges,
           attributesDifference: try attributes.difference(from: old.attributes, moduloRenaming: \.previousName),
           relationshipsDifference: try relationships.difference(from: old.relationships, moduloRenaming: \.previousName)
         )

@@ -5,6 +5,7 @@
 
 import XCTest
 import Compendium
+import CoreData
 
 
 // Define a class for migration tests added via extensions
@@ -111,6 +112,59 @@ extension MigrationTests
           // Add a place
           let there = try store.create(Place_v3.self) { $0.name = "Here"; $0.occupants = [bill] }
           XCTAssertEqual(bill.place, there)
+        }()
+      }
+  }
+
+
+// MARK: --
+// Test change of attribute storage type
+
+@objc fileprivate class Attributed_v1 : Object
+  {
+    @Attribute("a")
+    var a : Int
+  }
+
+@objc fileprivate class Attributed_v2 : Object
+  {
+    @Attribute("a")
+    var a : String
+  }
+
+
+extension MigrationTests
+  {
+    func testValueTypeChange() throws
+      {
+        // Create a schema with the original entity definition.
+        let schema_v1 = try Schema(name: "test", objectTypes: [Attributed_v1.self])
+
+        // Create the store for schema_v1 with some instances of the original entity
+        let objectCount = 3
+        try {
+          let store = try DataStore(schema: schema_v1, reset: true)
+          for i in 0 ..< objectCount {
+            _ = try store.create(Attributed_v1.self) { $0.a = i }
+          }
+          try store.save()
+        }()
+
+        // Create another schema with the modified entity definition and a migration script...
+        let schema_v2 = try Schema(name: "test", objectTypes: [Attributed_v2.self], migrationScript: { context in
+          for object in try context.fetch(makeFetchRequest(for: Attributed_v1.self)) {
+            guard let i = object.value(forKey: Schema.renameOld("a")) as? Int else { XCTFail("expecting integer value"); break }
+            object.setValue("\(i)", forKey: Schema.renameNew("a"))
+          }
+        })
+
+        // Re-open the store for schema_v2, performing the custom migration...
+        try {
+          let store = try DataStore(schema: schema_v2, priorVersions: [schema_v1])
+          let objects = try store.managedObjectContext.fetch(makeFetchRequest(for: Attributed_v2.self))
+          for object in objects {
+            XCTAssertNotNil(object.value(forKey: "a") as? String, "expecting string value")
+          }
         }()
       }
   }
