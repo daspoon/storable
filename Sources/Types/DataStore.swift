@@ -13,7 +13,7 @@ public class DataStore : BasicStore
     public private(set) var entityInfoByName : [String: EntityInfo] = [:]
 
 
-    public func openWith(schema: Schema, priorVersions: [Schema] = []) throws
+    public func openWith(schema: Schema, migrations: [Migration] = []) throws
       {
         let info = try schema.createRuntimeInfo()
 
@@ -22,7 +22,7 @@ public class DataStore : BasicStore
           let metadata = try NSPersistentStoreCoordinator.metadataForPersistentStore(type: .sqlite, at: storeURL)
           if info.managedObjectModel.isConfiguration(withName: nil, compatibleWithStoreMetadata: metadata) == false {
             // Get the compatible model for the metadata along with the list of steps leading to the target model
-            let path = try Self.migrationPath(fromStoreMetadata: metadata, to: (schema, info.managedObjectModel), previousVersions: priorVersions)
+            let path = try Self.migrationPath(fromStoreMetadata: metadata, to: (schema, info.managedObjectModel), migrations: migrations)
             // Iteratively perform the migration steps on the persistent store, passing along the updated store model
             _ = try path.migrationSteps.reduce(path.sourceModel) { (sourceModel, migrationStep) in
               log("\(migrationStep)")
@@ -39,9 +39,9 @@ public class DataStore : BasicStore
       }
 
 
-    public func openWith(schema: Schema, priorVersions: [Schema] = [], stateEntityName: String = "State", dataSource: DataSource) throws
+    public func openWith(schema: Schema, stateEntityName: String = "State", dataSource: DataSource, migrations: [Migration] = []) throws
       {
-        try openWith(schema: schema, priorVersions: priorVersions)
+        try openWith(schema: schema, migrations: migrations)
 
         // Ensure the State entity is defined and as has a single instance.
         guard let stateInfo = entityInfoByName[stateEntityName] else { throw Exception("Entity '\(stateEntityName)' is not defined") }
@@ -73,27 +73,28 @@ public class DataStore : BasicStore
 
 
     /// Return the list of steps required to migrate a store from the previous version.
-    static func migrationPath(fromStoreMetadata metadata: [String: Any], to current: (schema: Schema, model: NSManagedObjectModel), previousVersions: [Schema]) throws -> (sourceModel: NSManagedObjectModel, migrationSteps: [MigrationStep])
+    static func migrationPath(fromStoreMetadata metadata: [String: Any], to current: (schema: Schema, model: NSManagedObjectModel), migrations: [Migration]) throws -> (sourceModel: NSManagedObjectModel, migrationSteps: [Migration.Step])
       {
         // If the current model matches the given metadata then we're done
         guard current.model.isConfiguration(withName: nil, compatibleWithStoreMetadata: metadata) == false
           else { return (current.model, []) }
 
         // Otherwise there must be a previous schema version...
-        guard let previousSchema = previousVersions.last
+        guard let migration = migrations.last
           else { throw Exception("no compatible schema version") }
 
         // to determine the source model and sequence of initial steps recursively.
+        let previousSchema = migration.source
         let previousModel = try previousSchema.createRuntimeInfo().managedObjectModel
-        let initialPath = try Self.migrationPath(fromStoreMetadata: metadata, to: (previousSchema, previousModel), previousVersions: previousVersions.dropLast(1))
+        let initialPath = try Self.migrationPath(fromStoreMetadata: metadata, to: (previousSchema, previousModel), migrations: migrations.dropLast(1))
 
         // Append the additional steps required to migrate between the previous and current version.
-        let additionalSteps = try current.schema.migrationSteps(from: previousModel, of: previousSchema, to: current.model)
+        let additionalSteps = try current.schema.migrationSteps(from: previousModel, of: previousSchema, to: current.model, using: migration.script)
         return (previousModel, initialPath.migrationSteps + additionalSteps)
       }
 
 
-    @available(*, unavailable, message: "Use open(with: Schema, priorVersions: [Schema])")
+    @available(*, unavailable, message: "Use openWith(schema:migrations:) instead")
     public override func openWith(model: NSManagedObjectModel) throws
       { preconditionFailure("unavailable") }
   }

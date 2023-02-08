@@ -5,17 +5,41 @@
 import CoreData
 
 
-/// Represents a step in the migration process.
+/// A structure representing a transition from a source schema to an (implicit) target schema, along with an optional method to perform an in-place update of a persistent store as part of a custom migration process.
 
-enum MigrationStep
+public struct Migration
   {
-    /// Perform a lightweight migration to the associated model.
-    case lightweight(NSManagedObjectModel)
+    /// A function to perform in-place update of a persistent store.
+    public typealias Script = (NSManagedObjectContext) throws -> Void
 
-    /// Run the given script. This step requires the ScriptMarker entity exists in the object model of the affected store.
-    case script((NSManagedObjectContext) throws -> Void)
+    /// A step in a migration process.
+    public enum Step
+      {
+        /// Perform a lightweight migration to the associated model.
+        case lightweight(NSManagedObjectModel)
+
+        /// Run the given script. This step requires the ScriptMarker entity exists in the object model of the affected store.
+        case script(Script)
+      }
 
 
+    /// The schema/model of the persistent stores to which this migration applies.
+    var source : Schema
+
+    /// The optional in-place update used in a custom migration.
+    let script : Migration.Script?
+
+
+    public init(from s: Schema, using f: Migration.Script? = nil)
+      {
+        source = s
+        script = f
+      }
+  }
+
+
+extension Migration.Step
+  {
     /// Apply the migration step to the given store URL of the given object model and return the object model of the updated content.
     func apply(to sourceURL: URL, of sourceModel: NSManagedObjectModel) throws -> NSManagedObjectModel
       {
@@ -51,36 +75,13 @@ enum MigrationStep
   }
 
 
-extension MigrationStep : CustomStringConvertible
+extension Migration.Step : CustomStringConvertible
   {
-    var description : String
+    public var description : String
       {
         switch self {
           case .lightweight : return "performing lightweight migration"
           case .script : return "script"
         }
-      }
-  }
-
-
-extension Array where Element == MigrationStep
-  {
-    /// Eliminate consecutive lightweight steps.
-    var compacted : [MigrationStep]
-      {
-        var compacted : [MigrationStep] = []
-        var lightweightStep : MigrationStep?
-        for step in self {
-          switch step {
-            case .lightweight :
-              lightweightStep = step
-            default :
-              lightweightStep.map { compacted.append($0) }
-              lightweightStep = nil
-              compacted.append(step)
-          }
-        }
-        lightweightStep.map { compacted.append($0) }
-        return compacted
       }
   }

@@ -12,15 +12,13 @@ public struct Schema
     public typealias RuntimeInfo = (managedObjectModel: NSManagedObjectModel, entityInfoByName: [String: EntityInfo])
 
     public let name : String
-    public let migrationScript : ((NSManagedObjectContext) throws -> Void)?
     private var inheritanceHierarchy : InheritanceHierarchy<Object> = .init()
     public private(set) var objectInfoByName : [String: ObjectInfo] = [:]
 
 
-    public init(name: String = "schema", objectTypes: [Object.Type], migrationScript: ((NSManagedObjectContext) throws -> Void)? = nil) throws
+    public init(name: String = "schema", objectTypes: [Object.Type]) throws
       {
         self.name = name
-        self.migrationScript = migrationScript
 
         for objectType in objectTypes {
           try self.addObjectType(objectType)
@@ -151,11 +149,11 @@ public struct Schema
 
 
     /// Return the steps required to migrate the object model of the previous schema version to the receiver's object model.
-    func migrationSteps(from sourceModel: NSManagedObjectModel, of sourceSchema: Schema, to targetModel: NSManagedObjectModel) throws -> [MigrationStep]
+    func migrationSteps(from sourceModel: NSManagedObjectModel, of sourceSchema: Schema, to targetModel: NSManagedObjectModel, using migrationScript: Migration.Script?) throws -> [Migration.Step]
       {
         var customizationInfo = try Self.customizationInfoForMigration(from: sourceSchema, to: self)
 
-        let steps : [MigrationStep]
+        let steps : [Migration.Step]
         switch (customizationInfo.requiresMigrationScript, migrationScript) {
           case (false, .none) :
             // An implicit migration to the target model is sufficient.
