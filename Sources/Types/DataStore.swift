@@ -13,14 +13,24 @@ public class DataStore : BasicStore
     public private(set) var entityInfoByName : [String: EntityInfo] = [:]
 
 
-    public func openWith(schema: Schema, migrations: [Migration] = []) throws
+    public func openWith(schema s: Schema, migrations ms: [Migration] = []) throws
       {
+        // Assign a version identifier to the current schema indicating the number of previous versions...
+        var schema = s
+        schema.version = "\(ms.count)"
+
+        // Create the object model for the current schema; the model incorporates the schema version number into its hash.
         let info = try schema.createRuntimeInfo()
 
         // If the store exists and is incompatible with the target schema, then perform incremental migration from the previously compatible schema.
         if FileManager.default.fileExists(atPath: storeURL.path) {
           let metadata = try NSPersistentStoreCoordinator.metadataForPersistentStore(type: .sqlite, at: storeURL)
           if info.managedObjectModel.isConfiguration(withName: nil, compatibleWithStoreMetadata: metadata) == false {
+            // Assign version numbers to the previous schema
+            var migrations = ms
+            for i in 0 ..< migrations.count {
+              migrations[i].source.version = "\(i)"
+            }
             // Get the compatible model for the metadata along with the list of steps leading to the target model
             let path = try Self.migrationPath(fromStoreMetadata: metadata, to: (schema, info.managedObjectModel), migrations: migrations)
             // Iteratively perform the migration steps on the persistent store, passing along the updated store model

@@ -15,6 +15,9 @@ public struct Schema
     private var inheritanceHierarchy : InheritanceHierarchy<Object> = .init()
     public private(set) var objectInfoByName : [String: ObjectInfo] = [:]
 
+    /// The version string is set by DataStore.openWith(schema:migrations:), and is used as versionHashModifier for the $Schema entity which is implicitly added to the generated object model.
+    internal var version : String?
+
 
     public init(name: String = "schema", objectTypes: [Object.Type]) throws
       {
@@ -139,6 +142,12 @@ public struct Schema
         // Create the object model with the generated entity descriptions.
         let objectModel : NSManagedObjectModel = .init()
         objectModel.entities = entityInfoByName.values.map { $0.entityDescription }
+
+        // Add the entity used to distinguish schema versions; this entity is not exposed in entityInfoByName.
+        let versionEntity = NSEntityDescription()
+        versionEntity.name = "$Schema"
+        versionEntity.versionHashModifier = version
+        objectModel.entities.append(versionEntity)
 
         return (objectModel, entityInfoByName)
       }
