@@ -258,7 +258,7 @@ public struct Schema
                     // If the new arity does not contain the old arity then we must relax arity in the intermediate model and run a script to update each instance appropriately.
                     if newRange.contains(oldRange) == false {
                       info.intermediateSchema.withEntityNamed(entityName) {
-                        $0.withRelationshipNamed(relName) { $0.arity = 0 ... .max }
+                        $0.withRelationshipNamed(relName) { $0.arity = min(oldRange.lowerBound, newRange.lowerBound) ... max(oldRange.upperBound, newRange.upperBound) }
                       }
                       info.requiresMigrationScript = true
                     }
