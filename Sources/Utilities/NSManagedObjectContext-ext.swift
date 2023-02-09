@@ -11,7 +11,7 @@ extension NSManagedObjectContext
   {
     /// Create, initialize and insert an instance of the given managed object type.
     @discardableResult
-    public func create<T: Object>(_ type: T.Type = T.self, initialize: (T) throws -> Void) throws -> T
+    public func create<T: Object>(_ type: T.Type = T.self, initialize: (T) throws -> Void = {_ in }) throws -> T
       {
         guard let entity = persistentStoreCoordinator?.managedObjectModel.entitiesByName[type.entityName] else { throw Exception("unknown entity \(type.entityName)") }
         let instance = type.init(entity: entity, insertInto: self)

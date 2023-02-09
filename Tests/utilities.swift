@@ -75,7 +75,7 @@ extension NSManagedObjectModel
 
 extension BasicStore
   {
-    func create<T: Object>(_ type: T.Type = T.self, initialize f: (T) throws -> Void) throws -> T
+    func create<T: Object>(_ type: T.Type = T.self, initialize f: (T) throws -> Void = {_ in }) throws -> T
       { try managedObjectContext.create(type, initialize: f) }
 
     public func fetchObjects<T: Object>(of type: T.Type = T.self, satisfying predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor] = []) throws -> [T]
@@ -146,8 +146,8 @@ extension XCTestCase
     func createAndOpenStoreWith(model m: NSManagedObjectModel) throws -> BasicStore
       { try createStore { try $0.openWith(model: m) } }
 
-    func createAndOpenStoreWith(schema s: Schema, priorVersions vs: [Schema] = []) throws -> DataStore
-      { try createStore{ try $0.openWith(schema: s, priorVersions: vs) } }
+    func createAndOpenStoreWith(schema s: Schema, migrations ms: [Migration] = []) throws -> DataStore
+      { try createStore{ try $0.openWith(schema: s, migrations: ms) } }
   }
 
 
