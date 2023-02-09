@@ -63,10 +63,9 @@ extension AttributeInfo : Diffable
     /// Changes which affect the version hash of the generated NSAttributeDescription.
     public enum Change : Hashable
       {
-        case name(String, String)
-        case isOptional(Bool, Bool)
-        case valueType(Any.Type, Any.Type)
-        case storageType(NSAttributeDescription.AttributeType, NSAttributeDescription.AttributeType)
+        case name
+        case isOptional
+        case type
         //case isTransient(Bool, Bool)
         //case versionHashModifier(String, String)
       }
@@ -74,38 +73,10 @@ extension AttributeInfo : Diffable
     public func difference(from old: Self) throws -> Set<Change>?
       {
         let changes : [Change] = [
-          old.name != self.name ? .name(old.name, self.name) : nil,
-          old.allowsNilValue != self.allowsNilValue ? .isOptional(old.allowsNilValue, self.allowsNilValue) : nil,
-          old.type != self.type ? .valueType(old.type, self.type) : nil,
-          old.attributeType != self.attributeType ? .storageType(old.attributeType, self.attributeType) : nil,
+          old.name != self.name ? .name : nil,
+          old.allowsNilValue != self.allowsNilValue ? .isOptional : nil,
+          old.type != self.type ? .type : nil,
         ].compactMap {$0}
         return changes.count > 0 ? Set(changes) : nil
-      }
-  }
-
-
-/// An explicit implementation of Hashable is required because Any.Type is not Hashable.
-extension AttributeInfo.Change
-  {
-    public func hash(into hasher: inout Hasher)
-      {
-        switch self {
-          case .name(let old, let new) : hasher.combine([old, new])
-          case .isOptional(let old, let new) : hasher.combine([old, new])
-          case .valueType(let old, let new) : hasher.combine([ObjectIdentifier(old), ObjectIdentifier(new)])
-          case .storageType(let old, let new) : hasher.combine([old, new])
-        }
-      }
-
-    public static func == (lhs: Self, rhs: Self) -> Bool
-      {
-        switch (lhs, rhs) {
-          case (.name(let old1, let new1), .name(let old2, let new2)) : return old1 == old2 && new1 == new2
-          case (.isOptional(let old1, let new1), .isOptional(let old2, let new2)) : return old1 == old2 && new1 == new2
-          case (.valueType(let old1, let new1), .valueType(let old2, let new2)) : return old1 == old2 && new1 == new2
-          case (.storageType(let old1, let new1), .storageType(let old2, let new2)) : return old1 == old2 && new1 == new2
-          default :
-            return false
-        }
       }
   }

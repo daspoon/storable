@@ -220,6 +220,7 @@ public struct Schema
           // Modify the entities of the intermediate schema to reflect the additive differences between each entity common to source and target schemas.
           for (entityName, entityDiff) in schemaDiff.modified {
             let targetObjectInfo = targetSchema.objectInfoByName[entityName]!
+            let sourceObjectInfo = sourceSchema.objectInfoByName[/* targetObjectInfo.previousName ?? */entityName]! // TODO: account for renaming entities
             // Extend the intermediate entity to account for added attributes.
             for attrName in entityDiff.attributesDifference.added {
               info.intermediateSchema.withEntityNamed(entityName) {
@@ -228,22 +229,21 @@ public struct Schema
             }
             // Update the intermediate entity to account for modified attributes, where necessary.
             for (attrName, changes) in entityDiff.attributesDifference.modified {
+              let targetAttr = targetObjectInfo.attributes[attrName]!
+              let sourceAttr = sourceObjectInfo.attributes[targetAttr.previousName ?? attrName]!
               for change in changes {
                 switch change {
-                  case .isOptional(true, false) :
+                  case .isOptional where targetAttr.allowsNilValue == false :
                     // Becoming non-optional requires ensuring each affected attribute has a non-nil value.
                     info.requiresMigrationScript = true
-                  case .valueType :
-                    // Changing the value type requires converting affected attribute values between old and new types.
-                    info.requiresMigrationScript = true
-                  case .storageType(_, let newType) :
-                    // Changing the storage type requires renaming both old and new attributes, marking the new attribute optional, and later specifying a renaming identifier in the target model.
+                  case .type :
+                    // Changing value type requires that the intermediate contains both old and new attributes renamed, and with the new attribute marked optional.
                     info.intermediateSchema.withEntityNamed(entityName) {
-                      let attr = $0.attributes[attrName]!
-                      $0.removeAttributeNamed(attrName)
-                      $0.addAttribute(attr.copy { $0.name = Self.renameOld(attrName); $0.previousName = attrName })
-                      $0.addAttribute(attr.copy { $0.name = Self.renameNew(attrName); $0.attributeType = newType; $0.allowsNilValue = true })
+                      $0.removeAttributeNamed(sourceAttr.name)
+                      $0.addAttribute(sourceAttr.copy { $0.name = Self.renameOld(attrName); $0.previousName = sourceAttr.name })
+                      $0.addAttribute(targetAttr.copy { $0.name = Self.renameNew(attrName); $0.allowsNilValue = true })
                     }
+                    // Remember to restore the new attribute name in the target model.
                     info.renamedTargetAttributes.append((entityName, attrName))
                     info.requiresMigrationScript = true
                   default :
@@ -259,13 +259,16 @@ public struct Schema
             }
             // Update the intermediate entity to account for modified relationships, where necessary.
             for (relName, changes) in entityDiff.relationshipsDifference.modified {
+              let targetRel = targetObjectInfo.relationships[relName]!
+              let sourceRel = sourceObjectInfo.relationships[targetRel.previousName ?? relName]!
               for change in changes {
                 switch change {
-                  case .rangeOfCount(let oldRange, let newRange) :
+                  case .rangeOfCount :
                     // If the new arity does not contain the old arity then we must relax arity in the intermediate model and run a script to update each instance appropriately.
-                    if newRange.contains(oldRange) == false {
+                    let (sourceArity, targetArity) = (sourceRel.arity, targetRel.arity)
+                    if targetArity.contains(sourceArity) == false {
                       info.intermediateSchema.withEntityNamed(entityName) {
-                        $0.withRelationshipNamed(relName) { $0.arity = min(oldRange.lowerBound, newRange.lowerBound) ... max(oldRange.upperBound, newRange.upperBound) }
+                        $0.withRelationshipNamed(relName) { $0.arity = min(sourceArity.lowerBound, targetArity.lowerBound) ... max(sourceArity.upperBound, targetArity.upperBound) }
                       }
                       info.requiresMigrationScript = true
                     }

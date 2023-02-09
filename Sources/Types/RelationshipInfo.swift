@@ -63,20 +63,20 @@ extension RelationshipInfo : Diffable
     /// Changes which affect the version hash of the generated NSRelationshipDescription.
     public enum Change : Hashable
       {
-        case name(String, String)
+        case name
         //case destinationEntity    // ?
         //case inverseRelationship  // ?
         //case isOrdered
         //case isTransient
-        case rangeOfCount(ClosedRange<Int>, ClosedRange<Int>)
+        case rangeOfCount
         //case versionHashModifier
       }
 
     public func difference(from old: Self) throws -> Set<Change>?
       {
         let changes : [Change] = [
-          old.name != self.name ? .name(old.name, self.name) : nil,
-          old.arity != self.arity ? .rangeOfCount(old.arity, self.arity) : nil,
+          old.name != self.name ? .name : nil,
+          old.arity != self.arity ? .rangeOfCount : nil,
         ].compactMap {$0}
         return changes.count > 0 ? Set(changes) : nil
       }

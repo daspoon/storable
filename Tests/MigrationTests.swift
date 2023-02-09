@@ -119,8 +119,6 @@ extension MigrationTests
   {
     func testAttributeValueType() throws
       {
-      // TODO: this test fails because changing attribute value type must be treated similarly to changing storage type in requiring both old and new attributes appear in the intermediate model -- each with the appropriate value transformer name
-
         // Define non-standard some attribute types
         struct Point2d : StorableAsData { var x, y : Int }
         struct Point3d : StorableAsData { var x, y, z : Int }
@@ -148,9 +146,10 @@ extension MigrationTests
         // Re-open the store for the 3d schema, performing the custom migration to convert attribute values from 2d to 3d :)
         try store.openWith(schema: schema_v3, migrations: [
           .init(from: schema_v2) { context in
+            // Note that the store now contains attributes of both the old and new types with distinct names...
             for thing in try context.fetch(NSFetchRequest<NSManagedObject>(entityName: "Thing")) {
-              let p = try thing.unboxedValue(of: Point2d.self, forKey: "point")
-              thing.setBoxedValue(Point3d(x: p.x, y: p.y, z: 0), forKey: "point")
+              let p = try thing.unboxedValue(of: Point2d.self, forKey: Schema.renameOld("point"))
+              thing.setBoxedValue(Point3d(x: p.x, y: p.y, z: 0), forKey: Schema.renameNew("point"))
             }
           },
         ])
@@ -169,6 +168,10 @@ extension MigrationTests
   {
     func testAtributeOptionality() throws
       {
+      // TODO: this test fails because changing optionality currently implies changing type, so...
+      //   - a script is unnecessarily demanded for the migration from v1 to v2
+      //   - the script migrating from v2 to v1 fails because the attribute has been unnecessarily renamed
+
         let objectCount = 3
 
         // Define entity e1 with a non-optional attribute a
@@ -191,8 +194,7 @@ extension MigrationTests
         try store.close()
 
         // Re-open the store with the alternate schema, with implicit lightweight migration
-        // TODO: the script is required because changing optionality currently implies changing type
-        try store.openWith(schema: schema_v2, migrations: [.init(from: schema_v1) { _ in }])
+        try store.openWith(schema: schema_v2, migrations: [.init(from: schema_v1)])
         try store.close()
 
         // Re-create and populate store using the schema in which the attribute is optional.

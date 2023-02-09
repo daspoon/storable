@@ -85,8 +85,8 @@ extension ObjectInfo : Diffable
     /// Changes which affect the version hash of the generated NSEntityDescription.
     public enum DescriptorChange : Hashable
       {
-        case name(String, String)
-        case isAbstract(Bool, Bool)
+        case name
+        case isAbstract
         //case versionHashModifier
       }
 
@@ -110,8 +110,8 @@ extension ObjectInfo : Diffable
     public func difference(from old: Self) throws -> Difference?
       {
         let descriptorChanges : [DescriptorChange] = [
-          old.name != self.name ? .name(old.name, self.name) : nil,
-          old.isAbstract != self.isAbstract ? .isAbstract(old.isAbstract, self.isAbstract) : nil,
+          old.name != self.name ? .name : nil,
+          old.isAbstract != self.isAbstract ? .isAbstract : nil,
         ].compactMap {$0}
 
         return Difference(
