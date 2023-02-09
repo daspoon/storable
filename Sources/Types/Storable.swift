@@ -50,31 +50,6 @@ extension URL : Storable {}
 extension UUID : Storable {}
 
 
-// An Optional is Storable when its wrapped value is Storable, although the required type constraints are complicated by the constraints on Optional's conformance to AttributeType.
-
-extension Optional : Storable where Wrapped : Storable, Wrapped.EncodingType.StorageType == Wrapped, Wrapped.EncodingType == Wrapped
-  {
-    public func storedValue() -> Wrapped.EncodingType?
-      {
-        switch self {
-          case .some(let wrapped) : return wrapped.storedValue()
-          case .none : return nil
-        }
-      }
-
-    public static func decodeStoredValue(_ storedValue: Wrapped.EncodingType?) -> Self
-      {
-        switch storedValue {
-          case .some(let storedValue) : return Wrapped.decodeStoredValue(storedValue)
-          case .none : return nil
-        }
-      }
-
-    public static var valueTransformerName : NSValueTransformerName?
-      { Wrapped.valueTransformerName }
-  }
-
-
 // A RawRepresentable is Storable when its RawValue is an attribute type, although conformance must be declared explicitly on concrete types.
 
 extension RawRepresentable where RawValue : AttributeType

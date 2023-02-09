@@ -49,7 +49,7 @@ fileprivate class FullyAttributed : Object
     @Attribute("uuidValue")
     var uuidValue : UUID
 
-    @Attribute("optionalIntValue")
+    @OptionalAttribute("optionalIntValue")
     var optionalIntValue : Int?
   }
 
@@ -89,8 +89,8 @@ fileprivate class DefaultAttributed : Object
     @Attribute("dataValue")
     var dataValue : Data = .init()
 
-    @Attribute("optionalIntValue")
-    var optionalIntValue : Int? = nil
+    @OptionalAttribute("optionalIntValue")
+    var optionalIntValue : Int?
   }
 
 
@@ -116,7 +116,7 @@ fileprivate class WronglyAttributed : Object
     @Attribute("myOptional")
     var myOptional : MyStruct?
 
-    @Attribute("optionalOptional")
+    @OptionalAttribute("optionalOptional")
     var myOptionalOptional : Int??
   }
 #endif

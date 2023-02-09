@@ -155,7 +155,7 @@ fileprivate class PropertyOptional_v1 : Object
 
 fileprivate class PropertyOptional_v2 : Object
   {
-    @Attribute("a")
+    @OptionalAttribute("a")
     var a : Int?
   }
 
@@ -163,8 +163,8 @@ extension ModelDifferenceTests
   {
     func testPropertyOptionality() throws
       {
-        try checkDifference(from: PropertyOptional_v1.self, to: PropertyOptional_v2.self, matches: .init(attributesDifference: .init(modified: ["a": [.type, .isOptional]])))
-        try checkDifference(from: PropertyOptional_v2.self, to: PropertyOptional_v1.self, matches: .init(attributesDifference: .init(modified: ["a": [.type, .isOptional]])))
+        try checkDifference(from: PropertyOptional_v1.self, to: PropertyOptional_v2.self, matches: .init(attributesDifference: .init(modified: ["a": [.isOptional]])))
+        try checkDifference(from: PropertyOptional_v2.self, to: PropertyOptional_v1.self, matches: .init(attributesDifference: .init(modified: ["a": [.isOptional]])))
       }
   }
 

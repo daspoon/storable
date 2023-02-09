@@ -17,6 +17,18 @@ public protocol Ingestible
   }
 
 
+extension Ingestible
+  {
+    /// Attempt to create an instance from the given json value. An exception is raised if the argument value is not of the Input type.
+    static func ingest(_ json: Any) throws -> Self
+      { try Self(json: try throwingCast(json)) }
+
+    /// Attempt to create an instance from the given json value after applying the given transform. An exception is raised if the argument value is not of the transform's Input type.
+    static func ingest<Transform: IngestTransform>(_ json: Any, withTransform t: Transform) throws -> Self where Transform.Output == Input
+      { try Self(json: try t.transform(try throwingCast(json))) }
+  }
+
+
 // MARK: --
 // Implement the Ingestible requirements on RawRepresentable to enable conformance for enum types.
 

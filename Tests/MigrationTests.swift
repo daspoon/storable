@@ -183,7 +183,7 @@ extension MigrationTests
         // Define same-named entity e2 with an optional attribute a of the same type
         let schema_v2 = try Schema(objectTypes: [Entity_v2.self])
         @objc class Entity_v2 : Object {
-          @Attribute("a") var a : Int?
+          @OptionalAttribute("a") var a : Int?
         }
 
         // Create and populate a store using the schema in which the attribute is non-optional.

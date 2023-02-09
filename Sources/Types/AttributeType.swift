@@ -130,29 +130,6 @@ extension UUID : AttributeType
   }
 
 
-// An Optional is an AttributeType when its wrapped type is an AttributeType.
-
-extension Optional : AttributeType where Wrapped : AttributeType, Wrapped.StorageType == Wrapped
-  {
-    public typealias StorageType = Wrapped
-
-    public static var typeId : NSAttributeDescription.AttributeType
-      { Wrapped.typeId }
-
-    public static var isOptional : Bool
-      { true }
-
-    public static var nullValue : Self
-      { .none }
-
-    public var isNullValue : Bool
-      {
-        guard case .none = self else { return false }
-        return true
-      }
-  }
-
-
 // Boxed<Value> is an AttributeType (via ValueTransformer) when its Value is Codable.
 
 extension Boxed : AttributeType where Value : Codable

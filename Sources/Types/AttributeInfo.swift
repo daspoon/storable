@@ -34,14 +34,14 @@ public struct AttributeInfo : PropertyInfo
     public var ingest : (key: IngestKey, method: (Any) throws -> any Storable)?
 
 
-    public init<Value: Storable>(name: String, type: Value.Type, defaultValue: Value? = nil, previousName: String? = nil, ingest: (key: IngestKey, method: (Any) throws -> any Storable)? = nil)
+    public init<Value: Storable>(name: String, type: Value.Type, isOptional: Bool = false, defaultValue: Value? = nil, previousName: String? = nil, ingest: (key: IngestKey, method: (Any) throws -> any Storable)? = nil)
       {
         self.name = name
         self.type = type
         self.attributeType = Value.EncodingType.typeId
         self.valueTransformerName = Value.valueTransformerName
         self.defaultValue = defaultValue
-        self.allowsNilValue = Value.EncodingType.isOptional
+        self.allowsNilValue = isOptional
         self.previousName = previousName
         self.ingest = ingest
       }
