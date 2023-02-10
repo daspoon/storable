@@ -220,7 +220,7 @@ public struct Schema
           // Modify the entities of the intermediate schema to reflect the additive differences between each entity common to source and target schemas.
           for (entityName, entityDiff) in schemaDiff.modified {
             let targetObjectInfo = targetSchema.objectInfoByName[entityName]!
-            let sourceObjectInfo = sourceSchema.objectInfoByName[/* targetObjectInfo.previousName ?? */entityName]! // TODO: account for renaming entities
+            let sourceObjectInfo = sourceSchema.objectInfoByName[targetObjectInfo.previousName ?? entityName]!
             // Extend the intermediate entity to account for added attributes.
             for attrName in entityDiff.attributesDifference.added {
               info.intermediateSchema.withEntityNamed(entityName) {
