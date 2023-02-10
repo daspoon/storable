@@ -25,7 +25,7 @@ public struct AttributeInfo : PropertyInfo
     public var defaultValue : (any Storable)?
 
     /// Indicates whether or not nil is an legitimate property value.
-    public var allowsNilValue : Bool
+    public var isOptional : Bool
 
     /// The name of the attribute in the previous entity version, if necessary.
     public var previousName : String?
@@ -41,7 +41,7 @@ public struct AttributeInfo : PropertyInfo
         self.attributeType = Value.EncodingType.typeId
         self.valueTransformerName = Value.valueTransformerName
         self.defaultValue = defaultValue
-        self.allowsNilValue = isOptional
+        self.isOptional = isOptional
         self.previousName = previousName
         self.ingest = ingest
       }
@@ -74,7 +74,7 @@ extension AttributeInfo : Diffable
       {
         let changes : [Change] = [
           old.name != self.name ? .name : nil,
-          old.allowsNilValue != self.allowsNilValue ? .isOptional : nil,
+          old.isOptional != self.isOptional ? .isOptional : nil,
           old.type != self.type ? .type : nil,
         ].compactMap {$0}
         return changes.count > 0 ? Set(changes) : nil

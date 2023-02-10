@@ -77,7 +77,7 @@ public struct Schema
             let attributeDescription = NSAttributeDescription()
             attributeDescription.name = name
             attributeDescription.type = attribute.attributeType
-            attributeDescription.isOptional = attribute.allowsNilValue
+            attributeDescription.isOptional = attribute.isOptional
             attributeDescription.valueTransformerName = attribute.valueTransformerName?.rawValue
             attributeDescription.defaultValue = attribute.defaultValue?.storedValue()
             attributeDescription.renamingIdentifier = attribute.previousName
@@ -233,7 +233,7 @@ public struct Schema
               let sourceAttr = sourceObjectInfo.attributes[targetAttr.previousName ?? attrName]!
               for change in changes {
                 switch change {
-                  case .isOptional where targetAttr.allowsNilValue == false :
+                  case .isOptional where targetAttr.isOptional == false :
                     // Becoming non-optional requires ensuring each affected attribute has a non-nil value.
                     info.requiresMigrationScript = true
                   case .type :
@@ -241,7 +241,7 @@ public struct Schema
                     info.intermediateSchema.withEntityNamed(entityName) {
                       $0.removeAttributeNamed(sourceAttr.name)
                       $0.addAttribute(sourceAttr.copy { $0.name = Self.renameOld(attrName); $0.previousName = sourceAttr.name })
-                      $0.addAttribute(targetAttr.copy { $0.name = Self.renameNew(attrName); $0.allowsNilValue = true })
+                      $0.addAttribute(targetAttr.copy { $0.name = Self.renameNew(attrName); $0.isOptional = true })
                     }
                     // Remember to restore the new attribute name in the target model.
                     info.renamedTargetAttributes.append((entityName, attrName))

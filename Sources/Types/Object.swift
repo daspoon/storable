@@ -95,7 +95,7 @@ open class Object : NSManagedObject
               setValue(storableValue.storedValue(), forKey: attribute.name)
             }
             else {
-              guard attribute.defaultValue != nil || attribute.allowsNilValue else { throw Exception("a value is required") }
+              guard attribute.defaultValue != nil || attribute.isOptional else { throw Exception("a value is required") }
             }
           }
           catch let error {
