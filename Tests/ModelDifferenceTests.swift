@@ -119,7 +119,6 @@ extension ModelDifferenceTests
 // MARK: --
 // We can rename a previously-existing property while simultaneously adding a new property with the original name.
 
-
 extension ModelDifferenceTests
   {
     func testPropertyOverride() throws
@@ -265,7 +264,6 @@ extension ModelDifferenceTests
 // MARK: --
 // Properties renamed in the target must map to distinct properties in the source.
 
-
 extension ModelDifferenceTests
   {
     func testAttributeRenameConflict() throws
@@ -291,7 +289,6 @@ extension ModelDifferenceTests
 
 // MARK: --
 // Adding, removing and modifying entities
-
 
 extension ModelDifferenceTests
   {
@@ -323,10 +320,49 @@ extension ModelDifferenceTests
 // MARK: --
 // Renaming entities
 
+extension ModelDifferenceTests
+  {
+    func testEntityRename() throws
+      {
+        class Old : Object {
+        }
+
+        class New : Object {
+          override class var previousEntityName : String? { "Old" }
+        }
+
+        let s1 = try Schema(objectTypes: [Old.self])
+        let s2 = try Schema(objectTypes: [New.self])
+        try checkDifference(from: s1, to: s2, matches: .init(modified: ["New": .init(descriptorChanges: [.name])!]))
+      }
+  }
+
 
 // MARK: --
 // Changing entity abstract(ness)
 
+extension ModelDifferenceTests
+  {
+    func testEntityAbstraction() throws
+      {
+        class Entity_v1 : Object {
+        }
+
+        class Entity_v2 : Object {
+          override class var abstractClass : Object.Type { Entity_v2.self }
+        }
+
+        let s1 = try Schema(objectTypes: [Entity_v1.self])
+        let s2 = try Schema(objectTypes: [Entity_v2.self])
+        try checkDifference(from: s1, to: s2, matches: .init(modified: ["Entity": .init(descriptorChanges: [.isAbstract])!]))
+      }
+  }
+
 
 // MARK: --
 // Moving properties between inheritance-related entities
+
+extension ModelDifferenceTests
+  {
+    // TODO:
+  }
