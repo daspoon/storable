@@ -170,7 +170,7 @@ public struct Schema
 
           case (_, .some(let migrationScript)) :
             // A migration script is necessary: extend the intermediate schema with a MigrationScriptMarker,
-            try customizationInfo.intermediateSchema.addObjectType(MigrationScriptMarker.self)
+            try customizationInfo.intermediateSchema.addObjectType(Migration.ScriptMarker.self)
             // generate the intermediate object model,
             let intermediateModel = try customizationInfo.intermediateSchema.createRuntimeInfo().managedObjectModel
             // and set renaming identifiers on target attributes subject to storage type changes.

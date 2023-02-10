@@ -12,6 +12,9 @@ public struct Migration
     /// A function to perform in-place update of a persistent store.
     public typealias Script = (NSManagedObjectContext) throws -> Void
 
+    /// ScriptMarker defines an entity which appears in the intermediate model of a custom migration; an instance of this entity indicates the script has run to completion.
+    @objc class ScriptMarker : Object {}
+
     /// A step in a migration process.
     public enum Step
       {
@@ -51,10 +54,10 @@ extension Migration.Step
 
           case .script(let script) :
             try BasicStore.updateStore(at: sourceURL, as: sourceModel) { context in
-              // If an instance of MigrationScriptMarker doesn't exist, run the script, add a marker instance, and save the context.
-              if try context.tryFetchObject(makeFetchRequest(for: MigrationScriptMarker.self)) == nil {
+              // If an instance of ScriptMarker doesn't exist, run the script, add a marker instance, and save the context.
+              if try context.tryFetchObject(makeFetchRequest(for: Migration.ScriptMarker.self)) == nil {
                 try script(context)
-                try context.create(MigrationScriptMarker.self) { _ in }
+                try context.create(Migration.ScriptMarker.self) { _ in }
                 try context.save()
               }
             }
