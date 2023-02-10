@@ -28,13 +28,13 @@ public struct AttributeInfo : PropertyInfo
     public var isOptional : Bool
 
     /// The name of the attribute in the previous entity version, if necessary.
-    public var previousName : String?
+    public var renamingIdentifier : String?
 
     /// If non-nil, determines how json values are extracted from object ingest data and transformed to stored values.
     public var ingest : (key: IngestKey, method: (Any) throws -> any Storable)?
 
 
-    public init<Value: Storable>(name: String, type: Value.Type, isOptional: Bool = false, defaultValue: Value? = nil, previousName: String? = nil, ingest: (key: IngestKey, method: (Any) throws -> any Storable)? = nil)
+    public init<Value: Storable>(name: String, type: Value.Type, isOptional: Bool = false, defaultValue: Value? = nil, renamingIdentifier: String? = nil, ingest: (key: IngestKey, method: (Any) throws -> any Storable)? = nil)
       {
         self.name = name
         self.type = type
@@ -42,7 +42,7 @@ public struct AttributeInfo : PropertyInfo
         self.valueTransformerName = Value.valueTransformerName
         self.defaultValue = defaultValue
         self.isOptional = isOptional
-        self.previousName = previousName
+        self.renamingIdentifier = renamingIdentifier
         self.ingest = ingest
       }
 

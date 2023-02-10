@@ -249,7 +249,7 @@ extension MigrationTests
           var place : Place_v2
         }
         @objc class Place_v2 : Object {
-          @Relationship("things", inverseName: "place", deleteRule: .cascadeDeleteRule, previousName: "thing")
+          @Relationship("things", inverseName: "place", deleteRule: .cascadeDeleteRule, renamingIdentifier: "thing")
           var things : Set<Thing_v2>
         }
 

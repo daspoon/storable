@@ -15,27 +15,27 @@ public struct OptionalAttribute<Value: Nullable> : ManagedProperty where Value.W
 
     // Basic initializers
 
-    public init(_ name: String, previousName: String? = nil)
+    public init(_ name: String, renamingIdentifier: String? = nil)
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.Wrapped.self, isOptional: true, previousName: previousName)
+        propertyInfo = AttributeInfo(name: name, type: Value.Wrapped.self, isOptional: true, renamingIdentifier: renamingIdentifier)
       }
 
 
     // Initializers supporting ingestion
 
-    public init(_ name: String, previousName: String? = nil) where Value.Wrapped : Ingestible
+    public init(_ name: String, renamingIdentifier: String? = nil) where Value.Wrapped : Ingestible
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.Wrapped.self, isOptional: true, previousName: previousName, ingest: (.element(name), Value.Wrapped.ingest))
+        propertyInfo = AttributeInfo(name: name, type: Value.Wrapped.self, isOptional: true, renamingIdentifier: renamingIdentifier, ingest: (.element(name), Value.Wrapped.ingest))
       }
 
-    public init(_ name: String, previousName: String? = nil, ingestKey k: IngestKey) where Value.Wrapped : Ingestible
+    public init(_ name: String, renamingIdentifier: String? = nil, ingestKey k: IngestKey) where Value.Wrapped : Ingestible
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.Wrapped.self, isOptional: true, previousName: previousName, ingest: (k, Value.Wrapped.ingest))
+        propertyInfo = AttributeInfo(name: name, type: Value.Wrapped.self, isOptional: true, renamingIdentifier: renamingIdentifier, ingest: (k, Value.Wrapped.ingest))
       }
 
-    public init<Transform>(_ name: String, previousName: String? = nil, ingestKey k: IngestKey? = nil, transform t: Transform) where Value.Wrapped : Ingestible, Transform : IngestTransform, Transform.Output == Value.Wrapped.Input
+    public init<Transform>(_ name: String, renamingIdentifier: String? = nil, ingestKey k: IngestKey? = nil, transform t: Transform) where Value.Wrapped : Ingestible, Transform : IngestTransform, Transform.Output == Value.Wrapped.Input
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.Wrapped.self, isOptional: true, previousName: previousName, ingest: (k ?? .element(name), {try Value.Wrapped.ingest($0, withTransform: t)}))
+        propertyInfo = AttributeInfo(name: name, type: Value.Wrapped.self, isOptional: true, renamingIdentifier: renamingIdentifier, ingest: (k ?? .element(name), {try Value.Wrapped.ingest($0, withTransform: t)}))
       }
 
 

@@ -80,7 +80,7 @@ public struct Schema
             attributeDescription.isOptional = attribute.isOptional
             attributeDescription.valueTransformerName = attribute.valueTransformerName?.rawValue
             attributeDescription.defaultValue = attribute.defaultValue?.storedValue()
-            attributeDescription.renamingIdentifier = attribute.previousName
+            attributeDescription.renamingIdentifier = attribute.renamingIdentifier
             entityInfo.entityDescription.properties.append(attributeDescription)
           }
         }
@@ -220,7 +220,7 @@ public struct Schema
           // Modify the entities of the intermediate schema to reflect the additive differences between each entity common to source and target schemas.
           for (entityName, entityDiff) in schemaDiff.modified {
             let targetObjectInfo = targetSchema.objectInfoByName[entityName]!
-            let sourceObjectInfo = sourceSchema.objectInfoByName[targetObjectInfo.previousName ?? entityName]!
+            let sourceObjectInfo = sourceSchema.objectInfoByName[targetObjectInfo.renamingIdentifier ?? entityName]!
             // Extend the intermediate entity to account for added attributes.
             for attrName in entityDiff.attributesDifference.added {
               info.intermediateSchema.withEntityNamed(entityName) {
@@ -230,7 +230,7 @@ public struct Schema
             // Update the intermediate entity to account for modified attributes, where necessary.
             for (attrName, changes) in entityDiff.attributesDifference.modified {
               let targetAttr = targetObjectInfo.attributes[attrName]!
-              let sourceAttr = sourceObjectInfo.attributes[targetAttr.previousName ?? attrName]!
+              let sourceAttr = sourceObjectInfo.attributes[targetAttr.renamingIdentifier ?? attrName]!
               for change in changes {
                 switch change {
                   case .isOptional where targetAttr.isOptional == false :
@@ -240,7 +240,7 @@ public struct Schema
                     // Changing value type requires that the intermediate contains both old and new attributes renamed, and with the new attribute marked optional.
                     info.intermediateSchema.withEntityNamed(entityName) {
                       $0.removeAttributeNamed(sourceAttr.name)
-                      $0.addAttribute(sourceAttr.copy { $0.name = Self.renameOld(attrName); $0.previousName = sourceAttr.name })
+                      $0.addAttribute(sourceAttr.copy { $0.name = Self.renameOld(attrName); $0.renamingIdentifier = sourceAttr.name })
                       $0.addAttribute(targetAttr.copy { $0.name = Self.renameNew(attrName); $0.isOptional = true })
                     }
                     // Remember to restore the new attribute name in the target model.
@@ -260,7 +260,7 @@ public struct Schema
             // Update the intermediate entity to account for modified relationships, where necessary.
             for (relName, changes) in entityDiff.relationshipsDifference.modified {
               let targetRel = targetObjectInfo.relationships[relName]!
-              let sourceRel = sourceObjectInfo.relationships[targetRel.previousName ?? relName]!
+              let sourceRel = sourceObjectInfo.relationships[targetRel.renamingIdentifier ?? relName]!
               for change in changes {
                 switch change {
                   case .rangeOfCount :
@@ -290,6 +290,6 @@ extension Schema : Diffable
     public func difference(from old: Schema) throws -> Dictionary<String, ObjectInfo>.Difference?
       {
         // assert: predecessor == .some(old)
-        try objectInfoByName.difference(from: old.objectInfoByName, moduloRenaming: \.previousName)
+        try objectInfoByName.difference(from: old.objectInfoByName, moduloRenaming: \.renamingIdentifier)
       }
   }

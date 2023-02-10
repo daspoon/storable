@@ -102,9 +102,9 @@ extension ModelDifferenceTests
 
         class Entity_v2 : Object
           {
-            @Attribute("b", previousName: "a")
+            @Attribute("b", renamingIdentifier: "a")
             var b : Int
-            @Relationship("q", inverseName: "_", deleteRule: .noActionDeleteRule, previousName: "r")
+            @Relationship("q", inverseName: "_", deleteRule: .noActionDeleteRule, renamingIdentifier: "r")
             var q : Object
           }
 
@@ -131,7 +131,7 @@ extension ModelDifferenceTests
 
         class Entity_v2 : Object
           {
-            @Attribute("b", previousName: "a")
+            @Attribute("b", renamingIdentifier: "a")
             var b : Int
             @Attribute("a")
             var a : String
@@ -238,7 +238,7 @@ extension ModelDifferenceTests
 
         class Entity_v2 : Object
           {
-            @Attribute("a", previousName: "b")
+            @Attribute("a", renamingIdentifier: "b")
             var a : Int
           }
 
@@ -252,7 +252,7 @@ extension ModelDifferenceTests
 
         class Entity_v2 : Object
           {
-            @Relationship("r", inverseName: "q", deleteRule: .noActionDeleteRule, previousName: "s")
+            @Relationship("r", inverseName: "q", deleteRule: .noActionDeleteRule, renamingIdentifier: "s")
             var r : Object
           }
 
@@ -276,9 +276,9 @@ extension ModelDifferenceTests
 
         @objc class Entity_v2 : Object
           {
-            @Attribute("b", previousName: "a")
+            @Attribute("b", renamingIdentifier: "a")
             var b : Int
-            @Attribute("c", previousName: "a")
+            @Attribute("c", renamingIdentifier: "a")
             var c : Int
           }
 

@@ -50,7 +50,7 @@ public struct ObjectInfo
       { managedObjectClass.isAbstract }
 
 
-    public var previousName : String?
+    public var renamingIdentifier : String?
       { managedObjectClass.previousEntityName }
 
 
@@ -116,8 +116,8 @@ extension ObjectInfo : Diffable
 
         return Difference(
           descriptorChanges: descriptorChanges,
-          attributesDifference: try attributes.difference(from: old.attributes, moduloRenaming: \.previousName),
-          relationshipsDifference: try relationships.difference(from: old.relationships, moduloRenaming: \.previousName)
+          attributesDifference: try attributes.difference(from: old.attributes, moduloRenaming: \.renamingIdentifier),
+          relationshipsDifference: try relationships.difference(from: old.relationships, moduloRenaming: \.renamingIdentifier)
         )
       }
   }
