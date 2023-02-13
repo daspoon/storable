@@ -70,8 +70,12 @@ extension CoreDataTests
     func testRelationshipVersionHash() throws
       {
         // Changes which affect version hash...
+        let entities = (NSEntityDescription(name: "A"), NSEntityDescription(name: "B"))
+        let relationships = (NSRelationshipDescription(name: "r"), NSRelationshipDescription(name: "q"))
         try testVersionHashes(NSRelationshipDescription.self, equality: false, examples: [
           .init("name", {$0.name = "r1"; $1.name = "r2"}),
+          .init("destinationEntity", {$0.destinationEntity = entities.0; $1.destinationEntity = entities.1}),
+          .init("inverseRelationship", {$01.inverseRelationship = relationships.0; $1.inverseRelationship = relationships.1}),
           .init("isOptional", {$0.isOptional = false; $1.isOptional = true}),
           .init("isOrdered", {$0.isOrdered = false; $1.isOrdered = true}),
           .init("isTransient", {$0.isTransient = false; $1.isTransient = true}),
@@ -80,12 +84,8 @@ extension CoreDataTests
         ])
 
         // Changes which do not affect version hash...
-        let destinationEntity = NSEntityDescription()
-        let inverseRelationship = NSRelationshipDescription()
         try testVersionHashes(NSRelationshipDescription.self, equality: true, examples: [
           .init("deleteRule", {$0.deleteRule = .noActionDeleteRule; $1.deleteRule = .cascadeDeleteRule}),
-          .init("destinationEntity", {$1.destinationEntity = destinationEntity}),
-          .init("inverseRelationship", {$1.inverseRelationship = inverseRelationship}),
           .init("isIndexedBySpotlight", {$0.isIndexedBySpotlight = false; $1.isIndexedBySpotlight = true}),
           .init("renamingIdentifier", {$1.renamingIdentifier = "x"}),
           .init("userInfo", {$1.userInfo = ["x": 1]}),

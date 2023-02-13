@@ -64,8 +64,8 @@ extension RelationshipInfo : Diffable
     public enum Change : Hashable
       {
         case name
-        //case destinationEntity    // ?
-        //case inverseRelationship  // ?
+        case relatedEntityName
+        case inverseName
         //case isOrdered
         //case isTransient
         case rangeOfCount
@@ -76,6 +76,8 @@ extension RelationshipInfo : Diffable
       {
         let changes : [Change] = [
           old.name != self.name ? .name : nil,
+          old.relatedEntityName != self.relatedEntityName ? .relatedEntityName : nil,
+          old.inverseName != self.inverseName ? .inverseName : nil,
           old.arity != self.arity ? .rangeOfCount : nil,
         ].compactMap {$0}
         return changes.count > 0 ? Set(changes) : nil

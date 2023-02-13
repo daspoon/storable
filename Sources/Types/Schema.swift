@@ -272,6 +272,8 @@ public struct Schema
                       }
                       info.requiresMigrationScript = true
                     }
+                  case .relatedEntityName, .inverseName :
+                    info.requiresMigrationScript = true
                   default :
                     continue
                 }
