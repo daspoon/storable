@@ -224,6 +224,7 @@ public struct Schema
             // Extend the intermediate entity to account for added attributes.
             for attrName in entityDiff.attributesDifference.added {
               info.intermediateSchema.withEntityNamed(entityName) {
+                // TODO: the added property must be optional or have a default value in the intermediate model
                 $0.addAttribute(targetObjectInfo.attributes[attrName]!)
               }
             }
@@ -254,6 +255,7 @@ public struct Schema
             // Extend the intermediate entity to account for added relationships.
             for relName in entityDiff.relationshipsDifference.added {
               info.intermediateSchema.withEntityNamed(entityName) {
+                // TODO: the added relationship must optional in the intermediate model
                 $0.addRelationship(targetObjectInfo.relationships[relName]!)
               }
             }
