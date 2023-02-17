@@ -58,6 +58,7 @@ extension CoreDataTests
         try testVersionHashes(NSAttributeDescription.self, equality: true, examples: [
           .init("allowsCloudEncryption", {$0.allowsCloudEncryption = false; $1.allowsCloudEncryption = true}),
           .init("attributeValueClassname", {$1.attributeValueClassName = "x"}),
+          .init("valueTransformerName", {$0.valueTransformerName = "A"; $1.valueTransformerName = "B"}),
           .init("defaultValue", {$0.defaultValue = nil; $1.defaultValue = 7}),
           .init("isIndexedBySpotlight", {$0.isIndexedBySpotlight = false; $1.isIndexedBySpotlight = true}),
           .init("renamingIdentifier", {$1.renamingIdentifier = "x"}),
