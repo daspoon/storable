@@ -110,14 +110,14 @@ open class Object : NSManagedObject
             let relatedEntity = try context.entityInfo(for: relationship.relatedEntityName)
             let relatedClass = relatedEntity.managedObjectClass
             switch (ingestData[ingest.key], ingest.mode, relationship.arity) {
-              case (.some(let jsonValue), .create, let arity) where arity.upperBound > 1 :
-                // Creating a to-many relation requires the associated data is a dictionary mapping instance identifiers to the data provided to the related object initializer.
-                guard let jsonDict = jsonValue as? [String: Any] else { throw Exception("a dictionary value is required") }
-                let relatedObjects = try jsonDict.map { (key, value) in try relatedClass.init(relatedEntity, with: .dictionaryEntry(key: key, value: value), in: context) }
+              case (.some(let jsonValue), .create(let format), let arity) where arity.upperBound > 1 :
+                // When creating a to-many relationship, the format parameter determines the type and interpretation of the json data...
+                let relatedObjects = try relatedEntity.createObjects(from: jsonValue, with: format, in: context)
                 setValue(Set(relatedObjects), forKey: relationship.name)
-              case (.some(let jsonValue), .create, _) :
-                // Creating a to-one relationship requires providing the associated data to the related object initializer.
-                let relatedObject = try relatedClass.init(relatedEntity, with: .value(jsonValue), in: context)
+              case (.some(let jsonValue), .create(let format), _) :
+                // When creating a to-one relationship, the json data is interpreted by the object initializer
+                guard format == .any else { throw Exception("") }
+                let relatedObject = try relatedEntity.createObject(from: jsonValue, in: context)
                 setValue(relatedObject, forKey: relationship.name)
               case (.some(let jsonValue), .reference, let arity) where arity.upperBound > 1 :
                 // A to-many reference requires an array string instance identifiers. Evaluation is delayed until all entity instances have been created.

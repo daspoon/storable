@@ -10,12 +10,12 @@ import CoreData
 public struct RelationshipInfo : PropertyInfo
   {
     /// Determines how related objects are obtained from object ingest data.
-    public enum IngestMode : String
+    public enum IngestMode
       {
         /// Ingested values are the names of existing objects.
         case reference
         /// Ingested values are the data required to construct related objects.
-        case create
+        case create(EntityInfo.IngestFormat = .dictionary)
       }
 
     /// The name of the corresponding property of the source entity.

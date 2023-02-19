@@ -12,19 +12,6 @@ public struct DataSource
     /// Content indentifies a json value used to ingest a set of object instances.
     public struct Content
       {
-        /// Format indicates how json data is to be interpreted.
-        public enum Format
-          {
-            /// An arbitrary value
-            case any
-            /// An array of arbitrary values
-            case array
-            /// A dictionary mapping string keys to arbitrary values
-            case dictionary
-            /// An array of strings interpreted as a dictionary mapping the elements to an empty dictionary (or an arbitrary value?).
-            case dictionaryAsArryOfKeys
-          }
-
         /// The name of the json resource within the bundle.
         public let resourceName : String
 
@@ -32,9 +19,9 @@ public struct DataSource
         public let keyPath : String?
 
         /// The format of the asset content. Collections can be specified as either arrays of names or as dictionaries mapping names to entity-specific data.
-        public let format : Format
+        public let format : EntityInfo.IngestFormat
 
-        public init(resourceName name: String, keyPath path: String? = nil, format fmt: Format = .dictionary)
+        public init(resourceName name: String, keyPath path: String? = nil, format fmt: EntityInfo.IngestFormat = .dictionary)
           { resourceName = name; keyPath = path; format = fmt }
 
         public var resourceNameAndKeyPath : String

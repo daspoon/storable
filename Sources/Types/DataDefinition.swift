@@ -32,29 +32,11 @@ public struct EntitySetDefinition : DataDefinition
       {
         let entity = try context.entityInfo(for: entityName)
         if let content {
-          switch content.format {
-            case .any :
-              let jsonValue = try dataSource.load(content)
-              _ = try entity.managedObjectClass.init(entity, with: .value(jsonValue), in: context)
-            case .array :
-              let jsonArray = try dataSource.load(content, of: [Any].self)
-              for (index, value) in jsonArray.enumerated() {
-                _ = try entity.managedObjectClass.init(entity, with: .arrayElement(index: index, value: value), in: context)
-              }
-            case .dictionary :
-              let jsonDict = try dataSource.load(content, of: [String: Any].self)
-              for (instanceName, jsonValue) in jsonDict {
-                _ = try entity.managedObjectClass.init(entity, with: .dictionaryEntry(key: instanceName, value: jsonValue), in: context)
-              }
-            case .dictionaryAsArryOfKeys :
-              let jsonArray = try dataSource.load(content, of: [String].self)
-              for instanceName in jsonArray {
-                _ = try entity.managedObjectClass.init(entity, with: .dictionaryEntry(key: instanceName, value: [:]), in: context)
-              }
-          }
+          let json = try dataSource.load(content)
+          try entity.createObjects(from: json, with: content.format, in: context)
         }
         else {
-          _ = try entity.managedObjectClass.init(entity, with: .value([:]), in: context)
+          try entity.createObject(from: [:], in: context)
         }
       }
 
