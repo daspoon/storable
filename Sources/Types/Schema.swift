@@ -194,6 +194,7 @@ public struct Schema
       { "$\(name)_new" }
 
 
+    /// CustomMigrationInfo maintains an intermediate schema to bridge between adjacent schema versions, along with auxiliary data.
     struct CustomMigrationInfo
       {
         /// The source schema with additive modifications.
@@ -205,7 +206,7 @@ public struct Schema
       }
 
 
-    /// Return the intermediate schema required for a custom migration between the given source and target schemas, or nil if lightweight migration is sufficient.
+    /// Returns a summary of the differences between given source and target schemas.
     static func customizationInfoForMigration(from sourceSchema: Schema, to targetSchema: Schema) throws -> CustomMigrationInfo
       {
         // The intermediate schema starts as a copy of the source schema.
@@ -221,11 +222,14 @@ public struct Schema
           for (entityName, entityDiff) in schemaDiff.modified {
             let targetObjectInfo = targetSchema.objectInfoByName[entityName]!
             let sourceObjectInfo = sourceSchema.objectInfoByName[targetObjectInfo.renamingIdentifier ?? entityName]!
-            // Extend the intermediate entity to account for added attributes.
+            // Extend the intermediate entity to account for added attributes; these require migration scripts when non-optional.
             for attrName in entityDiff.attributesDifference.added {
               info.intermediateSchema.withEntityNamed(entityName) {
-                // TODO: the added property must be optional or have a default value in the intermediate model
-                $0.addAttribute(targetObjectInfo.attributes[attrName]!)
+                let targetAttr = targetObjectInfo.attributes[attrName]!
+                $0.addAttribute(targetAttr)
+                if !(targetAttr.isOptional || targetAttr.defaultValue != nil) {
+                  info.requiresMigrationScript = true
+                }
               }
             }
             // Update the intermediate entity to account for modified attributes, where necessary.
@@ -252,11 +256,14 @@ public struct Schema
                 }
               }
             }
-            // Extend the intermediate entity to account for added relationships.
+            // Extend the intermediate entity to account for added relationships; these require migration scripts when non-optional.
             for relName in entityDiff.relationshipsDifference.added {
               info.intermediateSchema.withEntityNamed(entityName) {
-                // TODO: the added relationship must optional in the intermediate model
-                $0.addRelationship(targetObjectInfo.relationships[relName]!)
+                let targetRel = targetObjectInfo.relationships[relName]!
+                $0.addRelationship(targetRel)
+                if !(targetRel.arity.contains(0)) {
+                  info.requiresMigrationScript = true
+                }
               }
             }
             // Update the intermediate entity to account for modified relationships, where necessary.
@@ -275,6 +282,7 @@ public struct Schema
                       info.requiresMigrationScript = true
                     }
                   case .relatedEntityName, .inverseName :
+                    // We require a migration script, but the effect on the intermediate schema is determined by the differences which must accompany such changes.
                     info.requiresMigrationScript = true
                   default :
                     continue
