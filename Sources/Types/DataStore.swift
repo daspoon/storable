@@ -99,7 +99,7 @@ public class DataStore : BasicStore
         let initialPath = try Self.migrationPath(fromStoreMetadata: metadata, to: (previousSchema, previousModel), migrations: migrations.dropLast(1))
 
         // Append the additional steps required to migrate between the previous and current version.
-        let additionalSteps = try current.schema.migrationSteps(from: previousModel, of: previousSchema, to: current.model, using: migration.script)
+        let additionalSteps = try current.schema.migrationSteps(to: current.model, from: previousModel, of: previousSchema, using: migration.script)
         return (previousModel, initialPath.migrationSteps + additionalSteps)
       }
 

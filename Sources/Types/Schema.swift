@@ -158,7 +158,7 @@ public struct Schema
 
 
     /// Return the steps required to migrate the object model of the previous schema version to the receiver's object model.
-    func migrationSteps(from sourceModel: NSManagedObjectModel, of sourceSchema: Schema, to targetModel: NSManagedObjectModel, using migrationScript: Migration.Script?) throws -> [Migration.Step]
+    func migrationSteps(to targetModel: NSManagedObjectModel, from sourceModel: NSManagedObjectModel, of sourceSchema: Schema, using migrationScript: Migration.Script?) throws -> [Migration.Step]
       {
         var customizationInfo = try Self.customizationInfoForMigration(from: sourceSchema, to: self)
 
