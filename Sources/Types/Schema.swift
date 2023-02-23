@@ -15,9 +15,6 @@ public struct Schema
     private var inheritanceHierarchy : InheritanceHierarchy<Object> = .init()
     public private(set) var objectInfoByName : [String: ObjectInfo] = [:]
 
-    /// The version string is set by DataStore.openWith(schema:migrations:), and is used as versionHashModifier for the $Schema entity which is implicitly added to the generated object model.
-    internal var version : String?
-
 
     public init(name: String = "schema", objectTypes: [Object.Type]) throws
       {
@@ -64,6 +61,8 @@ public struct Schema
           entityDescription.name = objectInfo.name
           entityDescription.managedObjectClassName = NSStringFromClass(objectType)
           entityDescription.isAbstract = objectType.isAbstract
+          entityDescription.renamingIdentifier = objectType.renamingIdentifier
+          entityDescription.versionHashModifier = objectType.versionHashModifier
           entityDescription.subentities = subentities
           // Add a registry entry
           entityInfoByName[objectInfo.name] = EntityInfo(objectInfo, entityDescription)
@@ -81,6 +80,7 @@ public struct Schema
             attributeDescription.valueTransformerName = attribute.valueTransformerName?.rawValue
             attributeDescription.defaultValue = attribute.defaultValue?.storedValue()
             attributeDescription.renamingIdentifier = attribute.renamingIdentifier
+            attributeDescription.versionHashModifier = attribute.versionHashModifier
             entityInfo.entityDescription.properties.append(attributeDescription)
           }
         }
@@ -114,11 +114,13 @@ public struct Schema
             forwardDescription.inverseRelationship = inverseDescription
             forwardDescription.deleteRule = relationship.deleteRule
             forwardDescription.rangeOfCount = relationship.arity
+            forwardDescription.versionHashModifier = relationship.versionHashModifier
             inverseDescription.name = relationship.inverseName
             inverseDescription.destinationEntity = sourceInfo.entityDescription
             inverseDescription.inverseRelationship = forwardDescription
             inverseDescription.deleteRule = inverse.deleteRule
             inverseDescription.rangeOfCount = inverse.arity
+            inverseDescription.versionHashModifier = inverse.versionHashModifier
             // Add the NSRelationshipDescriptions to the corresponding NSEntityDescriptions
             sourceInfo.entityDescription.properties.append(forwardDescription)
             targetInfo.entityDescription.properties.append(inverseDescription)
@@ -142,12 +144,6 @@ public struct Schema
         // Create the object model with the generated entity descriptions.
         let objectModel : NSManagedObjectModel = .init()
         objectModel.entities = entityInfoByName.values.map { $0.entityDescription }
-
-        // Add the entity used to distinguish schema versions; this entity is not exposed in entityInfoByName.
-        let versionEntity = NSEntityDescription()
-        versionEntity.name = "$Schema"
-        versionEntity.versionHashModifier = version
-        objectModel.entities.append(versionEntity)
 
         return (objectModel, entityInfoByName)
       }

@@ -15,40 +15,40 @@ public struct Relationship<Value> : ManagedProperty
 
     // MARK: - to-one -
 
-    public init(_ name: String, inverseName: String, deleteRule r: NSDeleteRule, renamingIdentifier oldName: String? = nil) where Value : Object
+    public init(_ name: String, inverseName: String, deleteRule r: NSDeleteRule, renamingIdentifier oldName: String? = nil, versionHashModifier vh: String? = nil) where Value : Object
       {
-        propertyInfo = RelationshipInfo(name, arity: 1 ... 1, relatedEntityName: Value.entityName, inverseName: inverseName, deleteRule: r, renamingIdentifier: oldName)
+        propertyInfo = RelationshipInfo(name, arity: 1 ... 1, relatedEntityName: Value.entityName, inverseName: inverseName, deleteRule: r, renamingIdentifier: oldName, versionHashModifier: vh)
       }
 
-    public init(_ name: String, inverseName: String, deleteRule r: NSDeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil) where Value : Object
+    public init(_ name: String, inverseName: String, deleteRule r: NSDeleteRule, renamingIdentifier oldName: String? = nil, versionHashModifier vh: String? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil) where Value : Object
       {
-        propertyInfo = RelationshipInfo(name, arity: 1 ... 1, relatedEntityName: Value.entityName, inverseName: inverseName, deleteRule: r, renamingIdentifier: oldName, ingest: (key: k ?? .element(name), mode: m))
+        propertyInfo = RelationshipInfo(name, arity: 1 ... 1, relatedEntityName: Value.entityName, inverseName: inverseName, deleteRule: r, renamingIdentifier: oldName, versionHashModifier: vh, ingest: (key: k ?? .element(name), mode: m))
       }
 
 
     // MARK: - to-optional -
 
-    public init<T: Object>(_ name: String, inverseName: String, deleteRule r: NSDeleteRule, renamingIdentifier oldName: String? = nil) where Value == T?
+    public init<T: Object>(_ name: String, inverseName: String, deleteRule r: NSDeleteRule, renamingIdentifier oldName: String? = nil, versionHashModifier vh: String? = nil) where Value == T?
       {
-        propertyInfo = RelationshipInfo(name, arity: 0 ... 1, relatedEntityName: T.entityName, inverseName: inverseName, deleteRule: r, renamingIdentifier: oldName)
+        propertyInfo = RelationshipInfo(name, arity: 0 ... 1, relatedEntityName: T.entityName, inverseName: inverseName, deleteRule: r, renamingIdentifier: oldName, versionHashModifier: vh)
       }
 
-    public init<T: Object>(_ name: String, inverseName: String, deleteRule r: NSDeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil) where Value == T?
+    public init<T: Object>(_ name: String, inverseName: String, deleteRule r: NSDeleteRule, renamingIdentifier oldName: String? = nil, versionHashModifier vh: String? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil) where Value == T?
       {
-        propertyInfo = RelationshipInfo(name, arity:  0 ... 1, relatedEntityName: T.entityName, inverseName: inverseName, deleteRule: r, renamingIdentifier: oldName, ingest: (key: k ?? .element(name), mode: m))
+        propertyInfo = RelationshipInfo(name, arity:  0 ... 1, relatedEntityName: T.entityName, inverseName: inverseName, deleteRule: r, renamingIdentifier: oldName, versionHashModifier: vh, ingest: (key: k ?? .element(name), mode: m))
       }
 
 
     // MARK: - to-many -
 
-    public init<T: Object>(_ name: String, inverseName: String, deleteRule r: NSDeleteRule, renamingIdentifier oldName: String? = nil) where Value == Set<T>
+    public init<T: Object>(_ name: String, inverseName: String, deleteRule r: NSDeleteRule, renamingIdentifier oldName: String? = nil, versionHashModifier vh: String? = nil) where Value == Set<T>
       {
-        propertyInfo = RelationshipInfo(name, arity: 0 ... .max, relatedEntityName: T.entityName, inverseName: inverseName, deleteRule: r, renamingIdentifier: oldName)
+        propertyInfo = RelationshipInfo(name, arity: 0 ... .max, relatedEntityName: T.entityName, inverseName: inverseName, deleteRule: r, renamingIdentifier: oldName, versionHashModifier: vh)
       }
 
-    public init<T: Object>(_ name: String, inverseName: String, deleteRule r: NSDeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil) where Value == Set<T>
+    public init<T: Object>(_ name: String, inverseName: String, deleteRule r: NSDeleteRule, renamingIdentifier oldName: String? = nil, versionHashModifier vh: String? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil) where Value == Set<T>
       {
-        propertyInfo = RelationshipInfo(name, arity: 0 ... .max, relatedEntityName: T.entityName, inverseName: inverseName, deleteRule: r, renamingIdentifier: oldName, ingest: (key: k ?? .element(name), mode: m))
+        propertyInfo = RelationshipInfo(name, arity: 0 ... .max, relatedEntityName: T.entityName, inverseName: inverseName, deleteRule: r, renamingIdentifier: oldName, versionHashModifier: vh, ingest: (key: k ?? .element(name), mode: m))
       }
 
 

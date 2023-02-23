@@ -328,7 +328,7 @@ extension ModelDifferenceTests
         }
 
         class New : Object {
-          override class var previousEntityName : String? { "Old" }
+          override class var renamingIdentifier : String? { "Old" }
         }
 
         let s1 = try Schema(objectTypes: [Old.self])

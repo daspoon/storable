@@ -15,47 +15,47 @@ public struct Attribute<Value: Storable> : ManagedProperty
 
     // Initializers without explicit initial values.
 
-    public init(_ name: String, renamingIdentifier: String? = nil)
+    public init(_ name: String, renamingIdentifier: String? = nil, versionHashModifier: String? = nil)
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.self, renamingIdentifier: renamingIdentifier)
+        propertyInfo = AttributeInfo(name: name, type: Value.self, renamingIdentifier: renamingIdentifier, versionHashModifier: versionHashModifier)
       }
 
-    public init(_ name: String, renamingIdentifier: String? = nil)  where Value : Ingestible
+    public init(_ name: String, renamingIdentifier: String? = nil, versionHashModifier: String? = nil)  where Value : Ingestible
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.self, renamingIdentifier: renamingIdentifier, ingest: (.element(name), Value.ingest))
+        propertyInfo = AttributeInfo(name: name, type: Value.self, renamingIdentifier: renamingIdentifier, versionHashModifier: versionHashModifier, ingest: (.element(name), Value.ingest))
       }
 
-    public init(_ name: String, renamingIdentifier: String? = nil, ingestKey k: IngestKey) where Value : Ingestible
+    public init(_ name: String, renamingIdentifier: String? = nil, versionHashModifier: String? = nil, ingestKey k: IngestKey) where Value : Ingestible
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.self, renamingIdentifier: renamingIdentifier, ingest: (k, Value.ingest))
+        propertyInfo = AttributeInfo(name: name, type: Value.self, renamingIdentifier: renamingIdentifier, versionHashModifier: versionHashModifier, ingest: (k, Value.ingest))
       }
 
 
     // Initializers with explicit initial values
 
-    public init(wrappedValue v: Value, _ name: String, renamingIdentifier: String? = nil)
+    public init(wrappedValue v: Value, _ name: String, renamingIdentifier: String? = nil, versionHashModifier: String? = nil)
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.self, defaultValue: v, renamingIdentifier: renamingIdentifier)
+        propertyInfo = AttributeInfo(name: name, type: Value.self, defaultValue: v, renamingIdentifier: renamingIdentifier, versionHashModifier: versionHashModifier)
       }
 
-    public init(wrappedValue v: Value, _ name: String, renamingIdentifier: String? = nil) where Value : Ingestible
+    public init(wrappedValue v: Value, _ name: String, renamingIdentifier: String? = nil, versionHashModifier: String? = nil) where Value : Ingestible
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.self, defaultValue: v, renamingIdentifier: renamingIdentifier, ingest: (.element(name), Value.ingest))
+        propertyInfo = AttributeInfo(name: name, type: Value.self, defaultValue: v, renamingIdentifier: renamingIdentifier, versionHashModifier: versionHashModifier, ingest: (.element(name), Value.ingest))
       }
 
-    public init(wrappedValue v: Value, _ name: String, renamingIdentifier: String? = nil, ingestKey k: IngestKey) where Value : Ingestible
+    public init(wrappedValue v: Value, _ name: String, renamingIdentifier: String? = nil, versionHashModifier: String? = nil, ingestKey k: IngestKey) where Value : Ingestible
       {
-        propertyInfo = AttributeInfo(name: name, type: Value.self, defaultValue: v, renamingIdentifier: renamingIdentifier, ingest: (k, Value.ingest))
+        propertyInfo = AttributeInfo(name: name, type: Value.self, defaultValue: v, renamingIdentifier: renamingIdentifier, versionHashModifier: versionHashModifier, ingest: (k, Value.ingest))
       }
 
 
     // Initializers with values transformed on ingestion
 
-    public init<Transform>(_ name: String, renamingIdentifier: String? = nil, ingestKey k: IngestKey? = nil, transform t: Transform, defaultIngestValue v: Transform.Input? = nil) where Value : Ingestible, Transform : IngestTransform, Transform.Output == Value.Input
+    public init<Transform>(_ name: String, renamingIdentifier: String? = nil, versionHashModifier: String? = nil, ingestKey k: IngestKey? = nil, transform t: Transform, defaultIngestValue v: Transform.Input? = nil) where Value : Ingestible, Transform : IngestTransform, Transform.Output == Value.Input
       {
         // Transform the given default value.
         let tv = v.map {try! Value.ingest($0, withTransform: t)}
-        propertyInfo = AttributeInfo(name: name, type: Value.self, defaultValue: tv, renamingIdentifier: renamingIdentifier, ingest: (k ?? .element(name), {try Value.ingest($0, withTransform: t)}))
+        propertyInfo = AttributeInfo(name: name, type: Value.self, defaultValue: tv, renamingIdentifier: renamingIdentifier, versionHashModifier: versionHashModifier, ingest: (k ?? .element(name), {try Value.ingest($0, withTransform: t)}))
       }
 
 

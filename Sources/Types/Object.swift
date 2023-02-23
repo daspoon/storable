@@ -44,7 +44,12 @@ open class Object : NSManagedObject
 
 
     /// This method must be overridden to return non-nil if and only if the previous version exists with a different entity name. The default implementation returns nil.
-    open class var previousEntityName : String?
+    open class var renamingIdentifier : String?
+      { nil }
+
+
+    /// Enables forcing a distinction between a previous definition.
+    open class var versionHashModifier : String?
       { nil }
 
 
