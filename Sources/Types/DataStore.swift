@@ -24,7 +24,7 @@ public class DataStore : BasicStore
 
         // If the store exists and is incompatible with the target schema, then perform incremental migration from the previously compatible schema.
         if FileManager.default.fileExists(atPath: storeURL.path) {
-          let metadata = try NSPersistentStoreCoordinator.metadataForPersistentStore(type: .sqlite, at: storeURL)
+          let metadata = try getMetadata()
           if info.managedObjectModel.isConfiguration(withName: nil, compatibleWithStoreMetadata: metadata) == false {
             // Assign version numbers to the previous schema
             var migrations = ms
@@ -36,7 +36,7 @@ public class DataStore : BasicStore
             // Iteratively perform the migration steps on the persistent store, passing along the updated store model
             _ = try path.migrationSteps.reduce(path.sourceModel) { (sourceModel, migrationStep) in
               log("\(migrationStep)")
-              return try migrationStep.apply(to: storeURL, of: sourceModel)
+              return try migrate(from: sourceModel, using: migrationStep)
             }
           }
         }
@@ -101,6 +101,29 @@ public class DataStore : BasicStore
         // Append the additional steps required to migrate between the previous and current version.
         let additionalSteps = try current.schema.migrationSteps(to: current.model, from: previousModel, of: previousSchema, using: migration.script)
         return (previousModel, initialPath.migrationSteps + additionalSteps)
+      }
+
+
+    /// Apply the migration step to the store content and return the object model for the updated content. It is assumed store content is consistent with the given object model.
+    func migrate(from storeModel: NSManagedObjectModel, using step: Migration.Step) throws -> NSManagedObjectModel
+      {
+        switch step {
+          case .lightweight(let targetModel) :
+            // Perform a lightweight migration
+            try migrate(from: storeModel, to: targetModel)
+            return targetModel
+
+          case .script(let script) :
+            try update(as: storeModel) { context in
+              // If an instance of ScriptMarker doesn't exist, run the script, add a marker instance, and save the context.
+              if try context.tryFetchObject(makeFetchRequest(for: Migration.ScriptMarker.self)) == nil {
+                try script(context)
+                try context.create(Migration.ScriptMarker.self) { _ in }
+                try context.save()
+              }
+            }
+            return storeModel
+        }
       }
 
 

@@ -41,43 +41,6 @@ public struct Migration
   }
 
 
-extension Migration.Step
-  {
-    /// Apply the migration step to the given store URL of the given object model and return the object model of the updated content.
-    func apply(to sourceURL: URL, of sourceModel: NSManagedObjectModel) throws -> NSManagedObjectModel
-      {
-        switch self {
-          case .lightweight(let targetModel) :
-            // Perform a lightweight migration
-            try BasicStore.migrateStore(at: sourceURL, from: sourceModel, to: targetModel)
-            return targetModel
-
-          case .script(let script) :
-            try BasicStore.updateStore(at: sourceURL, as: sourceModel) { context in
-              // If an instance of ScriptMarker doesn't exist, run the script, add a marker instance, and save the context.
-              if try context.tryFetchObject(makeFetchRequest(for: Migration.ScriptMarker.self)) == nil {
-                try script(context)
-                try context.create(Migration.ScriptMarker.self) { _ in }
-                try context.save()
-              }
-            }
-            return sourceModel
-
-          /*
-          case .heavyweight(let target, let mappingModel) :
-            // Establish a temporary URL to host the modified store.
-            let targetURL = URL.temporaryDirectory.appending(components: sourceURL.lastPathComponent)
-            // Perform the migration.
-            let manager = NSMigrationManager(sourceModel: source, destinationModel: target)
-            try manager.migrateStore(from: sourceURL, type: .sqlite, options: [:], mapping: migration, to: targetURL, type: .sqlite, options: [:])
-            // Move the target store overtop of the source store
-            try FileManager.default.moveItem(at: targetURL, to: sourceURL)
-          */
-        }
-      }
-  }
-
-
 extension Migration.Step : CustomStringConvertible
   {
     public var description : String
