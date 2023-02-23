@@ -11,15 +11,12 @@ public struct Schema
   {
     public typealias RuntimeInfo = (managedObjectModel: NSManagedObjectModel, entityInfoByName: [String: EntityInfo])
 
-    public let name : String
     private var inheritanceHierarchy : InheritanceHierarchy<Object> = .init()
     public private(set) var objectInfoByName : [String: ObjectInfo] = [:]
 
 
-    public init(name: String = "schema", objectTypes: [Object.Type]) throws
+    public init(objectTypes: [Object.Type]) throws
       {
-        self.name = name
-
         for objectType in objectTypes {
           try self.addObjectType(objectType)
         }

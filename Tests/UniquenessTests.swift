@@ -48,7 +48,7 @@ final class UniquenessTests : XCTestCase
     func testNameConflict() throws
       {
         do {
-          _ = try Schema(name: "", objectTypes: [PropertyNameConflict.self])
+          _ = try Schema(objectTypes: [PropertyNameConflict.self])
           XCTFail("expected error not thrown")
         }
         catch let error {
@@ -59,7 +59,7 @@ final class UniquenessTests : XCTestCase
     func testInheritedNameConflict() throws
       {
         do {
-          _ = try Schema(name: "", objectTypes: [InhertiedPropertyNameConflict.self])
+          _ = try Schema(objectTypes: [InhertiedPropertyNameConflict.self])
           XCTFail("expected error not thrown")
         }
         catch let error {
