@@ -71,7 +71,6 @@ public struct Schema
           entityDescription.managedObjectClassName = NSStringFromClass(objectType)
           entityDescription.isAbstract = objectType.isAbstract
           entityDescription.renamingIdentifier = objectType.renamingIdentifier
-          entityDescription.versionHashModifier = objectType.versionHashModifier
           entityDescription.subentities = subentities
           // Add a registry entry
           entityInfoByName[objectInfo.name] = EntityInfo(objectInfo, entityDescription)
@@ -89,7 +88,6 @@ public struct Schema
             attributeDescription.valueTransformerName = attribute.valueTransformerName?.rawValue
             attributeDescription.defaultValue = attribute.defaultValue?.storedValue()
             attributeDescription.renamingIdentifier = attribute.renamingIdentifier
-            attributeDescription.versionHashModifier = attribute.versionHashModifier
             entityInfo.entityDescription.properties.append(attributeDescription)
           }
         }
@@ -123,13 +121,11 @@ public struct Schema
             forwardDescription.inverseRelationship = inverseDescription
             forwardDescription.deleteRule = relationship.deleteRule
             forwardDescription.rangeOfCount = relationship.arity
-            forwardDescription.versionHashModifier = relationship.versionHashModifier
             inverseDescription.name = relationship.inverseName
             inverseDescription.destinationEntity = sourceInfo.entityDescription
             inverseDescription.inverseRelationship = forwardDescription
             inverseDescription.deleteRule = inverse.deleteRule
             inverseDescription.rangeOfCount = inverse.arity
-            inverseDescription.versionHashModifier = inverse.versionHashModifier
             // Add the NSRelationshipDescriptions to the corresponding NSEntityDescriptions
             sourceInfo.entityDescription.properties.append(forwardDescription)
             targetInfo.entityDescription.properties.append(inverseDescription)

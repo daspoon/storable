@@ -54,10 +54,6 @@ public struct ObjectInfo
       { managedObjectClass.renamingIdentifier }
 
 
-    public var versionHashModifier : String?
-      { managedObjectClass.versionHashModifier }
-
-
     mutating func addAttribute(_ attribute: AttributeInfo)
       {
         assert(attributes[attribute.name] == nil && relationships[attribute.name] == nil && fetchedProperties[attribute.name] == nil)
@@ -91,7 +87,6 @@ extension ObjectInfo : Diffable
       {
         case name
         case isAbstract
-        case versionHashModifier
       }
 
     /// The difference between two ObjectInfo instances combines the changes to the entity description with the differences between attributes/relationships.
@@ -116,7 +111,6 @@ extension ObjectInfo : Diffable
         let descriptorChanges : [DescriptorChange] = [
           old.name != self.name ? .name : nil,
           old.isAbstract != self.isAbstract ? .isAbstract : nil,
-          old.versionHashModifier != self.versionHashModifier ? .versionHashModifier : nil,
         ].compactMap {$0}
 
         return Difference(

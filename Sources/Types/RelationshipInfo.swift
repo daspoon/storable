@@ -36,15 +36,12 @@ public struct RelationshipInfo : PropertyInfo
     /// The name of the relationship in the previous entity version, if necessary.
     public var renamingIdentifier : String?
 
-    /// Enables forcing a distinction between a previous definition.
-    public var versionHashModifier : String?
-
     /// Indicates how values are established on object ingestion.
     public var ingest : (key: IngestKey, mode: IngestMode)?
 
 
     /// Initialize a new instance.
-    public init(_ name: String, arity: ClosedRange<Int>, relatedEntityName: String, inverseName: String, deleteRule: NSDeleteRule, renamingIdentifier: String? = nil, versionHashModifier: String? = nil, ingest: (key: IngestKey, mode: IngestMode)? = nil)
+    public init(_ name: String, arity: ClosedRange<Int>, relatedEntityName: String, inverseName: String, deleteRule: NSDeleteRule, renamingIdentifier: String? = nil, ingest: (key: IngestKey, mode: IngestMode)? = nil)
       {
         precondition(arity.lowerBound >= 0 && arity.upperBound >= 1)
 
@@ -54,7 +51,6 @@ public struct RelationshipInfo : PropertyInfo
         self.inverseName = inverseName
         self.deleteRule = deleteRule
         self.renamingIdentifier = renamingIdentifier
-        self.versionHashModifier = versionHashModifier
         self.ingest = ingest
       }
   }
@@ -73,7 +69,6 @@ extension RelationshipInfo : Diffable
         //case isOrdered
         //case isTransient
         case rangeOfCount
-        case versionHashModifier
       }
 
     public func difference(from old: Self) throws -> Set<Change>?
@@ -83,7 +78,6 @@ extension RelationshipInfo : Diffable
           old.relatedEntityName != self.relatedEntityName ? .relatedEntityName : nil,
           old.inverseName != self.inverseName ? .inverseName : nil,
           old.arity != self.arity ? .rangeOfCount : nil,
-          old.versionHashModifier != self.versionHashModifier ? .versionHashModifier : nil,
         ].compactMap {$0}
         return changes.count > 0 ? Set(changes) : nil
       }

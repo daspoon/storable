@@ -30,14 +30,11 @@ public struct AttributeInfo : PropertyInfo
     /// The name of the attribute in the previous entity version, if necessary.
     public var renamingIdentifier : String?
 
-    /// Enables forcing a distinction between a previous definition.
-    public var versionHashModifier : String?
-
     /// If non-nil, determines how json values are extracted from object ingest data and transformed to stored values.
     public var ingest : (key: IngestKey, method: (Any) throws -> any Storable)?
 
 
-    public init<Value: Storable>(name: String, type: Value.Type, isOptional: Bool = false, defaultValue: Value? = nil, renamingIdentifier: String? = nil, versionHashModifier: String? = nil, ingest: (key: IngestKey, method: (Any) throws -> any Storable)? = nil)
+    public init<Value: Storable>(name: String, type: Value.Type, isOptional: Bool = false, defaultValue: Value? = nil, renamingIdentifier: String? = nil, ingest: (key: IngestKey, method: (Any) throws -> any Storable)? = nil)
       {
         self.name = name
         self.type = type
@@ -46,7 +43,6 @@ public struct AttributeInfo : PropertyInfo
         self.defaultValue = defaultValue
         self.isOptional = isOptional
         self.renamingIdentifier = renamingIdentifier
-        self.versionHashModifier = versionHashModifier
         self.ingest = ingest
       }
 
@@ -71,7 +67,6 @@ extension AttributeInfo : Diffable
         case isOptional
         case type
         //case isTransient(Bool, Bool)
-        case versionHashModifier
       }
 
     public func difference(from old: Self) throws -> Set<Change>?
@@ -80,7 +75,6 @@ extension AttributeInfo : Diffable
           old.name != self.name ? .name : nil,
           old.isOptional != self.isOptional ? .isOptional : nil,
           old.type != self.type ? .type : nil,
-          old.versionHashModifier != self.versionHashModifier ? .versionHashModifier : nil,
         ].compactMap {$0}
         return changes.count > 0 ? Set(changes) : nil
       }

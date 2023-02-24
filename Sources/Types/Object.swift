@@ -48,11 +48,6 @@ open class Object : NSManagedObject
       { nil }
 
 
-    /// Enables forcing a distinction between a previous definition.
-    open class var versionHashModifier : String?
-      { nil }
-
-
     open class var identity : Identity
       { .anonymous }
 
