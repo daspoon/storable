@@ -15,8 +15,17 @@ public struct Schema
     public private(set) var objectInfoByName : [String: ObjectInfo] = [:]
 
 
-    public init(objectTypes: [Object.Type]) throws
+    /// An explicit version identifier optionally assigned on initialization.
+    public let versionId : String?
+
+    /// The name of the implicit entity added to each generated object model.
+    static let versioningEntityName = "$Schema"
+
+
+    /// Create a new instance with a given list of Object subclasses and an optional model version identifier.
+    public init(versionId: String? = nil, objectTypes: [Object.Type]) throws
       {
+        self.versionId = versionId
         for objectType in objectTypes {
           try self.addObjectType(objectType)
         }
@@ -44,8 +53,11 @@ public struct Schema
       }
 
 
-    public func createRuntimeInfo() throws -> RuntimeInfo
+    /// Create the pairing of managed object model and entity mapping implied by the schema. The given versionId must be the one maintained by the instance unless none was given on initialization.
+    public func createRuntimeInfo(withVersionId versionId: String) throws -> RuntimeInfo
       {
+        precondition(self.versionId == nil || self.versionId == .some(versionId))
+
         // Perform a post-order traversal on the ObjectInfo hierarchy to create an entity description for each class, establish inheritance between entities, and populate entityInfoByName...
         var entityInfoByName : [String: EntityInfo] = [:]
         _ = inheritanceHierarchy.fold { (objectType: Object.Type, subentities: [NSEntityDescription]) -> NSEntityDescription in
@@ -142,6 +154,12 @@ public struct Schema
         let objectModel : NSManagedObjectModel = .init()
         objectModel.entities = entityInfoByName.values.map { $0.entityDescription }
 
+        // Add the entity used to distinguish schema versions; this entity is not exposed in entityInfoByName.
+        let versionEntity = NSEntityDescription()
+        versionEntity.name = Self.versioningEntityName
+        versionEntity.versionHashModifier = versionId
+        objectModel.entities.append(versionEntity)
+
         return (objectModel, entityInfoByName)
       }
 
@@ -164,8 +182,10 @@ public struct Schema
           case (_, .some(let migrationScript)) :
             // A migration script is necessary: extend the intermediate schema with a MigrationScriptMarker,
             try customizationInfo.intermediateSchema.addObjectType(Migration.ScriptMarker.self)
+            // construct a version identifier for the intermediate model,
+            let versionId = sourceModel.versionId + " -> " + targetModel.versionId // NOTE: we have no means to ensure this identifier is unique
             // generate the intermediate object model,
-            let intermediateModel = try customizationInfo.intermediateSchema.createRuntimeInfo().managedObjectModel
+            let intermediateModel = try customizationInfo.intermediateSchema.createRuntimeInfo(withVersionId: versionId).managedObjectModel
             // and set renaming identifiers on target attributes subject to storage type changes.
             for (entityName, attributeName) in customizationInfo.renamedTargetAttributes {
               targetModel.entitiesByName[entityName]!.attributesByName[attributeName]!.renamingIdentifier = Self.renameNew(attributeName)

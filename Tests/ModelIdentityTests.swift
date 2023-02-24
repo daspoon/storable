@@ -11,8 +11,9 @@ final class ModelIdentityTests : XCTestCase
   {
     func checkObjectModelHashes(match expectedMatch: Bool, _ original: Schema, _ modified: Schema) throws
       {
-        let originalModel = try original.createRuntimeInfo().managedObjectModel
-        let modifiedModel = try modified.createRuntimeInfo().managedObjectModel
+        let versionId = "*"
+        let originalModel = try original.createRuntimeInfo(withVersionId: versionId).managedObjectModel
+        let modifiedModel = try modified.createRuntimeInfo(withVersionId: versionId).managedObjectModel
 
         let actualMatch = originalModel.entityVersionHashesByName == modifiedModel.entityVersionHashesByName
         if actualMatch != expectedMatch {

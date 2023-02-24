@@ -15,15 +15,23 @@ public class DataStore : BasicStore
 
     public func openWith(schema: Schema, migrations: [Migration] = []) throws
       {
-        // Create the object model for the current schema; the model incorporates the schema version number into its hash.
-        let info = try schema.createRuntimeInfo()
+        // Determine the list of schema version identifiers from oldest to newest and ensure each is distinct.
+        let versionIds = (migrations.map({$0.source}) + [schema]).reduce((1, []), { (accum: (idx: Int, ids: [String]), schema: Schema) -> (idx: Int, ids: [String]) in
+          (accum.idx + (schema.versionId == nil ? 1 : 0), accum.ids + [schema.versionId ?? "\(accum.idx)"])
+        }).ids
+        guard Set(versionIds).count == versionIds.count else { throw Exception("version identifiers must be distinct") }
+
+        // Create the object model for the current schema.
+        let info = try schema.createRuntimeInfo(withVersionId: versionIds.last!)
 
         // If the store exists and is incompatible with the target schema, then perform incremental migration from the previously compatible schema.
         if FileManager.default.fileExists(atPath: storeURL.path) {
           let metadata = try getMetadata()
-          if info.managedObjectModel.isConfiguration(withName: nil, compatibleWithStoreMetadata: metadata) == false {
+          if info.managedObjectModel.isConfiguration(withName: nil as String?, compatibleWithStoreMetadata: metadata) == false {
+            // First pair each migration with the version identifier of its schema; note that zip drops trailing element of versionIds
+            let pairs = Array(zip(migrations, versionIds))
             // Get the compatible model for the metadata along with the list of steps leading to the target model
-            let path = try Self.migrationPath(fromStoreMetadata: metadata, to: (schema, info.managedObjectModel), migrations: migrations)
+            let path = try Self.migrationPath(from: metadata, to: (schema, info.managedObjectModel), using: pairs)
             // Iteratively perform the migration steps on the persistent store, passing along the updated store model
             _ = try path.migrationSteps.reduce(path.sourceModel) { (sourceModel, migrationStep) in
               log("\(migrationStep)")
@@ -74,20 +82,20 @@ public class DataStore : BasicStore
 
 
     /// Return the list of steps required to migrate a store from the previous version.
-    static func migrationPath(fromStoreMetadata metadata: [String: Any], to current: (schema: Schema, model: NSManagedObjectModel), migrations: [Migration]) throws -> (sourceModel: NSManagedObjectModel, migrationSteps: [Migration.Step])
+    static func migrationPath(from metadata: [String: Any], to current: (schema: Schema, model: NSManagedObjectModel), using versions: [(Migration, String)]) throws -> (sourceModel: NSManagedObjectModel, migrationSteps: [Migration.Step])
       {
         // If the current model matches the given metadata then we're done
         guard current.model.isConfiguration(withName: nil, compatibleWithStoreMetadata: metadata) == false
           else { return (current.model, []) }
 
         // Otherwise there must be a previous schema version...
-        guard let migration = migrations.last
+        guard let (migration, versionId) = versions.last
           else { throw Exception("no compatible schema version") }
 
         // to determine the source model and sequence of initial steps recursively.
         let previousSchema = migration.source
-        let previousModel = try previousSchema.createRuntimeInfo().managedObjectModel
-        let initialPath = try Self.migrationPath(fromStoreMetadata: metadata, to: (previousSchema, previousModel), migrations: migrations.dropLast(1))
+        let previousModel = try previousSchema.createRuntimeInfo(withVersionId: versionId).managedObjectModel
+        let initialPath = try Self.migrationPath(from: metadata, to: (previousSchema, previousModel), using: versions.dropLast(1))
 
         // Append the additional steps required to migrate between the previous and current version.
         let additionalSteps = try current.schema.migrationSteps(to: current.model, from: previousModel, of: previousSchema, using: migration.script)
