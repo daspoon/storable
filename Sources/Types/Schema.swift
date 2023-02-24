@@ -169,17 +169,17 @@ public struct Schema
 
 
     /// Return the steps required to migrate the object model of the previous schema version to the receiver's object model.
-    func migrationSteps(to targetModel: NSManagedObjectModel, from sourceModel: NSManagedObjectModel, of sourceSchema: Schema, using migrationScript: Migration.Script?) throws -> [Migration.Step]
+    func migrationSteps(to targetModel: NSManagedObjectModel, from sourceModel: NSManagedObjectModel, of sourceSchema: Schema, using migration: Migration) throws -> [Migration.Step]
       {
         var customizationInfo = try Self.customizationInfoForMigration(from: sourceSchema, to: self)
 
         let steps : [Migration.Step]
-        switch (customizationInfo.requiresMigrationScript, migrationScript) {
+        switch (customizationInfo.requiresMigrationScript, migration.script) {
           case (false, .none) :
             // An implicit migration to the target model is sufficient.
             steps = [.lightweight(targetModel)]
 
-          case (_, .some(let migrationScript)) :
+          case (_, .some(let script)) :
             // A migration script is necessary: extend the intermediate schema with a MigrationScriptMarker,
             try customizationInfo.intermediateSchema.addObjectType(Migration.ScriptMarker.self)
             // construct a version identifier for the intermediate model,
@@ -190,7 +190,7 @@ public struct Schema
             for (entityName, attributeName) in customizationInfo.renamedTargetAttributes {
               targetModel.entitiesByName[entityName]!.attributesByName[attributeName]!.renamingIdentifier = Self.renameNew(attributeName)
             }
-            steps = [.lightweight(intermediateModel), .script(migrationScript), .lightweight(targetModel)]
+            steps = [.lightweight(intermediateModel), .script(script, migration.idempotent), .lightweight(targetModel)]
 
           case (true, .none) :
             throw Exception("a migration script is required")

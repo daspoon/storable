@@ -21,8 +21,8 @@ public struct Migration
         /// Perform a lightweight migration to the associated model.
         case lightweight(NSManagedObjectModel)
 
-        /// Run the given script. This step requires the ScriptMarker entity exists in the object model of the affected store.
-        case script(Script)
+        /// Run the given script. The second element indicates whether or not the script can be run repeatedly.
+        case script(Script, Bool)
       }
 
 
@@ -32,11 +32,15 @@ public struct Migration
     /// The optional in-place update used in a custom migration.
     let script : Migration.Script?
 
+    /// Indicates whether or not the script can be run repeatedly without adverse effect.
+    let idempotent : Bool
 
-    public init(from s: Schema, using f: Migration.Script? = nil)
+
+    public init(from s: Schema, idempotent i: Bool = false, using f: Migration.Script? = nil)
       {
         source = s
         script = f
+        idempotent = i
       }
   }
 

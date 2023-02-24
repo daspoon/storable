@@ -98,7 +98,7 @@ public class DataStore : BasicStore
         let initialPath = try Self.migrationPath(from: metadata, to: (previousSchema, previousModel), using: versions.dropLast(1))
 
         // Append the additional steps required to migrate between the previous and current version.
-        let additionalSteps = try current.schema.migrationSteps(to: current.model, from: previousModel, of: previousSchema, using: migration.script)
+        let additionalSteps = try current.schema.migrationSteps(to: current.model, from: previousModel, of: previousSchema, using: migration)
         return (previousModel, initialPath.migrationSteps + additionalSteps)
       }
 
@@ -112,10 +112,10 @@ public class DataStore : BasicStore
             try migrate(from: storeModel, to: targetModel)
             return targetModel
 
-          case .script(let script) :
+          case .script(let script, let idempotent) :
             try update(as: storeModel) { context in
               // If an instance of ScriptMarker doesn't exist, run the script, add a marker instance, and save the context.
-              if try context.tryFetchObject(makeFetchRequest(for: Migration.ScriptMarker.self)) == nil {
+              if try context.tryFetchObject(makeFetchRequest(for: Migration.ScriptMarker.self)) == nil || idempotent {
                 try script(context)
                 try context.create(Migration.ScriptMarker.self) { _ in }
                 try context.save()
