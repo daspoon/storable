@@ -21,8 +21,8 @@ public struct Migration
         /// Perform a lightweight migration to the associated model.
         case lightweight(NSManagedObjectModel)
 
-        /// Run the given script. This step requires the ScriptMarker entity exists in the object model of the affected store.
-        case script(Script)
+        /// Run the given script. The second element indicates whether or not the script can be run repeatedly.
+        case script(Script, Bool)
       }
 
 
@@ -32,48 +32,15 @@ public struct Migration
     /// The optional in-place update used in a custom migration.
     let script : Migration.Script?
 
+    /// Indicates whether or not the script can be run repeatedly without adverse effect.
+    let idempotent : Bool
 
-    public init(from s: Schema, using f: Migration.Script? = nil)
+
+    public init(from s: Schema, idempotent i: Bool = false, using f: Migration.Script? = nil)
       {
         source = s
         script = f
-      }
-  }
-
-
-extension Migration.Step
-  {
-    /// Apply the migration step to the given store URL of the given object model and return the object model of the updated content.
-    func apply(to sourceURL: URL, of sourceModel: NSManagedObjectModel) throws -> NSManagedObjectModel
-      {
-        switch self {
-          case .lightweight(let targetModel) :
-            // Perform a lightweight migration
-            try BasicStore.migrateStore(at: sourceURL, from: sourceModel, to: targetModel)
-            return targetModel
-
-          case .script(let script) :
-            try BasicStore.updateStore(at: sourceURL, as: sourceModel) { context in
-              // If an instance of ScriptMarker doesn't exist, run the script, add a marker instance, and save the context.
-              if try context.tryFetchObject(makeFetchRequest(for: Migration.ScriptMarker.self)) == nil {
-                try script(context)
-                try context.create(Migration.ScriptMarker.self) { _ in }
-                try context.save()
-              }
-            }
-            return sourceModel
-
-          /*
-          case .heavyweight(let target, let mappingModel) :
-            // Establish a temporary URL to host the modified store.
-            let targetURL = URL.temporaryDirectory.appending(components: sourceURL.lastPathComponent)
-            // Perform the migration.
-            let manager = NSMigrationManager(sourceModel: source, destinationModel: target)
-            try manager.migrateStore(from: sourceURL, type: .sqlite, options: [:], mapping: migration, to: targetURL, type: .sqlite, options: [:])
-            // Move the target store overtop of the source store
-            try FileManager.default.moveItem(at: targetURL, to: sourceURL)
-          */
-        }
+        idempotent = i
       }
   }
 

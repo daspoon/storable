@@ -9,6 +9,7 @@ public class BasicStore
   {
     /// The location of the persistent store established on initialization.
     public let storeURL : URL
+    public let storeType : NSPersistentStore.StoreType = .sqlite
 
 
     /// The state maintained while the persistent store is open.
@@ -48,6 +49,11 @@ public class BasicStore
       { state != nil }
 
 
+    /// Return the metadata identifying the object model with which the persistent store was created, assuming it exists.
+    func getMetadata() throws -> [String: Any]
+      { try NSPersistentStoreCoordinator.metadataForPersistentStore(type: storeType, at: storeURL) }
+
+
     /// Return the managed object context, or nil if the persistent store is not open.
     public var managedObjectContext : NSManagedObjectContext!
       {
@@ -67,7 +73,7 @@ public class BasicStore
         context.persistentStoreCoordinator = coordinator
 
         // Open the persistent store, which must be compatible with the given object model.
-        let store = try coordinator.addPersistentStore(type: .sqlite, at: storeURL)
+        let store = try coordinator.addPersistentStore(type: storeType, at: storeURL)
 
         // Retain the
         state = .init(
@@ -124,38 +130,40 @@ public class BasicStore
 
 
     /// Perform lightweight migration of the store between the given object models. The store must not be open.
-    public func migrate(from sourceModel: NSManagedObjectModel, to targetModel: NSManagedObjectModel) throws
+    public func migrate(from storeModel: NSManagedObjectModel, to targetModel: NSManagedObjectModel) throws
       {
-        guard state == nil else { preconditionFailure("store is open") }
-        try Self.migrateStore(at: storeURL, from: sourceModel, to: targetModel)
+        precondition(isOpen == false && isCompatible(with: storeModel))
+
+        let mapping = try NSMappingModel.inferredMappingModel(forSourceModel: storeModel, destinationModel: targetModel)
+        let manager = NSMigrationManager(sourceModel: storeModel, destinationModel: targetModel)
+        try manager.migrateStore(from: storeURL, type: storeType, mapping: mapping, to: storeURL, type: storeType)
       }
 
 
     /// Open the store with the given object model, invoke the given script, and save.
-    public func update(as objectModel: NSManagedObjectModel, using script: (NSManagedObjectContext) throws -> Void) throws
+    public func update(as storeModel: NSManagedObjectModel, using script: (NSManagedObjectContext) throws -> Void) throws
       {
-        guard state == nil else { preconditionFailure("store is open") }
-        try Self.updateStore(at: storeURL, as: objectModel, using: script)
-      }
+        precondition(isOpen == false && isCompatible(with: storeModel))
 
-
-    /// Perform lightweight migration of the specified store between the given object models. The store must not be open.
-    public static func migrateStore(at storeURL: URL, from sourceModel: NSManagedObjectModel, to targetModel: NSManagedObjectModel) throws
-      {
-        let mapping = try NSMappingModel.inferredMappingModel(forSourceModel: sourceModel, destinationModel: targetModel)
-        let manager = NSMigrationManager(sourceModel: sourceModel, destinationModel: targetModel)
-        try manager.migrateStore(from: storeURL, type: .sqlite, mapping: mapping, to: storeURL, type: .sqlite)
-      }
-
-
-    /// Open the specified store with the given object model, invoke the given script, and save.
-    public static func updateStore(at storeURL: URL, as objectModel: NSManagedObjectModel, using script: (NSManagedObjectContext) throws -> Void) throws
-      {
-        let coordinator = NSPersistentStoreCoordinator(managedObjectModel: objectModel)
-        _ = try coordinator.addPersistentStore(type: .sqlite, at: storeURL)
+        let coordinator = NSPersistentStoreCoordinator(managedObjectModel: storeModel)
+        let store = try coordinator.addPersistentStore(type: storeType, at: storeURL)
         let context = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
         context.persistentStoreCoordinator = coordinator
         try script(context)
         try context.save()
+        try coordinator.remove(store)
+      }
+
+
+    /// Check compatibility of the given object model with the persistent store, assuming it exists. Don't propagate exceptions as this method exists only to enforce the expectation of compatibility.
+    func isCompatible(with model: NSManagedObjectModel) -> Bool
+      {
+        let metadata : [String: Any]
+        do { metadata = try getMetadata() }
+        catch {
+          log("failed to get store metadata: \(error)")
+          return false
+        }
+        return model.isConfiguration(withName: nil, compatibleWithStoreMetadata: metadata)
       }
   }

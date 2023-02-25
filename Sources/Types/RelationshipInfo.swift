@@ -69,7 +69,6 @@ extension RelationshipInfo : Diffable
         //case isOrdered
         //case isTransient
         case rangeOfCount
-        //case versionHashModifier
       }
 
     public func difference(from old: Self) throws -> Set<Change>?

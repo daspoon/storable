@@ -11,18 +11,21 @@ public struct Schema
   {
     public typealias RuntimeInfo = (managedObjectModel: NSManagedObjectModel, entityInfoByName: [String: EntityInfo])
 
-    public let name : String
     private var inheritanceHierarchy : InheritanceHierarchy<Object> = .init()
     public private(set) var objectInfoByName : [String: ObjectInfo] = [:]
 
-    /// The version string is set by DataStore.openWith(schema:migrations:), and is used as versionHashModifier for the $Schema entity which is implicitly added to the generated object model.
-    internal var version : String?
+
+    /// An explicit version identifier optionally assigned on initialization.
+    public let versionId : String?
+
+    /// The name of the implicit entity added to each generated object model.
+    static let versioningEntityName = "$Schema"
 
 
-    public init(name: String = "schema", objectTypes: [Object.Type]) throws
+    /// Create a new instance with a given list of Object subclasses and an optional model version identifier.
+    public init(versionId: String? = nil, objectTypes: [Object.Type]) throws
       {
-        self.name = name
-
+        self.versionId = versionId
         for objectType in objectTypes {
           try self.addObjectType(objectType)
         }
@@ -50,8 +53,11 @@ public struct Schema
       }
 
 
-    public func createRuntimeInfo() throws -> RuntimeInfo
+    /// Create the pairing of managed object model and entity mapping implied by the schema. The given versionId must be the one maintained by the instance unless none was given on initialization.
+    public func createRuntimeInfo(withVersionId versionId: String) throws -> RuntimeInfo
       {
+        precondition(self.versionId == nil || self.versionId == .some(versionId))
+
         // Perform a post-order traversal on the ObjectInfo hierarchy to create an entity description for each class, establish inheritance between entities, and populate entityInfoByName...
         var entityInfoByName : [String: EntityInfo] = [:]
         _ = inheritanceHierarchy.fold { (objectType: Object.Type, subentities: [NSEntityDescription]) -> NSEntityDescription in
@@ -64,6 +70,7 @@ public struct Schema
           entityDescription.name = objectInfo.name
           entityDescription.managedObjectClassName = NSStringFromClass(objectType)
           entityDescription.isAbstract = objectType.isAbstract
+          entityDescription.renamingIdentifier = objectType.renamingIdentifier
           entityDescription.subentities = subentities
           // Add a registry entry
           entityInfoByName[objectInfo.name] = EntityInfo(objectInfo, entityDescription)
@@ -145,8 +152,8 @@ public struct Schema
 
         // Add the entity used to distinguish schema versions; this entity is not exposed in entityInfoByName.
         let versionEntity = NSEntityDescription()
-        versionEntity.name = "$Schema"
-        versionEntity.versionHashModifier = version
+        versionEntity.name = Self.versioningEntityName
+        versionEntity.versionHashModifier = versionId
         objectModel.entities.append(versionEntity)
 
         return (objectModel, entityInfoByName)
@@ -158,26 +165,28 @@ public struct Schema
 
 
     /// Return the steps required to migrate the object model of the previous schema version to the receiver's object model.
-    func migrationSteps(from sourceModel: NSManagedObjectModel, of sourceSchema: Schema, to targetModel: NSManagedObjectModel, using migrationScript: Migration.Script?) throws -> [Migration.Step]
+    func migrationSteps(to targetModel: NSManagedObjectModel, from sourceModel: NSManagedObjectModel, of sourceSchema: Schema, using migration: Migration) throws -> [Migration.Step]
       {
         var customizationInfo = try Self.customizationInfoForMigration(from: sourceSchema, to: self)
 
         let steps : [Migration.Step]
-        switch (customizationInfo.requiresMigrationScript, migrationScript) {
+        switch (customizationInfo.requiresMigrationScript, migration.script) {
           case (false, .none) :
             // An implicit migration to the target model is sufficient.
             steps = [.lightweight(targetModel)]
 
-          case (_, .some(let migrationScript)) :
+          case (_, .some(let script)) :
             // A migration script is necessary: extend the intermediate schema with a MigrationScriptMarker,
             try customizationInfo.intermediateSchema.addObjectType(Migration.ScriptMarker.self)
+            // construct a version identifier for the intermediate model,
+            let versionId = sourceModel.versionId + " -> " + targetModel.versionId // NOTE: we have no means to ensure this identifier is unique
             // generate the intermediate object model,
-            let intermediateModel = try customizationInfo.intermediateSchema.createRuntimeInfo().managedObjectModel
+            let intermediateModel = try customizationInfo.intermediateSchema.createRuntimeInfo(withVersionId: versionId).managedObjectModel
             // and set renaming identifiers on target attributes subject to storage type changes.
             for (entityName, attributeName) in customizationInfo.renamedTargetAttributes {
               targetModel.entitiesByName[entityName]!.attributesByName[attributeName]!.renamingIdentifier = Self.renameNew(attributeName)
             }
-            steps = [.lightweight(intermediateModel), .script(migrationScript), .lightweight(targetModel)]
+            steps = [.lightweight(intermediateModel), .script(script, migration.idempotent), .lightweight(targetModel)]
 
           case (true, .none) :
             throw Exception("a migration script is required")
@@ -194,6 +203,7 @@ public struct Schema
       { "$\(name)_new" }
 
 
+    /// CustomMigrationInfo maintains an intermediate schema to bridge between adjacent schema versions, along with auxiliary data.
     struct CustomMigrationInfo
       {
         /// The source schema with additive modifications.
@@ -205,7 +215,7 @@ public struct Schema
       }
 
 
-    /// Return the intermediate schema required for a custom migration between the given source and target schemas, or nil if lightweight migration is sufficient.
+    /// Returns a summary of the differences between given source and target schemas.
     static func customizationInfoForMigration(from sourceSchema: Schema, to targetSchema: Schema) throws -> CustomMigrationInfo
       {
         // The intermediate schema starts as a copy of the source schema.
@@ -221,11 +231,14 @@ public struct Schema
           for (entityName, entityDiff) in schemaDiff.modified {
             let targetObjectInfo = targetSchema.objectInfoByName[entityName]!
             let sourceObjectInfo = sourceSchema.objectInfoByName[targetObjectInfo.renamingIdentifier ?? entityName]!
-            // Extend the intermediate entity to account for added attributes.
+            // Extend the intermediate entity to account for added attributes; these require migration scripts when non-optional.
             for attrName in entityDiff.attributesDifference.added {
               info.intermediateSchema.withEntityNamed(entityName) {
-                // TODO: the added property must be optional or have a default value in the intermediate model
-                $0.addAttribute(targetObjectInfo.attributes[attrName]!)
+                let targetAttr = targetObjectInfo.attributes[attrName]!
+                $0.addAttribute(targetAttr)
+                if !(targetAttr.isOptional || targetAttr.defaultValue != nil) {
+                  info.requiresMigrationScript = true
+                }
               }
             }
             // Update the intermediate entity to account for modified attributes, where necessary.
@@ -252,11 +265,14 @@ public struct Schema
                 }
               }
             }
-            // Extend the intermediate entity to account for added relationships.
+            // Extend the intermediate entity to account for added relationships; these require migration scripts when non-optional.
             for relName in entityDiff.relationshipsDifference.added {
               info.intermediateSchema.withEntityNamed(entityName) {
-                // TODO: the added relationship must optional in the intermediate model
-                $0.addRelationship(targetObjectInfo.relationships[relName]!)
+                let targetRel = targetObjectInfo.relationships[relName]!
+                $0.addRelationship(targetRel)
+                if !(targetRel.arity.contains(0)) {
+                  info.requiresMigrationScript = true
+                }
               }
             }
             // Update the intermediate entity to account for modified relationships, where necessary.
@@ -275,6 +291,7 @@ public struct Schema
                       info.requiresMigrationScript = true
                     }
                   case .relatedEntityName, .inverseName :
+                    // We require a migration script, but the effect on the intermediate schema is determined by the differences which must accompany such changes.
                     info.requiresMigrationScript = true
                   default :
                     continue

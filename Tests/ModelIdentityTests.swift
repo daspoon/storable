@@ -11,8 +11,9 @@ final class ModelIdentityTests : XCTestCase
   {
     func checkObjectModelHashes(match expectedMatch: Bool, _ original: Schema, _ modified: Schema) throws
       {
-        let originalModel = try original.createRuntimeInfo().managedObjectModel
-        let modifiedModel = try modified.createRuntimeInfo().managedObjectModel
+        let versionId = "*"
+        let originalModel = try original.createRuntimeInfo(withVersionId: versionId).managedObjectModel
+        let modifiedModel = try modified.createRuntimeInfo(withVersionId: versionId).managedObjectModel
 
         let actualMatch = originalModel.entityVersionHashesByName == modifiedModel.entityVersionHashesByName
         if actualMatch != expectedMatch {
@@ -47,8 +48,8 @@ extension ModelIdentityTests
   {
     func testEntityAddition() throws
       {
-        let original = try Schema(name: "", objectTypes: [Person.self, Place.self])
-        let modified = try Schema(name: "", objectTypes: [Person.self, Place.self, Extra.self])
+        let original = try Schema(objectTypes: [Person.self, Place.self])
+        let modified = try Schema(objectTypes: [Person.self, Place.self, Extra.self])
         try checkObjectModelHashes(match: false, original, modified);
       }
   }
@@ -69,8 +70,8 @@ extension ModelIdentityTests
   {
     func testAttributeAddition() throws
       {
-        let original = try Schema(name: "", objectTypes: [Person.self, Place.self])
-        let modified = try Schema(name: "", objectTypes: [PersonWithAge.self, Place.self])
+        let original = try Schema(objectTypes: [Person.self, Place.self])
+        let modified = try Schema(objectTypes: [PersonWithAge.self, Place.self])
         try checkObjectModelHashes(match: false, original, modified);
       }
   }
@@ -101,8 +102,8 @@ extension ModelIdentityTests
   {
     func testRelationshipAddition() throws
       {
-        let original = try Schema(name: "", objectTypes: [Person.self, Place.self])
-        let modified = try Schema(name: "", objectTypes: [PersonWithPlace.self, PlaceWithOccupants.self])
+        let original = try Schema(objectTypes: [Person.self, Place.self])
+        let modified = try Schema(objectTypes: [PersonWithPlace.self, PlaceWithOccupants.self])
         try checkObjectModelHashes(match: false, original, modified);
       }
   }
@@ -126,8 +127,8 @@ extension ModelIdentityTests
   {
     func testFetchAddition() throws
       {
-        let original = try Schema(name: "", objectTypes: [PersonWithPlace.self, PlaceWithOccupants.self])
-        let modified = try Schema(name: "", objectTypes: [PersonWithPlace.self, PlaceWithSortedOccupants.self])
+        let original = try Schema(objectTypes: [PersonWithPlace.self, PlaceWithOccupants.self])
+        let modified = try Schema(objectTypes: [PersonWithPlace.self, PlaceWithSortedOccupants.self])
         try checkObjectModelHashes(match: true, original, modified);
       }
   }

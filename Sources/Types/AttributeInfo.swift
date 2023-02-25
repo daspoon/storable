@@ -67,7 +67,6 @@ extension AttributeInfo : Diffable
         case isOptional
         case type
         //case isTransient(Bool, Bool)
-        //case versionHashModifier(String, String)
       }
 
     public func difference(from old: Self) throws -> Set<Change>?

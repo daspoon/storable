@@ -51,7 +51,7 @@ public struct ObjectInfo
 
 
     public var renamingIdentifier : String?
-      { managedObjectClass.previousEntityName }
+      { managedObjectClass.renamingIdentifier }
 
 
     mutating func addAttribute(_ attribute: AttributeInfo)
@@ -87,7 +87,6 @@ extension ObjectInfo : Diffable
       {
         case name
         case isAbstract
-        //case versionHashModifier
       }
 
     /// The difference between two ObjectInfo instances combines the changes to the entity description with the differences between attributes/relationships.

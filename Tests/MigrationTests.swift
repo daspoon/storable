@@ -129,7 +129,7 @@ extension MigrationTests
         }
         let schema_v2 = try Schema(objectTypes: [Thing_v2.self])
 
-        // Define an evolved entity where the point attribute has changed type, but retains the storage type 'binaryData'
+        // Define an evolved entity where the point attribute has changed type, but retains the storage type 'binaryData'.
         @objc class Thing_v3 : Object {
           @Attribute("point") var point : Point3d
         }
