@@ -57,6 +57,12 @@ public class IngestContext
       }
 
 
+    public func entityInfo(for type: Object.Type) throws -> EntityInfo
+      {
+        try entityInfo(for: type.entityName)
+      }
+
+
     public func fetchObject<T: Object>(id name: String, of type: T.Type = T.self) throws -> T
       {
         try dataStore.managedObjectContext.fetchObject(makeFetchRequest(for: type, predicate: .init(format: "name = %@", name)))
