@@ -57,7 +57,7 @@ public class IngestContext
       }
 
 
-    func fetchObject(id name: String, of type: Object.Type) throws -> Object
+    public func fetchObject<T: Object>(id name: String, of type: T.Type = T.self) throws -> T
       {
         try dataStore.managedObjectContext.fetchObject(makeFetchRequest(for: type, predicate: .init(format: "name = %@", name)))
       }
