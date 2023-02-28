@@ -5,11 +5,11 @@
 import CoreData
 
 
-/// Storable identifies types which can be transformed to and from AttributeType, and serves as the generic constraint for our Attribute property wrapper.
+/// Storable identifies types which can be transformed to and from StorageType, and serves as the generic constraint for our Attribute property wrapper.
 
 public protocol Storable
   {
-    associatedtype EncodingType : AttributeType
+    associatedtype EncodingType : StorageType
 
     /// Encode a value into its stored representation.
     func storedValue() -> EncodingType
@@ -24,7 +24,7 @@ public protocol Storable
 
 // All attribute types are trivially Storable, although conformance must be declared explicitly.
 
-extension AttributeType
+extension StorageType
   {
     public func storedValue() -> Self
       { self }
@@ -52,7 +52,7 @@ extension UUID : Storable {}
 
 // A RawRepresentable is Storable when its RawValue is an attribute type, although conformance must be declared explicitly on concrete types.
 
-extension RawRepresentable where RawValue : AttributeType
+extension RawRepresentable where RawValue : StorageType
   {
     public func storedValue() -> RawValue
       { rawValue }

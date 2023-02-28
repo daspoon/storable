@@ -27,11 +27,11 @@ public struct RelationshipInfo : PropertyInfo
     /// The name of the related entity.
     public var relatedEntityName : String
 
-    /// The effect which deleting the host object has on the related object.
-    public var deleteRule : NSDeleteRule
-
     /// The name of the inverse relationship on the destination entity.
     public var inverseName : String
+
+    /// The effect which deleting the host object has on the related object.
+    public var deleteRule : NSDeleteRule
 
     /// The name of the relationship in the previous entity version, if necessary.
     public var renamingIdentifier : String?

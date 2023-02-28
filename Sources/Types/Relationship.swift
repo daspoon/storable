@@ -56,16 +56,15 @@ public struct Relationship<Value> : ManagedProperty
     public static subscript<Object: NSManagedObject>(_enclosingInstance instance: Object, wrapped wrappedKeyPath: ReferenceWritableKeyPath<Object, Value>, storage storageKeyPath: ReferenceWritableKeyPath<Object, Self>) -> Value
       {
         get {
-          let wrapper = instance[keyPath: storageKeyPath]
-          let storedValue = instance.value(forKey: wrapper.propertyInfo.name)
-          guard let value = storedValue as? Value else {
-            fatalError("failed to interpret \(String(describing: storedValue)) as \(Value.self)")
-          }
+          let propertyInfo = instance[keyPath: storageKeyPath].propertyInfo
+          let storedValue = instance.value(forKey: propertyInfo.name)
+          guard let value = storedValue as? Value
+            else { fatalError("failed to interpret \(String(describing: storedValue)) as \(Value.self)") }
           return value
         }
         set {
-          let wrapper = instance[keyPath: storageKeyPath]
-          instance.setValue(newValue, forKey: wrapper.propertyInfo.name)
+          let propertyInfo = instance[keyPath: storageKeyPath].propertyInfo
+          instance.setValue(newValue, forKey: propertyInfo.name)
         }
       }
 
