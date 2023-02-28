@@ -17,8 +17,15 @@ public protocol Storable
     /// Decode a stored value back to its native representation.
     static func decodeStoredValue(_ storedValue: EncodingType) -> Self
 
-    /// Indicates whether or not the translation from stored to native type should be cached.
+    /// A value transformer name is required if the underlying storage type is transformable.
     static var valueTransformerName : NSValueTransformerName? { get }
+  }
+
+
+extension Storable
+  {
+    public static var valueTransformerName : NSValueTransformerName?
+      { precondition(EncodingType.typeId != .transformable); return nil }
   }
 
 
@@ -31,9 +38,6 @@ extension StorageType
 
     public static func decodeStoredValue(_ value: Self) -> Self
       { value }
-
-    public static var valueTransformerName : NSValueTransformerName?
-      { nil }
   }
 
 extension Bool : Storable {}
@@ -62,7 +66,4 @@ extension RawRepresentable where RawValue : StorageType
         guard let value = Self(rawValue: storedValue) else { fatalError("'\(storedValue)' is not an acceptible raw value of \(Self.self)") }
         return value
       }
-
-    public static var valueTransformerName : NSValueTransformerName?
-      { nil }
   }
