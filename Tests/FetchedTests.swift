@@ -8,7 +8,7 @@ import CoreData
 
 
 @objc(Occupant)
-fileprivate class Occupant : Object
+fileprivate class Occupant : Entity
   {
     @Attribute("name")
     var name : String
@@ -22,7 +22,7 @@ fileprivate class Occupant : Object
 
 
 @objc(Dwelling)
-fileprivate class Dwelling : Object
+fileprivate class Dwelling : Entity
   {
     @Relationship("occupants", inverseName: "dwelling", deleteRule: .nullifyDeleteRule)
     var occupants : Set<Occupant>

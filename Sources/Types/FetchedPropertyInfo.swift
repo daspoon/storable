@@ -5,7 +5,7 @@
 import CoreData
 
 
-/// FetchedPropertyInfo maintains the data required to define a fetched property on a subclass of Object.
+/// FetchedPropertyInfo maintains the data required to define a fetched property on a subclass of Entity.
 
 public struct FetchedPropertyInfo : PropertyInfo
   {

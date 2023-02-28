@@ -25,13 +25,13 @@ final class ModelIdentityTests : XCTestCase
 
 // Define some base entities. Although the subsequently defined variations have different class names, they have matching entity names due to their versioned class names (_v<i>).
 
-@objc fileprivate class Person : Object
+@objc fileprivate class Person : Entity
   {
     @Attribute("name")
     var name : String
   }
 
-@objc fileprivate class Place : Object
+@objc fileprivate class Place : Entity
   {
     @Attribute("name")
     var name : String
@@ -41,7 +41,7 @@ final class ModelIdentityTests : XCTestCase
 // MARK: --
 // Addition/removal of entities affects model identity.
 
-@objc fileprivate class Extra : Object
+@objc fileprivate class Extra : Entity
   { }
 
 extension ModelIdentityTests
@@ -58,7 +58,7 @@ extension ModelIdentityTests
 // MARK: --
 // Addition/removal of attributes affects model identity.
 
-@objc fileprivate class PersonWithAge : Object
+@objc fileprivate class PersonWithAge : Entity
   {
     @Attribute("name")
     var name : String
@@ -81,7 +81,7 @@ extension ModelIdentityTests
 // Addition/removal of relationships affects model identity.
 
 fileprivate typealias PersonWithPlace = Person_v2
-@objc fileprivate class Person_v2 : Object
+@objc fileprivate class Person_v2 : Entity
   {
     @Attribute("name")
     var name : String
@@ -90,7 +90,7 @@ fileprivate typealias PersonWithPlace = Person_v2
   }
 
 fileprivate typealias PlaceWithOccupants = Place_v2
-@objc fileprivate class Place_v2 : Object
+@objc fileprivate class Place_v2 : Entity
   {
     @Attribute("name")
     var name : String
@@ -113,7 +113,7 @@ extension ModelIdentityTests
 // Addition/removal of fetched properties does not affect model identity.
 
 fileprivate typealias PlaceWithSortedOccupants = Place_v3
-@objc fileprivate class Place_v3 : Object
+@objc fileprivate class Place_v3 : Entity
   {
     @Attribute("name")
     var name : String

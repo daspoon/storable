@@ -5,7 +5,7 @@
 import CoreData
 
 
-/// FetchedProperty is a property wrapper for declaring fetched properties on subclasses of Object. It provides an initializer for each of the four cases of NSFetchedResultType.
+/// FetchedProperty is a property wrapper for declaring fetched properties on subclasses of Entity. It provides an initializer for each of the four cases of NSFetchedResultType.
 /// Note that the predicate of a FetchedProperty can access the enclosing object via $FETCH_SOURCE.
 
 @propertyWrapper

@@ -5,7 +5,7 @@
 import CoreData
 
 
-/// Relationship is a property wrapper used to declared managed relationships on subclasses of Object.
+/// Relationship is a property wrapper used to declared managed relationships on subclasses of Entity.
 
 @propertyWrapper
 public struct Relationship<Value> : ManagedProperty
@@ -15,12 +15,12 @@ public struct Relationship<Value> : ManagedProperty
 
     // MARK: - to-one -
 
-    public init(_ name: String, inverseName: String, deleteRule r: NSDeleteRule, renamingIdentifier oldName: String? = nil) where Value : Object
+    public init(_ name: String, inverseName: String, deleteRule r: NSDeleteRule, renamingIdentifier oldName: String? = nil) where Value : Entity
       {
         propertyInfo = RelationshipInfo(name, arity: 1 ... 1, relatedEntityName: Value.entityName, inverseName: inverseName, deleteRule: r, renamingIdentifier: oldName)
       }
 
-    public init(_ name: String, inverseName: String, deleteRule r: NSDeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil) where Value : Object
+    public init(_ name: String, inverseName: String, deleteRule r: NSDeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil) where Value : Entity
       {
         propertyInfo = RelationshipInfo(name, arity: 1 ... 1, relatedEntityName: Value.entityName, inverseName: inverseName, deleteRule: r, renamingIdentifier: oldName, ingest: (key: k ?? .element(name), mode: m))
       }
@@ -28,12 +28,12 @@ public struct Relationship<Value> : ManagedProperty
 
     // MARK: - to-optional -
 
-    public init<T: Object>(_ name: String, inverseName: String, deleteRule r: NSDeleteRule, renamingIdentifier oldName: String? = nil) where Value == T?
+    public init<T: Entity>(_ name: String, inverseName: String, deleteRule r: NSDeleteRule, renamingIdentifier oldName: String? = nil) where Value == T?
       {
         propertyInfo = RelationshipInfo(name, arity: 0 ... 1, relatedEntityName: T.entityName, inverseName: inverseName, deleteRule: r, renamingIdentifier: oldName)
       }
 
-    public init<T: Object>(_ name: String, inverseName: String, deleteRule r: NSDeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil) where Value == T?
+    public init<T: Entity>(_ name: String, inverseName: String, deleteRule r: NSDeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil) where Value == T?
       {
         propertyInfo = RelationshipInfo(name, arity:  0 ... 1, relatedEntityName: T.entityName, inverseName: inverseName, deleteRule: r, renamingIdentifier: oldName, ingest: (key: k ?? .element(name), mode: m))
       }
@@ -41,12 +41,12 @@ public struct Relationship<Value> : ManagedProperty
 
     // MARK: - to-many -
 
-    public init<T: Object>(_ name: String, inverseName: String, deleteRule r: NSDeleteRule, renamingIdentifier oldName: String? = nil) where Value == Set<T>
+    public init<T: Entity>(_ name: String, inverseName: String, deleteRule r: NSDeleteRule, renamingIdentifier oldName: String? = nil) where Value == Set<T>
       {
         propertyInfo = RelationshipInfo(name, arity: 0 ... .max, relatedEntityName: T.entityName, inverseName: inverseName, deleteRule: r, renamingIdentifier: oldName)
       }
 
-    public init<T: Object>(_ name: String, inverseName: String, deleteRule r: NSDeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil) where Value == Set<T>
+    public init<T: Entity>(_ name: String, inverseName: String, deleteRule r: NSDeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil) where Value == Set<T>
       {
         propertyInfo = RelationshipInfo(name, arity: 0 ... .max, relatedEntityName: T.entityName, inverseName: inverseName, deleteRule: r, renamingIdentifier: oldName, ingest: (key: k ?? .element(name), mode: m))
       }

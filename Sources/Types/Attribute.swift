@@ -5,7 +5,7 @@
 import CoreData
 
 
-/// Attribute is a property wrapper used to declared managed attributes on subclasses of Object.
+/// Attribute is a property wrapper used to declared managed attributes on subclasses of Entity.
 
 @propertyWrapper
 public struct Attribute<Value: Storable> : ManagedProperty

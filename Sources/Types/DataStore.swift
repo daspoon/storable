@@ -9,8 +9,8 @@ import CoreData
 
 public class DataStore : BasicStore
   {
-    /// Map entity names to pairs of ObjectInfo and NSEntityDescription.
-    public private(set) var entityInfoByName : [String: EntityInfo] = [:]
+    /// Map entity names to pairs of EntityInfo and NSEntityDescription.
+    public private(set) var classInfoByName : [String: Schema.ClassInfo] = [:]
 
 
     public func openWith(schema: Schema, migrations: [Migration] = []) throws
@@ -41,7 +41,7 @@ public class DataStore : BasicStore
         }
 
         // Retain the entity lookup table
-        entityInfoByName = info.entityInfoByName
+        classInfoByName = info.classInfoByName
 
         // Defer to super to open the store
         try super.openWith(model: info.managedObjectModel)
@@ -53,17 +53,17 @@ public class DataStore : BasicStore
         try openWith(schema: schema, migrations: migrations)
 
         // Ensure the State entity is defined and as has a single instance.
-        guard let stateInfo = entityInfoByName[stateEntityName] else { throw Exception("Entity '\(stateEntityName)' is not defined") }
-        guard case .singleton = stateInfo.objectInfo.managedObjectClass.identity else { throw Exception("Entity '\(stateEntityName)' must have a single instance") }
+        guard let stateInfo = classInfoByName[stateEntityName] else { throw Exception("Entity '\(stateEntityName)' is not defined") }
+        guard case .singleton = stateInfo.managedObjectClass.identity else { throw Exception("Entity '\(stateEntityName)' must have a single instance") }
 
         // Retrieve the configuration if one exists; otherwise trigger ingestion from the data source.
-        var configurations = try managedObjectContext.fetch(NSFetchRequest<Object>(entityName: stateEntityName))
+        var configurations = try managedObjectContext.fetch(NSFetchRequest<Entity>(entityName: stateEntityName))
         switch configurations.count {
           case 1 :
             break
           case 0 :
             try IngestContext.populate(dataStore: self, from: dataSource)
-            configurations = try managedObjectContext.fetch(NSFetchRequest<Object>(entityName: stateEntityName))
+            configurations = try managedObjectContext.fetch(NSFetchRequest<Entity>(entityName: stateEntityName))
             guard configurations.count == 1 else {
               throw Exception("inconsistency after ingestion: \(configurations.count) configurations detected")
             }
@@ -77,7 +77,7 @@ public class DataStore : BasicStore
       {
         try super.close(savingChanges: save)
 
-        entityInfoByName = [:]
+        classInfoByName = [:]
       }
 
 

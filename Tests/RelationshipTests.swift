@@ -14,7 +14,7 @@ import XCTest
 // MARK: --
 
 @objc(Category)
-fileprivate class Category : Object
+fileprivate class Category : Entity
   {
     @Attribute("name")
     var name : String
@@ -24,7 +24,7 @@ fileprivate class Category : Object
   }
 
 @objc(Item)
-fileprivate class Item : Object
+fileprivate class Item : Entity
   {
     @Attribute("name")
     var name : String
@@ -37,7 +37,7 @@ fileprivate class Item : Object
   }
 
 @objc(Box)
-fileprivate class Box : Object
+fileprivate class Box : Entity
   {
     @Attribute("number")
     var number : Int
