@@ -5,9 +5,9 @@
 import CoreData
 
 
-/// Object is the base class of NSManagedObject which supports model generation and ingestion through managed property wrappers.
+/// Entity is the base class of NSManagedObject which supports model generation and ingestion through managed property wrappers.
 
-open class Object : NSManagedObject
+open class Entity : NSManagedObject
   {
     /// The notion of instance identity (within class).
     public enum Identity : String, Ingestible
@@ -52,9 +52,9 @@ open class Object : NSManagedObject
       { .anonymous }
 
 
-    /// This method is used to determine whether or not the corresponding NSEntityDescription should be marked abstract, and should only be overridden in classes intended to be abstract by returning their concrete type. The default implementation returns Object.
-    open class var abstractClass : Object.Type
-      { Object.self }
+    /// This method is used to determine whether or not the corresponding NSEntityDescription should be marked abstract, and should only be overridden in classes intended to be abstract by returning their concrete type. The default implementation returns Entity.
+    open class var abstractClass : Entity.Type
+      { Entity.self }
 
 
     /// Return true iff the receiver is intended to represent an abstract entity.
@@ -81,7 +81,7 @@ open class Object : NSManagedObject
 
 
     /// Initialize a new instance, taking property values from the given ingest data. This method is not intended to be overidden.
-    public required init(_ info: EntityInfo, with ingestData: IngestData, in context: IngestContext) throws
+    public required init(_ info: ClassInfo, with ingestData: IngestData, in context: IngestContext) throws
       {
         // Delegate to the designated initializer for NSManagedObject.
         super.init(entity: info.entityDescription, insertInto: context.managedObjectContext)
@@ -107,17 +107,17 @@ open class Object : NSManagedObject
         for relationship in info.relationships.values {
           guard let ingest = relationship.ingest else { continue }
           do {
-            let relatedEntity = try context.entityInfo(for: relationship.relatedEntityName)
-            let relatedClass = relatedEntity.managedObjectClass
+            let relatedInfo = try context.classInfo(for: relationship.relatedEntityName)
+            let relatedClass = relatedInfo.managedObjectClass
             switch (ingestData[ingest.key], ingest.mode, relationship.arity) {
               case (.some(let jsonValue), .create(let format), let arity) where arity.upperBound > 1 :
                 // When creating a to-many relationship, the format parameter determines the type and interpretation of the json data...
-                let relatedObjects = try relatedEntity.createObjects(from: jsonValue, with: format, in: context)
+                let relatedObjects = try relatedInfo.createObjects(from: jsonValue, with: format, in: context)
                 setValue(Set(relatedObjects), forKey: relationship.name)
               case (.some(let jsonValue), .create(let format), _) :
                 // When creating a to-one relationship, the json data is interpreted by the object initializer
                 guard format == .any else { throw Exception("") }
-                let relatedObject = try relatedEntity.createObject(from: jsonValue, in: context)
+                let relatedObject = try relatedInfo.createObject(from: jsonValue, in: context)
                 setValue(relatedObject, forKey: relationship.name)
               case (.some(let jsonValue), .reference, let arity) where arity.upperBound > 1 :
                 // A to-many reference requires an array string instance identifiers. Evaluation is delayed until all entity instances have been created.

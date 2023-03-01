@@ -11,7 +11,7 @@ import XCTest
 // MARK: - a class with the range of standard attributes -
 
 @objc(FullyAttributed)
-fileprivate class FullyAttributed : Object
+fileprivate class FullyAttributed : Entity
   {
     @Attribute("boolValue")
     var boolValue : Bool
@@ -57,7 +57,7 @@ fileprivate class FullyAttributed : Object
 // MARK: - a class with the range of standard attributes and default values -
 
 @objc(DefaultAttributed)
-fileprivate class DefaultAttributed : Object
+fileprivate class DefaultAttributed : Entity
   {
     @Attribute("boolValue")
     var boolValue : Bool = true
@@ -98,7 +98,7 @@ fileprivate class DefaultAttributed : Object
 
 #if false
 @objc(WronglyAttributed)
-fileprivate class WronglyAttributed : Object
+fileprivate class WronglyAttributed : Entity
   {
     enum MyEnum { case one, two, three }
     struct MyStruct { var intValue : Int }

@@ -19,7 +19,7 @@ public func throwingCast<T>(_ v: Any, as: T.Type = T.self) throws -> T
 
 
 /// Convenience method for creating NSFetchRequests.
-public func makeFetchRequest<T: Object>(
+public func makeFetchRequest<T: Entity>(
     for type: T.Type = T.self,
     predicate: NSPredicate? = nil,
     sortDescriptors: [NSSortDescriptor] = [],

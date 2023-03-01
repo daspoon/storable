@@ -75,13 +75,13 @@ extension NSManagedObjectModel
 
 extension BasicStore
   {
-    func create<T: Object>(_ type: T.Type = T.self, initialize f: (T) throws -> Void = {_ in }) throws -> T
+    func create<T: Entity>(_ type: T.Type = T.self, initialize f: (T) throws -> Void = {_ in }) throws -> T
       { try managedObjectContext.create(type, initialize: f) }
 
-    public func fetchObjects<T: Object>(of type: T.Type = T.self, satisfying predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor] = []) throws -> [T]
+    public func fetchObjects<T: Entity>(of type: T.Type = T.self, satisfying predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor] = []) throws -> [T]
       { try managedObjectContext.fetchObjects(makeFetchRequest(for: type, predicate: predicate, sortDescriptors: sortDescriptors)) }
 
-    public func fetchObject<T: Object>(of type: T.Type = T.self, satisfying predicate: NSPredicate) throws -> T
+    public func fetchObject<T: Entity>(of type: T.Type = T.self, satisfying predicate: NSPredicate) throws -> T
       { try managedObjectContext.fetchObject(makeFetchRequest(for: type, predicate: predicate)) }
 
     func migrate(from sourceEntity: NSEntityDescription, to targetEntity: NSEntityDescription) throws

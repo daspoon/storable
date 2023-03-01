@@ -5,14 +5,14 @@
 import CoreData
 
 
-/// A Schema corresponds to an NSManagedObjectModel, but is generated from a list of Object subclasses and maintains additional information about those classes.
+/// A Schema corresponds to an NSManagedObjectModel, but is generated from a list of Entity subclasses and maintains additional information about those classes.
 
 public struct Schema
   {
-    public typealias RuntimeInfo = (managedObjectModel: NSManagedObjectModel, entityInfoByName: [String: EntityInfo])
+    public typealias RuntimeInfo = (managedObjectModel: NSManagedObjectModel, classInfoByName: [String: ClassInfo])
 
-    private var inheritanceHierarchy : InheritanceHierarchy<Object> = .init()
-    public private(set) var objectInfoByName : [String: ObjectInfo] = [:]
+    private var inheritanceHierarchy : InheritanceHierarchy<Entity> = .init()
+    public private(set) var entityInfoByName : [String: EntityInfo] = [:]
 
 
     /// An explicit version identifier optionally assigned on initialization.
@@ -22,8 +22,8 @@ public struct Schema
     static let versioningEntityName = "$Schema"
 
 
-    /// Create a new instance with a given list of Object subclasses and an optional model version identifier.
-    public init(versionId: String? = nil, objectTypes: [Object.Type]) throws
+    /// Create a new instance with a given list of Entity subclasses and an optional model version identifier.
+    public init(versionId: String? = nil, objectTypes: [Entity.Type]) throws
       {
         self.versionId = versionId
         for objectType in objectTypes {
@@ -32,22 +32,22 @@ public struct Schema
       }
 
 
-    /// Add a new object type, optionally providing an pre-existing ObjectInfo instance.
-    private mutating func addObjectType(_ givenType: Object.Type, objectInfo givenInfo: ObjectInfo? = nil) throws
+    /// Associate a new object type to a new instance of EntityInfo.
+    private mutating func addObjectType(_ givenType: Entity.Type, objectInfo givenInfo: EntityInfo? = nil) throws
       {
-        precondition(objectInfoByName[givenType.entityName] == nil && givenInfo.map({$0.managedObjectClass == givenType}) != .some(false), "invalid argument")
+        precondition(entityInfoByName[givenType.entityName] == nil && givenInfo.map({$0.managedObjectClass == givenType}) != .some(false), "invalid argument")
 
         try inheritanceHierarchy.add(givenType) { newType in
           let entityName = newType.entityName
-          let existingInfo = objectInfoByName[entityName]
+          let existingInfo = entityInfoByName[entityName]
           guard existingInfo == nil else { throw Exception("entity name \(entityName) is defined by both \(existingInfo!.managedObjectClass) and \(newType)") }
-          objectInfoByName[entityName] = try ObjectInfo(objectType: newType)
+          entityInfoByName[entityName] = try EntityInfo(objectType: newType)
         }
       }
 
 
-    /// Add the given ObjectInfo instance for an object type which does not already belong to the schema.
-    public mutating func addObjectInfo(_ objectInfo: ObjectInfo) throws
+    /// Add the given EntityInfo instance for an object type which does not already belong to the schema.
+    public mutating func addObjectInfo(_ objectInfo: EntityInfo) throws
       {
         try addObjectType(objectInfo.managedObjectClass, objectInfo: objectInfo)
       }
@@ -58,29 +58,29 @@ public struct Schema
       {
         precondition(self.versionId == nil || self.versionId == .some(versionId))
 
-        // Perform a post-order traversal on the ObjectInfo hierarchy to create an entity description for each class, establish inheritance between entities, and populate entityInfoByName...
-        var entityInfoByName : [String: EntityInfo] = [:]
-        _ = inheritanceHierarchy.fold { (objectType: Object.Type, subentities: [NSEntityDescription]) -> NSEntityDescription in
-          // Ignore the root class (i.e. Object) which is not modeled.
-          guard objectType != Object.self else { return .init() }
-          // Get the corresponding ObjectInfo
-          guard let objectInfo = objectInfoByName[objectType.entityName] else { fatalError() }
+        // Perform a post-order traversal of the class hierarchy to create an entity description for each class, establish inheritance between entities, and populate classInfoByName...
+        var classInfoByName : [String: ClassInfo] = [:]
+        _ = inheritanceHierarchy.fold { (objectType: Entity.Type, subentities: [NSEntityDescription]) -> NSEntityDescription in
+          // Ignore the root class (i.e. Entity) which is not modeled.
+          guard objectType != Entity.self else { return .init() }
+          // Get the corresponding EntityInfo
+          guard let entityInfo = entityInfoByName[objectType.entityName] else { fatalError() }
           // Create an NSEntityDescription
           let entityDescription = NSEntityDescription()
-          entityDescription.name = objectInfo.name
+          entityDescription.name = entityInfo.name
           entityDescription.managedObjectClassName = NSStringFromClass(objectType)
           entityDescription.isAbstract = objectType.isAbstract
           entityDescription.renamingIdentifier = objectType.renamingIdentifier
           entityDescription.subentities = subentities
           // Add a registry entry
-          entityInfoByName[objectInfo.name] = EntityInfo(objectInfo, entityDescription)
+          classInfoByName[entityInfo.name] = ClassInfo(entityInfo, entityDescription)
           // Return the generated entity
           return entityDescription
         }
 
         // Extend each NSEntityDescription with the specified attributes.
-        for (_, entityInfo) in entityInfoByName {
-          for (name, attribute) in entityInfo.objectInfo.attributes {
+        for (_, classInfo) in classInfoByName {
+          for (name, attribute) in classInfo.attributes {
             let attributeDescription = NSAttributeDescription()
             attributeDescription.name = name
             attributeDescription.type = attribute.attributeType
@@ -88,23 +88,23 @@ public struct Schema
             attributeDescription.valueTransformerName = attribute.valueTransformerName?.rawValue
             attributeDescription.defaultValue = attribute.defaultValue?.storedValue()
             attributeDescription.renamingIdentifier = attribute.renamingIdentifier
-            entityInfo.entityDescription.properties.append(attributeDescription)
+            classInfo.entityDescription.properties.append(attributeDescription)
           }
         }
 
         // Extend each NSEntityDescription with the specified relationships and their inverses, which must be given explicitly.
-        for (sourceName, sourceInfo) in entityInfoByName {
-          for (relationshipName, relationship) in sourceInfo.objectInfo.relationships {
+        for (sourceName, sourceInfo) in classInfoByName {
+          for (relationshipName, relationship) in sourceInfo.relationships {
             // Skip the relationship if it is already defined, which happens when the inverse relationship is processed first.
             guard sourceInfo.entityDescription.relationshipsByName[relationshipName] == nil
               else { continue }
             // Ensure the target entity exists
             let targetName = relationship.relatedEntityName
-            guard let targetInfo = entityInfoByName[targetName]
+            guard let targetInfo = classInfoByName[targetName]
               else { throw Exception("relationship \(sourceName).\(relationshipName) has unknown target entity name '\(targetName)'") }
             // Get the inverse relationship (TODO: synthesize if possible)
             let inverse : RelationshipInfo
-            switch targetInfo.objectInfo.relationships[relationship.inverseName] {
+            switch targetInfo.relationships[relationship.inverseName] {
               case .none :
                 throw Exception("specified inverse \(targetName).\(relationship.inverseName) of \(sourceName).\(relationshipName) is undefined")
               case .some(let explicit) :
@@ -133,10 +133,10 @@ public struct Schema
         }
 
         // Define the fetched properties of each entity...
-        for sourceInfo in entityInfoByName.values {
-          for (propertyName, fetchedPropertyInfo) in sourceInfo.objectInfo.fetchedProperties {
+        for sourceInfo in classInfoByName.values {
+          for (propertyName, fetchedPropertyInfo) in sourceInfo.fetchedProperties {
             let fetchedEntityName = fetchedPropertyInfo.fetchRequest.entityName! // TODO: eliminate optional
-            guard let fetchedEntity = entityInfoByName[fetchedEntityName]?.entityDescription else { throw Exception("unknown entity '\(fetchedEntityName)'") }
+            guard let fetchedEntity = classInfoByName[fetchedEntityName]?.entityDescription else { throw Exception("unknown entity '\(fetchedEntityName)'") }
             // Note that the fetched property description must have a resolved entity
             fetchedPropertyInfo.fetchRequest.entity = fetchedEntity
             let fetchedPropertyDescription = NSFetchedPropertyDescription()
@@ -148,20 +148,20 @@ public struct Schema
 
         // Create the object model with the generated entity descriptions.
         let objectModel : NSManagedObjectModel = .init()
-        objectModel.entities = entityInfoByName.values.map { $0.entityDescription }
+        objectModel.entities = classInfoByName.values.map { $0.entityDescription }
 
-        // Add the entity used to distinguish schema versions; this entity is not exposed in entityInfoByName.
+        // Add the entity used to distinguish schema versions; this entity is not exposed in classInfoByName.
         let versionEntity = NSEntityDescription()
         versionEntity.name = Self.versioningEntityName
         versionEntity.versionHashModifier = versionId
         objectModel.entities.append(versionEntity)
 
-        return (objectModel, entityInfoByName)
+        return (objectModel, classInfoByName)
       }
 
 
-    mutating func withEntityNamed(_ entityName: String, update: (inout ObjectInfo) -> Void)
-      { update(&objectInfoByName[entityName]!) }
+    mutating func withEntityNamed(_ entityName: String, update: (inout EntityInfo) -> Void)
+      { update(&entityInfoByName[entityName]!) }
 
 
     /// Return the steps required to migrate the object model of the previous schema version to the receiver's object model.
@@ -225,12 +225,12 @@ public struct Schema
         if let schemaDiff = try targetSchema.difference(from: sourceSchema) {
           // Add each new entity to the intermediate schema; these changes don't necessarily require a migration script.
           for entityName in schemaDiff.added {
-            try info.intermediateSchema.addObjectInfo(targetSchema.objectInfoByName[entityName]!)
+            try info.intermediateSchema.addObjectInfo(targetSchema.entityInfoByName[entityName]!)
           }
           // Modify the entities of the intermediate schema to reflect the additive differences between each entity common to source and target schemas.
           for (entityName, entityDiff) in schemaDiff.modified {
-            let targetObjectInfo = targetSchema.objectInfoByName[entityName]!
-            let sourceObjectInfo = sourceSchema.objectInfoByName[targetObjectInfo.renamingIdentifier ?? entityName]!
+            let targetObjectInfo = targetSchema.entityInfoByName[entityName]!
+            let sourceObjectInfo = sourceSchema.entityInfoByName[targetObjectInfo.renamingIdentifier ?? entityName]!
             // Extend the intermediate entity to account for added attributes; these require migration scripts when non-optional.
             for attrName in entityDiff.attributesDifference.added {
               info.intermediateSchema.withEntityNamed(entityName) {
@@ -308,9 +308,9 @@ public struct Schema
 
 extension Schema : Diffable
   {
-    public func difference(from old: Schema) throws -> Dictionary<String, ObjectInfo>.Difference?
+    public func difference(from old: Schema) throws -> Dictionary<String, EntityInfo>.Difference?
       {
         // assert: predecessor == .some(old)
-        try objectInfoByName.difference(from: old.objectInfoByName, moduloRenaming: \.renamingIdentifier)
+        try entityInfoByName.difference(from: old.entityInfoByName, moduloRenaming: \.renamingIdentifier)
       }
   }

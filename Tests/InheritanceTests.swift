@@ -7,7 +7,7 @@ import XCTest
 
 
 @objc(Skill)
-fileprivate class Skill : Object
+fileprivate class Skill : Entity
   {
     @Attribute("name")
     var name : String
@@ -18,9 +18,9 @@ fileprivate class Skill : Object
 
 
 @objc(Combatant)
-fileprivate class Combatant : Object
+fileprivate class Combatant : Entity
   {
-    override class var abstractClass : Object.Type
+    override class var abstractClass : Entity.Type
       { Combatant.self }
 
     @Attribute("name")

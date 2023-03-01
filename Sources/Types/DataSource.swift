@@ -19,9 +19,9 @@ public struct DataSource
         public let keyPath : String?
 
         /// The format of the asset content. Collections can be specified as either arrays of names or as dictionaries mapping names to entity-specific data.
-        public let format : EntityInfo.IngestFormat
+        public let format : ClassInfo.IngestFormat
 
-        public init(resourceName name: String, keyPath path: String? = nil, format fmt: EntityInfo.IngestFormat = .dictionary)
+        public init(resourceName name: String, keyPath path: String? = nil, format fmt: ClassInfo.IngestFormat = .dictionary)
           { resourceName = name; keyPath = path; format = fmt }
 
         public var resourceNameAndKeyPath : String

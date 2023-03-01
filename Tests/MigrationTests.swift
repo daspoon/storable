@@ -19,7 +19,7 @@ extension MigrationTests
     func testLightweight() throws
       {
         // Define an initial schema with a single Person entity
-        @objc class Person_v1 : Object {
+        @objc class Person_v1 : Entity {
           @Attribute("name")
           var name : String
           @Attribute("date")
@@ -28,7 +28,7 @@ extension MigrationTests
         let schema_v1 = try! Schema(objectTypes: [Person_v1.self])
 
         // Define an evolved schema which removes an attribute and adds an optional-to-many relationship to a new entity Place.
-        @objc class Person_v2 : Object {
+        @objc class Person_v2 : Entity {
           @Attribute("name")
           var name : String
           @Attribute("date")
@@ -36,7 +36,7 @@ extension MigrationTests
           @Relationship("place", inverseName: "occupants", deleteRule: .nullifyDeleteRule)
           var place : Place_v2?
         }
-        @objc class Place_v2 : Object {
+        @objc class Place_v2 : Entity {
           @Attribute("name")
           var name : String
           @Relationship("occupants", inverseName: "place", deleteRule: .nullifyDeleteRule)
@@ -73,11 +73,11 @@ extension MigrationTests
     func testAttributeStorageType() throws
       {
         // Define two entities with an attribute of the same name but different storage types.
-        @objc class Attributed_v1 : Object {
+        @objc class Attributed_v1 : Entity {
           @Attribute("a")
           var a : Int
         }
-        @objc class Attributed_v2 : Object {
+        @objc class Attributed_v2 : Entity {
           @Attribute("a")
           var a : String
         }
@@ -124,13 +124,13 @@ extension MigrationTests
         struct Point3d : StorableAsData { var x, y, z : Int }
 
         // Define an initial entity with an attribute of type Point2d
-        @objc class Thing_v2 : Object {
+        @objc class Thing_v2 : Entity {
           @Attribute("point") var point : Point2d
         }
         let schema_v2 = try Schema(objectTypes: [Thing_v2.self])
 
         // Define an evolved entity where the point attribute has changed type, but retains the storage type 'binaryData'.
-        @objc class Thing_v3 : Object {
+        @objc class Thing_v3 : Entity {
           @Attribute("point") var point : Point3d
         }
         let schema_v3 = try Schema(objectTypes: [Thing_v3.self])
@@ -176,13 +176,13 @@ extension MigrationTests
 
         // Define entity e1 with a non-optional attribute a
         let schema_v1 = try Schema(objectTypes: [Entity_v1.self])
-        @objc class Entity_v1 : Object {
+        @objc class Entity_v1 : Entity {
           @Attribute("a") var a : Int
         }
 
         // Define same-named entity e2 with an optional attribute a of the same type
         let schema_v2 = try Schema(objectTypes: [Entity_v2.self])
-        @objc class Entity_v2 : Object {
+        @objc class Entity_v2 : Entity {
           @OptionalAttribute("a") var a : Int?
         }
 
@@ -234,21 +234,21 @@ extension MigrationTests
     func testRelationshipArity() throws
       {
         // Define an initial schema with Thing and Place entities related by to-optional relationships 'place' and 'thing'.
-        @objc class Thing : Object {
+        @objc class Thing : Entity {
           @Relationship("place", inverseName: "thing", deleteRule: .nullifyDeleteRule)
           var place : Place?
         }
-        @objc class Place : Object {
+        @objc class Place : Entity {
           @Relationship("thing", inverseName: "place", deleteRule: .nullifyDeleteRule)
           var thing : Thing?
         }
 
         // Define an evolved schema where 'place' becomes to-one, and 'thing' becomes to-many and is renamed 'things'.
-        @objc class Thing_v2 : Object {
+        @objc class Thing_v2 : Entity {
           @Relationship("place", inverseName: "things", deleteRule: .nullifyDeleteRule)
           var place : Place_v2
         }
-        @objc class Place_v2 : Object {
+        @objc class Place_v2 : Entity {
           @Relationship("things", inverseName: "place", deleteRule: .cascadeDeleteRule, renamingIdentifier: "thing")
           var things : Set<Thing_v2>
         }

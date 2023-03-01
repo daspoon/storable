@@ -30,13 +30,13 @@ public struct EntitySetDefinition : DataDefinition
 
     public func ingest(from dataSource: DataSource, into context: IngestContext) throws
       {
-        let entity = try context.entityInfo(for: entityName)
+        let info = try context.classInfo(for: entityName)
         if let content {
           let json = try dataSource.load(content)
-          try entity.createObjects(from: json, with: content.format, in: context)
+          try info.createObjects(from: json, with: content.format, in: context)
         }
         else {
-          try entity.createObject(from: [:], in: context)
+          try info.createObject(from: [:], in: context)
         }
       }
 

@@ -50,20 +50,20 @@ public class IngestContext
       }
 
 
-    public func entityInfo(for entityName: String) throws -> EntityInfo
+    public func classInfo(for entityName: String) throws -> ClassInfo
       {
-        guard let entity = dataStore.entityInfoByName[entityName] else { throw Exception("unknown entity name '\(entityName)'") }
-        return entity
+        guard let info = dataStore.classInfoByName[entityName] else { throw Exception("unknown entity name '\(entityName)'") }
+        return info
       }
 
 
-    public func entityInfo(for type: Object.Type) throws -> EntityInfo
+    public func classInfo(for type: Entity.Type) throws -> ClassInfo
       {
-        try entityInfo(for: type.entityName)
+        try classInfo(for: type.entityName)
       }
 
 
-    public func fetchObject<T: Object>(id name: String, of type: T.Type = T.self) throws -> T
+    public func fetchObject<T: Entity>(id name: String, of type: T.Type = T.self) throws -> T
       {
         try dataStore.managedObjectContext.fetchObject(makeFetchRequest(for: type, predicate: .init(format: "name = %@", name)))
       }

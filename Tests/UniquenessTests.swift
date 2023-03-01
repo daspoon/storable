@@ -11,7 +11,7 @@ import XCTest
 // MARK: -
 
 @objc(PropertyNameConflict)
-fileprivate class PropertyNameConflict : Object
+fileprivate class PropertyNameConflict : Entity
   {
     @Attribute("name")
     var firstName : String
@@ -24,7 +24,7 @@ fileprivate class PropertyNameConflict : Object
 // MARK: -
 
 @objc(Super)
-fileprivate class Super : Object
+fileprivate class Super : Entity
   {
     @Attribute("id")
     var id : String
