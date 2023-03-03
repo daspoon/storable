@@ -3,7 +3,7 @@
 */
 
 import Foundation
-import Compendium
+import Storable
 
 
 /// Act like a Bundle for the purpose of testing DataSource et.al., mapping resource names to subpaths of the 'resourcePath' specified in the launch arguments.

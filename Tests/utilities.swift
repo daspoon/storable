@@ -4,7 +4,7 @@
 */
 
 import CoreData
-import Compendium
+import Storable
 import XCTest
 
 

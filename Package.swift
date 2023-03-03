@@ -3,15 +3,15 @@
 import PackageDescription
 
 let package = Package(
-    name: "Compendium",
+    name: "Storable",
     platforms: [ .iOS(.v16), .macOS(.v13) ],
     products: [
-      .library(name: "Compendium", targets: ["Compendium"]),
+      .library(name: "Storable", targets: ["Storable"]),
     ],
     dependencies: [
     ],
     targets: [
-      .target(name: "Compendium", dependencies: [], path: "Sources"),
-      .testTarget(name: "CompendiumTests", dependencies: ["Compendium"], path: "Tests"),
+      .target(name: "Storable", dependencies: [], path: "Sources"),
+      .testTarget(name: "StorableTests", dependencies: ["Storable"], path: "Tests"),
     ]
 )

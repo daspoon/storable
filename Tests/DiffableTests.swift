@@ -3,7 +3,7 @@
 */
 
 import XCTest
-import Compendium
+import Storable
 
 
 final class DiffableTests : XCTestCase

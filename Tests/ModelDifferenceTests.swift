@@ -5,7 +5,7 @@
 */
 
 import XCTest
-import Compendium
+import Storable
 
 
 // First define the test class and some convenience methods.

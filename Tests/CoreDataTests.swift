@@ -222,7 +222,7 @@ extension CoreDataTests
 
 // MARK: --
 
-@testable import Compendium
+@testable import Storable
 
 
 extension CoreDataTests

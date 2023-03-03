@@ -8,7 +8,7 @@
 */
 
 import XCTest
-@testable import Compendium
+@testable import Storable
 
 
 // MARK: --

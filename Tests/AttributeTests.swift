@@ -5,7 +5,7 @@
 */
 
 import XCTest
-@testable import Compendium
+@testable import Storable
 
 
 // MARK: - a class with the range of standard attributes -

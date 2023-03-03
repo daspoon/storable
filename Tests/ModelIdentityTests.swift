@@ -4,7 +4,7 @@
 
 import XCTest
 import CoreData
-@testable import Compendium
+@testable import Storable
 
 
 final class ModelIdentityTests : XCTestCase
