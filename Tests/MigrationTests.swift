@@ -169,10 +169,6 @@ extension MigrationTests
   {
     func testAtributeOptionality() throws
       {
-      // TODO: this test fails because changing optionality currently implies changing type, so...
-      //   - a script is unnecessarily demanded for the migration from v1 to v2
-      //   - the script migrating from v2 to v1 fails because the attribute has been unnecessarily renamed
-
         let objectCount = 3
 
         // Define entity e1 with a non-optional attribute a
@@ -198,7 +194,7 @@ extension MigrationTests
         try store.openWith(schema: schema_v2, migrations: [.init(from: schema_v1)])
         try store.close()
 
-        // Re-create and populate store using the schema in which the attribute is optional.
+        // Re-create and populate the store using the schema in which the attribute is optional.
         try store.reset()
         try store.openWith(schema: schema_v2)
         for _ in 0 ..< objectCount {
