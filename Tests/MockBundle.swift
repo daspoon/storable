@@ -9,7 +9,7 @@ import Storable
 
 
 /// Act like a Bundle for the purpose of testing DataSource et.al., mapping resource names to subpaths of the 'resourcePath' specified in the launch arguments.
-///
+
 public struct MockBundle : DataBundle
   {
     let resourcePath : String
@@ -17,10 +17,10 @@ public struct MockBundle : DataBundle
 
     public init() throws
       {
-        guard let path = ProcessInfo.processInfo.argumentsByName["resourcePath"] else {
+        guard let resourcePathArg = ProcessInfo.processInfo.arguments.first(where: {$0.hasPrefix("resourcePath=")}) else {
           throw Exception("missing argument value for 'resourcePath'")
         }
-        resourcePath = path
+        resourcePath = resourcePathArg.removing(prefix: "resourcePath=")
       }
 
 
