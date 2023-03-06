@@ -74,7 +74,7 @@ extension NSManagedObjectModel
 
 // MARK: --
 
-extension BasicStore
+extension DataStore
   {
     func create<T: Entity>(_ type: T.Type = T.self, initialize f: (T) throws -> Void = {_ in }) throws -> T
       { try managedObjectContext.create(type, initialize: f) }
@@ -116,12 +116,12 @@ extension ProcessInfo
 
 // MARK: --
 
-fileprivate var activeStores : [String: BasicStore] = [:]
+fileprivate var activeStores : [String: DataStore] = [:]
 fileprivate let activeStoresSemaphore = DispatchSemaphore(value: 1)
 
 extension XCTestCase
   {
-    fileprivate func createStore<T: BasicStore>(of type: T.Type = T.self, configuration configure: (T) throws -> Void) throws -> T
+    fileprivate func createStore<T: DataStore>(of type: T.Type = T.self, configuration configure: (T) throws -> Void) throws -> T
       {
         activeStoresSemaphore.wait()
         defer {
@@ -144,7 +144,7 @@ extension XCTestCase
         return store
       }
 
-    func createAndOpenStoreWith(model m: NSManagedObjectModel) throws -> BasicStore
+    func createAndOpenStoreWith(model m: NSManagedObjectModel) throws -> DataStore
       { try createStore { try $0.openWith(model: m) } }
 
     func createAndOpenStoreWith(schema s: Schema, migrations ms: [Migration] = []) throws -> DataStore
