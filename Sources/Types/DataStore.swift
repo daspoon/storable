@@ -17,6 +17,9 @@ public class DataStore
     /// The persistent store type, currently fixed as sqlite.
     public let storeType : NSPersistentStore.StoreType = .sqlite
 
+    /// The optional notification name observed to trigger implicit saving while open.
+    public let saveRequestNotificationName : Notification.Name?
+
     /// The state maintained while the persistent store is open.
     private var state : State?
     struct State
@@ -24,7 +27,7 @@ public class DataStore
         let managedObjectModel : NSManagedObjectModel
         let managedObjectContext : NSManagedObjectContext
         let persistentStore : NSPersistentStore
-        let saveRequestObservation : NSObjectProtocol
+        let saveRequestObservation : NSObjectProtocol?
       }
 
     /// The mapping of entity names to ClassInfo structures which maintain their metadata.
@@ -32,12 +35,13 @@ public class DataStore
 
 
     /// Create an instance with the given name. The location of the persistent store is determined by the application's document directory.
-    public required init(name: String = "store")
+    public required init(name: String = "store", saveRequestNotificationName: Notification.Name? = nil)
       {
         guard let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).last else { fatalError("failed to get URL for document directory") }
         guard let storeURL = URL(string: "\(name).sqlite", relativeTo: documentsURL) else { fatalError("failed to create relative URL") }
 
         self.storeURL = storeURL
+        self.saveRequestNotificationName = saveRequestNotificationName
       }
 
 
@@ -89,7 +93,8 @@ public class DataStore
           managedObjectModel: model,
           managedObjectContext: context,
           persistentStore: store,
-          saveRequestObservation: NotificationCenter.default.addObserver(forName: .dataStoreNeedsSave, object: nil, queue: .main) { self.performSave($0) }
+          saveRequestObservation: saveRequestNotificationName.map { name in NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { self.performSave($0) }
+          }
         )
       }
 
