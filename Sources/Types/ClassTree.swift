@@ -9,9 +9,9 @@ import Foundation
 
 /// A tree of classes representing a (partial) inheritance hierarchy. The tree is partial in the sense that not all descendant classes are members, but all ancestors of all members are also members.
 
-public enum InheritanceHierarchy<Root: NSObject>
+public enum ClassTree<Root: NSObject>
   {
-    case node(Root.Type, [ObjectIdentifier: InheritanceHierarchy<Root>])
+    case node(Root.Type, [ObjectIdentifier: ClassTree<Root>])
 
     /// Initialize an instance containing only the root class.
     public init(root: Root.Type = Root.self)
@@ -28,10 +28,20 @@ public enum InheritanceHierarchy<Root: NSObject>
         }
       }
 
+    /// Return the sequence of classes between given descendant and ancestor classes, inclusive.
+    private static func inheritanceChain(from descendant: Root.Type, to ancestor: Root.Type = Root.self, includingDescendant: Bool = true, includingAncestor: Bool = true) -> AnyIterator<Root.Type>
+      {
+        var next = includingDescendant ? descendant : (descendant.superclass() as? Root.Type)
+        return AnyIterator {
+          defer { next = next?.superclass() as? Root.Type }
+          return includingAncestor || next != .some(ancestor) ? next : nil
+        }
+      }
+
     /// Insert nodes for the given class and its superclasses if necessary.
     public mutating func add(_ type: Root.Type, onAdd f: (Root.Type) throws -> Void = {_ in }) rethrows
       {
-        let chain = NSObject.inheritanceChain(from: type, includingAncestor: false).reversed()
+        let chain = Self.inheritanceChain(from: type, includingAncestor: false).reversed()
         try add(chain, onAdd: f)
       }
 

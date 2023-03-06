@@ -11,9 +11,14 @@ import CoreData
 
 public struct Schema
   {
+    /// A convenience type pairing the data structures generated on demand: the managed object model and the mapping of entity names to ClassInfo structures.
     public typealias RuntimeInfo = (managedObjectModel: NSManagedObjectModel, classInfoByName: [String: ClassInfo])
 
-    private var inheritanceHierarchy : InheritanceHierarchy<Entity> = .init()
+
+    /// The Entity classes given on initialization, organized as a tree closed under inheritance.
+    private var classTree : ClassTree<Entity> = .init()
+
+    /// Map the names of defined entities to EntityInfo instances.
     public private(set) var entityInfoByName : [String: EntityInfo] = [:]
 
 
@@ -39,7 +44,7 @@ public struct Schema
       {
         precondition(entityInfoByName[givenType.entityName] == nil && givenInfo.map({$0.managedObjectClass == givenType}) != .some(false), "invalid argument")
 
-        try inheritanceHierarchy.add(givenType) { newType in
+        try classTree.add(givenType) { newType in
           let entityName = newType.entityName
           let existingInfo = entityInfoByName[entityName]
           guard existingInfo == nil else { throw Exception("entity name \(entityName) is defined by both \(existingInfo!.managedObjectClass) and \(newType)") }
@@ -55,7 +60,7 @@ public struct Schema
 
         // Perform a post-order traversal of the class hierarchy to create an entity description for each class, establish inheritance between entities, and populate classInfoByName...
         var classInfoByName : [String: ClassInfo] = [:]
-        _ = inheritanceHierarchy.fold { (objectType: Entity.Type, subentities: [NSEntityDescription]) -> NSEntityDescription in
+        _ = classTree.fold { (objectType: Entity.Type, subentities: [NSEntityDescription]) -> NSEntityDescription in
           // Ignore the root class (i.e. Entity) which is not modeled.
           guard objectType != Entity.self else { return .init() }
           // Get the corresponding EntityInfo
