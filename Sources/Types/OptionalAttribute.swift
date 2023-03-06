@@ -10,7 +10,7 @@ import CoreData
 /// OptionalAttribute is a property wrapper used to declare optional managed attributes on subclasses of Entity.
 
 @propertyWrapper
-public struct OptionalAttribute<Value: Nullable> : ManagedProperty where Value.Wrapped : Storable
+public struct OptionalAttribute<Value: Nullable> : ManagedPropertyWrapper where Value.Wrapped : Storable
   {
     public let propertyInfo : PropertyInfo
 

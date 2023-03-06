@@ -11,7 +11,7 @@ import CoreData
 /// Note that the predicate of a FetchedProperty can access the enclosing object via $FETCH_SOURCE.
 
 @propertyWrapper
-public struct FetchedProperty<Value> : ManagedProperty
+public struct FetchedProperty<Value> : ManagedPropertyWrapper
   {
     let fetchedPropertyInfo : FetchedPropertyInfo
 

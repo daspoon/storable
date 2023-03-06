@@ -29,7 +29,7 @@ public struct EntityInfo
 
         for (label, value) in objectType.instanceMirror.children {
           guard let label, label.hasPrefix("_") else { continue }
-          guard let info = (value as? ManagedProperty)?.propertyInfo else { continue }
+          guard let info = (value as? ManagedPropertyWrapper)?.propertyInfo else { continue }
           let propertyName = label.removing(prefix: "_")
           guard info.name == propertyName else {
             throw Exception("declared property name must match wrapper argument")

@@ -10,7 +10,7 @@ import CoreData
 /// Relationship is a property wrapper used to declared managed relationships on subclasses of Entity.
 
 @propertyWrapper
-public struct Relationship<Value> : ManagedProperty
+public struct Relationship<Value> : ManagedPropertyWrapper
   {
     public let propertyInfo : PropertyInfo
 

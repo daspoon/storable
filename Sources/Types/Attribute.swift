@@ -10,7 +10,7 @@ import CoreData
 /// Attribute is a property wrapper used to declared managed non-optional attributes on subclasses of Entity.
 
 @propertyWrapper
-public struct Attribute<Value: Storable> : ManagedProperty
+public struct Attribute<Value: Storable> : ManagedPropertyWrapper
   {
     public let propertyInfo : PropertyInfo
 
