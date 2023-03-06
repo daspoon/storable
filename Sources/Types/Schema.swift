@@ -33,7 +33,7 @@ public struct Schema
 
 
     /// Associate a new object type to a new instance of EntityInfo.
-    private mutating func addObjectType(_ givenType: Entity.Type, objectInfo givenInfo: EntityInfo? = nil) throws
+    private mutating func addObjectType(_ givenType: Entity.Type, entityInfo givenInfo: EntityInfo? = nil) throws
       {
         precondition(entityInfoByName[givenType.entityName] == nil && givenInfo.map({$0.managedObjectClass == givenType}) != .some(false), "invalid argument")
 
@@ -43,13 +43,6 @@ public struct Schema
           guard existingInfo == nil else { throw Exception("entity name \(entityName) is defined by both \(existingInfo!.managedObjectClass) and \(newType)") }
           entityInfoByName[entityName] = try EntityInfo(objectType: newType)
         }
-      }
-
-
-    /// Add the given EntityInfo instance for an object type which does not already belong to the schema.
-    public mutating func addObjectInfo(_ objectInfo: EntityInfo) throws
-      {
-        try addObjectType(objectInfo.managedObjectClass, objectInfo: objectInfo)
       }
 
 
@@ -225,7 +218,8 @@ public struct Schema
         if let schemaDiff = try targetSchema.difference(from: sourceSchema) {
           // Add each new entity to the intermediate schema; these changes don't necessarily require a migration script.
           for entityName in schemaDiff.added {
-            try info.intermediateSchema.addObjectInfo(targetSchema.entityInfoByName[entityName]!)
+            let entityInfo = targetSchema.entityInfoByName[entityName]!
+            try info.intermediateSchema.addObjectType(entityInfo.managedObjectClass, entityInfo: entityInfo)
           }
           // Modify the entities of the intermediate schema to reflect the additive differences between each entity common to source and target schemas.
           for (entityName, entityDiff) in schemaDiff.modified {
