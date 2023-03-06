@@ -18,14 +18,14 @@ public struct FetchedProperty<Value> : ManagedProperty
 
 
     /// Create an instance corresponding to an array of managed objects
-    public init<T: NSManagedObject>(_ name: String, fetchRequest: NSFetchRequest<T>) where Value == [T]
+    public init<T: Entity>(_ name: String, fetchRequest: NSFetchRequest<T>) where Value == [T]
       {
         fetchRequest.resultType = .managedObjectResultType
         fetchedPropertyInfo = FetchedPropertyInfo(name: name, fetchRequest: fetchRequest)
       }
 
     /// Create an instance corresponding to an array of managed object identifiers
-    public init<T: NSManagedObject>(_ name: String, fetchRequest: NSFetchRequest<T>) where Value == [NSManagedObjectID]
+    public init<T: Entity>(_ name: String, fetchRequest: NSFetchRequest<T>) where Value == [NSManagedObjectID]
       {
         fetchRequest.resultType = .managedObjectIDResultType
         fetchRequest.includesPropertyValues = false
@@ -33,19 +33,24 @@ public struct FetchedProperty<Value> : ManagedProperty
       }
 
     /// Create an instance corresponding to a dictionary of property name/value pairs. Set the fetchRequest's propertiesToFetch to determine the entries of the resulting dictionaries.
-    public init<T: NSManagedObject>(_ name: String, fetchRequest: NSFetchRequest<T>) where Value == [[String: Any]]
+    public init<T: Entity>(_ name: String, fetchRequest: NSFetchRequest<T>) where Value == [[String: Any]]
       {
         fetchRequest.resultType = .dictionaryResultType
         fetchedPropertyInfo = FetchedPropertyInfo(name: name, fetchRequest: fetchRequest)
       }
 
     /// Create an instance corresponding to an an integer count of matching objects. Note that entity type of the fetch request must be explicit, as it canot be determined by the property type Int.
-    public init<T: NSManagedObject>(_ name: String, fetchRequest: NSFetchRequest<T>) where Value == Int
+    public init<T: Entity>(_ name: String, fetchRequest: NSFetchRequest<T>) where Value == Int
       {
         fetchRequest.resultType = .countResultType
         fetchRequest.includesPropertyValues = false
         fetchedPropertyInfo = FetchedPropertyInfo(name: name, fetchRequest: fetchRequest)
       }
+
+
+    /// A convenience method for fetching an array of managed objects, with fetch request created implicitly from given parameters.
+    public init<T: Entity>(_ name: String, predicate p: NSPredicate? = nil, sortDescriptors ds: [NSSortDescriptor]) where Value == [T]
+      { self.init(name, fetchRequest: makeFetchRequest(predicate: p, sortDescriptors: ds)) }
 
 
     /// The enclosing-self subscript which implements readonly access to the associated property value.
