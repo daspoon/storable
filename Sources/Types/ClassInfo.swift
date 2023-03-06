@@ -1,11 +1,14 @@
 /*
 
+  Created by David Spooner
+
 */
 
 import CoreData
 
 
-/// ClassInfo combines an EntityInfo with an NSEntityDescription.
+/// ClassInfo pairs instances of types EntityInfo and NSEntityDescription for a specific subclass of Entity. It exists primarily to enable ingestion of managed objects by providing access to property metadata.
+
 @dynamicMemberLookup
 public struct ClassInfo
   {
@@ -20,6 +23,7 @@ public struct ClassInfo
       }
 
 
+    /// Provide convenient access to the properties of EntityInfo.
     public subscript <Value>(dynamicMember path: KeyPath<EntityInfo, Value>) -> Value
       { entityInfo[keyPath: path] }
   }
@@ -41,11 +45,13 @@ extension ClassInfo
       }
 
 
+    /// Called on ingestion to create an instance of the represented entity from a given JSON value.
     @discardableResult
     func createObject(from jsonValue: Any, in context: IngestContext) throws -> Entity
       { try entityInfo.managedObjectClass.init(self, with: .value([:]), in: context) }
 
 
+    /// Called on ingestion to create a list of instances of the represented entity from a given JSON value.
     @discardableResult
     func createObjects(from jsonValue: Any, with format: IngestFormat, in context: IngestContext) throws -> [Entity]
       {

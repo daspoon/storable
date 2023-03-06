@@ -1,11 +1,13 @@
 /*
 
+  Created by David Spooner
+
 */
 
 import CoreData
 
 
-/// RelationshipInfo represents an managed relationship declared via the Relationship property wrapper. It is essentially an enhancement of NSDescriptionDescription which maintains additional data required for object ingestion.
+/// RelationshipInfo maintains the metadata for a relationship defined of an Entity class; it is analogous to CoreData's NSRelationshipDescription.
 
 public struct RelationshipInfo : PropertyInfo
   {

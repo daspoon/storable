@@ -1,11 +1,15 @@
 /*
 
+  Created by David Spooner
+
 */
 
 import CoreData
 
 
-/// A structure representing a transition from a source schema to an (implicit) target schema, along with an optional method to perform an in-place update of a persistent store as part of a custom migration process.
+/// Migration represents a transition from an associated schema (source) to an implicit evolution of that schema (target).
+/// Each instance has an optional procedure run as part of an the migration process between (the models of) the source to target schema;
+/// its purpose being to ensure the store content is compatible with both source and target models.
 
 public struct Migration
   {

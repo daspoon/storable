@@ -1,6 +1,8 @@
 /*
 
- Tests of managed attribute access and update.
+  Created by David Spooner
+
+  Tests of managed attribute access and update.
 
 */
 

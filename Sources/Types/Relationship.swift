@@ -1,5 +1,7 @@
 /*
 
+  Created by David Spooner
+
 */
 
 import CoreData
@@ -13,39 +15,37 @@ public struct Relationship<Value> : ManagedProperty
     public let propertyInfo : PropertyInfo
 
 
-    // MARK: - to-one -
-
+    /// Declare a to-one relationship.
     public init(_ name: String, inverseName: String, deleteRule r: NSDeleteRule, renamingIdentifier oldName: String? = nil) where Value : Entity
       {
         propertyInfo = RelationshipInfo(name, arity: 1 ... 1, relatedEntityName: Value.entityName, inverseName: inverseName, deleteRule: r, renamingIdentifier: oldName)
       }
 
+    /// Declare a to-one relationship.
     public init(_ name: String, inverseName: String, deleteRule r: NSDeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil) where Value : Entity
       {
         propertyInfo = RelationshipInfo(name, arity: 1 ... 1, relatedEntityName: Value.entityName, inverseName: inverseName, deleteRule: r, renamingIdentifier: oldName, ingest: (key: k ?? .element(name), mode: m))
       }
 
-
-    // MARK: - to-optional -
-
+    /// Declare a to-optional relationship.
     public init<T: Entity>(_ name: String, inverseName: String, deleteRule r: NSDeleteRule, renamingIdentifier oldName: String? = nil) where Value == T?
       {
         propertyInfo = RelationshipInfo(name, arity: 0 ... 1, relatedEntityName: T.entityName, inverseName: inverseName, deleteRule: r, renamingIdentifier: oldName)
       }
 
+    /// Declare a to-optional relationship which is ingestible.
     public init<T: Entity>(_ name: String, inverseName: String, deleteRule r: NSDeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil) where Value == T?
       {
         propertyInfo = RelationshipInfo(name, arity:  0 ... 1, relatedEntityName: T.entityName, inverseName: inverseName, deleteRule: r, renamingIdentifier: oldName, ingest: (key: k ?? .element(name), mode: m))
       }
 
-
-    // MARK: - to-many -
-
+    /// Declare a to-many relationship.
     public init<T: Entity>(_ name: String, inverseName: String, deleteRule r: NSDeleteRule, renamingIdentifier oldName: String? = nil) where Value == Set<T>
       {
         propertyInfo = RelationshipInfo(name, arity: 0 ... .max, relatedEntityName: T.entityName, inverseName: inverseName, deleteRule: r, renamingIdentifier: oldName)
       }
 
+    /// Declare a to-many relationship which is ingestible.
     public init<T: Entity>(_ name: String, inverseName: String, deleteRule r: NSDeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil) where Value == Set<T>
       {
         propertyInfo = RelationshipInfo(name, arity: 0 ... .max, relatedEntityName: T.entityName, inverseName: inverseName, deleteRule: r, renamingIdentifier: oldName, ingest: (key: k ?? .element(name), mode: m))

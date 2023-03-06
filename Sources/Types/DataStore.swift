@@ -1,11 +1,14 @@
 /*
 
+  Created by David Spooner
+
 */
 
 import CoreData
 
 
 /// DataStore creates and maintains a persistent store for an object model generated from a given Schema.
+/// Note that the separation between DataStore and BasicStore is primarily to enable testing of CoreData functionality independent of Schemas.
 
 public class DataStore : BasicStore
   {
@@ -13,6 +16,7 @@ public class DataStore : BasicStore
     public private(set) var classInfoByName : [String: ClassInfo] = [:]
 
 
+    /// Open the store with the object model for the given schema. If the schema has previous versions, those versions must be provided as the migrations parameter ordered from oldest to newest.
     public func openWith(schema: Schema, migrations: [Migration] = []) throws
       {
         // Determine the list of schema version identifiers from oldest to newest and ensure each is distinct.
@@ -48,6 +52,7 @@ public class DataStore : BasicStore
       }
 
 
+    /// Open the store using the previous method, populating if necessary from the given data source. The need to populate is determined by the absence of an instance of the specified State entity.
     public func openWith(schema: Schema, stateEntityName: String = "State", dataSource: DataSource, migrations: [Migration] = []) throws
       {
         try openWith(schema: schema, migrations: migrations)
@@ -73,6 +78,7 @@ public class DataStore : BasicStore
       }
 
 
+    /// Override super's close method to reset the mapping of entity names to ClassInfo instances.
     public override func close(savingChanges save: Bool = true) throws
       {
         try super.close(savingChanges: save)

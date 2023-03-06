@@ -1,11 +1,13 @@
 /*
 
+  Created by David Spooner
+
 */
 
 import Foundation
 
 
-/// Wrap a Codable type as an NSObject which implements NSSecureCoding, as is required of default values specified in an NSAttributeDescription.
+/// Boxed<T> wraps a Codable type T as an NSObject which implements NSSecureCoding; it is used to implement transformable attributes of Codable type and to specify default values in NSAttributeDescription instances.
 
 public final class Boxed<Value: Codable> : NSObject, NSSecureCoding
   {

@@ -1,5 +1,7 @@
 /*
 
+  Created by David Spooner
+
 */
 
 import CoreData
@@ -13,26 +15,25 @@ public struct OptionalAttribute<Value: Nullable> : ManagedProperty where Value.W
     public let propertyInfo : PropertyInfo
 
 
-    // Basic initializers
-
+    /// Declare an optional attribute.
     public init(_ name: String, renamingIdentifier: String? = nil)
       {
         propertyInfo = AttributeInfo(name: name, type: Value.Wrapped.self, isOptional: true, renamingIdentifier: renamingIdentifier)
       }
 
-
-    // Initializers supporting ingestion
-
+    /// Declare an optional attribute which is ingestible.
     public init(_ name: String, renamingIdentifier: String? = nil) where Value.Wrapped : Ingestible
       {
         propertyInfo = AttributeInfo(name: name, type: Value.Wrapped.self, isOptional: true, renamingIdentifier: renamingIdentifier, ingest: (.element(name), Value.Wrapped.ingest))
       }
 
+    /// Declare an optional attribute which is ingestible using the specified key.
     public init(_ name: String, renamingIdentifier: String? = nil, ingestKey k: IngestKey) where Value.Wrapped : Ingestible
       {
         propertyInfo = AttributeInfo(name: name, type: Value.Wrapped.self, isOptional: true, renamingIdentifier: renamingIdentifier, ingest: (k, Value.Wrapped.ingest))
       }
 
+    /// Declare an optional attribute which is transformed from an alternate format on ingestion.
     public init<Transform>(_ name: String, renamingIdentifier: String? = nil, ingestKey k: IngestKey? = nil, transform t: Transform) where Value.Wrapped : Ingestible, Transform : IngestTransform, Transform.Output == Value.Wrapped.Input
       {
         propertyInfo = AttributeInfo(name: name, type: Value.Wrapped.self, isOptional: true, renamingIdentifier: renamingIdentifier, ingest: (k ?? .element(name), {try Value.Wrapped.ingest($0, withTransform: t)}))

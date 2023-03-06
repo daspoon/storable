@@ -1,5 +1,7 @@
 /*
 
+  Created by David Spooner
+
 */
 
 import CoreData
@@ -21,12 +23,15 @@ open class Entity : NSManagedObject
       }
 
 
+    /// Return the name of the defined entity.
     public class var entityName : String
       { entityNameAndVersion.entityName }
 
 
     private static let entityNameAndVersionRegex = try! NSRegularExpression(pattern: "(\\w+)_v(\\d+)", options: [])
 
+    /// Return the pairing of defined entity name and version number by applying the regular expression (\w+)_v(\d+) to the receiver's name.
+    /// If no there is no unique match then the entity name is taken to be the receiver's name and the version is taken to be zero.
     class var entityNameAndVersion : (entityName: String, version: Int)
       {
         let objcName = "\(Self.self)" as NSString
@@ -48,6 +53,7 @@ open class Entity : NSManagedObject
       { nil }
 
 
+    /// Return the notion of instance identify for the purpose of relationship ingestion. The default implementation returns anonymous.
     open class var identity : Identity
       { .anonymous }
 

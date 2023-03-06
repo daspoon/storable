@@ -1,11 +1,13 @@
 /*
 
+  Created by David Spooner
+
 */
 
 import CoreData
 
 
-/// Attribute is a property wrapper used to declared managed attributes on subclasses of Entity.
+/// Attribute is a property wrapper used to declared managed non-optional attributes on subclasses of Entity.
 
 @propertyWrapper
 public struct Attribute<Value: Storable> : ManagedProperty
@@ -13,44 +15,43 @@ public struct Attribute<Value: Storable> : ManagedProperty
     public let propertyInfo : PropertyInfo
 
 
-    // Initializers without explicit initial values.
-
+    /// Declare an attribute which has no default value.
     public init(_ name: String, renamingIdentifier: String? = nil)
       {
         propertyInfo = AttributeInfo(name: name, type: Value.self, renamingIdentifier: renamingIdentifier)
       }
 
-    public init(_ name: String, renamingIdentifier: String? = nil)  where Value : Ingestible
+    /// Declare an attribute which has no default value and is ingestible.
+    public init(_ name: String, renamingIdentifier: String? = nil) where Value : Ingestible
       {
         propertyInfo = AttributeInfo(name: name, type: Value.self, renamingIdentifier: renamingIdentifier, ingest: (.element(name), Value.ingest))
       }
 
+    /// Declare an attribute which has no default value and is ingestible using the specified key.
     public init(_ name: String, renamingIdentifier: String? = nil, ingestKey k: IngestKey) where Value : Ingestible
       {
         propertyInfo = AttributeInfo(name: name, type: Value.self, renamingIdentifier: renamingIdentifier, ingest: (k, Value.ingest))
       }
 
-
-    // Initializers with explicit initial values
-
+    /// Declare an attribute which has a default value.
     public init(wrappedValue v: Value, _ name: String, renamingIdentifier: String? = nil)
       {
         propertyInfo = AttributeInfo(name: name, type: Value.self, defaultValue: v, renamingIdentifier: renamingIdentifier)
       }
 
+    /// Declare an attribute which has a default value and is ingestible.
     public init(wrappedValue v: Value, _ name: String, renamingIdentifier: String? = nil) where Value : Ingestible
       {
         propertyInfo = AttributeInfo(name: name, type: Value.self, defaultValue: v, renamingIdentifier: renamingIdentifier, ingest: (.element(name), Value.ingest))
       }
 
+    /// Declare an attribute which has a default value and is ingestible using the specified key.
     public init(wrappedValue v: Value, _ name: String, renamingIdentifier: String? = nil, ingestKey k: IngestKey) where Value : Ingestible
       {
         propertyInfo = AttributeInfo(name: name, type: Value.self, defaultValue: v, renamingIdentifier: renamingIdentifier, ingest: (k, Value.ingest))
       }
 
-
-    // Initializers with values transformed on ingestion
-
+    /// Declare an attribute which is transformed from an alternate format on ingestion. If a default value is provided, it must be of the input type of the given transform.
     public init<Transform>(_ name: String, renamingIdentifier: String? = nil, ingestKey k: IngestKey? = nil, transform t: Transform, defaultIngestValue v: Transform.Input? = nil) where Value : Ingestible, Transform : IngestTransform, Transform.Output == Value.Input
       {
         // Transform the given default value.

@@ -1,5 +1,7 @@
 /*
 
+  Created by David Spooner
+
   Ensure the underlying names specified by property wrappers are distinct within the generated entity (accounting for inheritance).
 
 */

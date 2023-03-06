@@ -1,5 +1,7 @@
 /*
 
+  Created by David Spooner
+
 */
 
 extension Sequence

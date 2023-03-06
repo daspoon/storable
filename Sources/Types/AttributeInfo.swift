@@ -1,11 +1,13 @@
 /*
 
+  Created by David Spooner
+
 */
 
 import CoreData
 
 
-/// AttributeInfo represents an managed attribute declared via the Attribute property wrapper. It is essentially an enhancement of NSAttributeDescription which maintains additional data required for object ingestion.
+/// AttributeInfo maintains the metadata for a managed attribute of an Entity class; it is analogous to CoreData's NSAttributeDescription.
 
 public struct AttributeInfo : PropertyInfo
   {
@@ -47,6 +49,7 @@ public struct AttributeInfo : PropertyInfo
       }
 
 
+    /// Return a copy of the receiver with changes made by the given code block.
     public func copy(withModifier method: (inout Self) -> Void) -> Self
       {
         var copy = self

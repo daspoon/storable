@@ -1,11 +1,13 @@
 /*
 
+  Created by David Spooner
+
 */
 
 import CoreData
 
 
-/// EntityInfo is conceptually equivalent to NSEntityDescription, but maintains additional data required to perform object ingestion.
+/// EntityInfo maintains the metadata for a subclass of Entity; it is analogous to CoreData's NSEntityDescription.
 
 public struct EntityInfo
   {

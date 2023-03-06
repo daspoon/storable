@@ -1,9 +1,13 @@
 /*
 
+  Created by David Spooner
+
 */
 
 import CoreData
 
+
+/// BasicStore is a convenience class used to maintain the state associated with a CoreData persistent store.
 
 public class BasicStore
   {
@@ -104,6 +108,7 @@ public class BasicStore
       }
 
 
+    /// Close the persistent store, either saving or discarding the changes to the managed object context; the default is to save changes.
     public func close(savingChanges: Bool = true) throws
       {
         guard let state else { preconditionFailure("not open") }

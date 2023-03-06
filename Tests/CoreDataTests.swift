@@ -1,5 +1,7 @@
 /*
 
+  Created by David Spooner
+
   Test our assumptions about various CoreData behaviors.
 
 */
