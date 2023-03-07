@@ -15,7 +15,6 @@ import XCTest
 
 // MARK: --
 
-@objc(Category)
 fileprivate class Category : Entity
   {
     @Attribute("name")
@@ -25,7 +24,6 @@ fileprivate class Category : Entity
     var items : Set<Item>
   }
 
-@objc(Item)
 fileprivate class Item : Entity
   {
     @Attribute("name")
@@ -38,7 +36,6 @@ fileprivate class Item : Entity
     var box : Box?
   }
 
-@objc(Box)
 fileprivate class Box : Entity
   {
     @Attribute("number")

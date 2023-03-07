@@ -11,29 +11,18 @@ import CoreData
 
 final class ModelIdentityTests : XCTestCase
   {
-    func checkObjectModelHashes(match expectedMatch: Bool, _ original: Schema, _ modified: Schema) throws
-      {
-        let versionId = "*"
-        let originalModel = try original.createRuntimeInfo(withVersionId: versionId).managedObjectModel
-        let modifiedModel = try modified.createRuntimeInfo(withVersionId: versionId).managedObjectModel
-
-        let actualMatch = originalModel.entityVersionHashesByName == modifiedModel.entityVersionHashesByName
-        if actualMatch != expectedMatch {
-          XCTFail("model hash values are expected to " + (expectedMatch ? "match" : "differ"))
-        }
-      }
   }
 
 
 // Define some base entities. Although the subsequently defined variations have different class names, they have matching entity names due to their versioned class names (_v<i>).
 
-@objc fileprivate class Person : Entity
+fileprivate class Person : Entity
   {
     @Attribute("name")
     var name : String
   }
 
-@objc fileprivate class Place : Entity
+fileprivate class Place : Entity
   {
     @Attribute("name")
     var name : String
@@ -43,7 +32,7 @@ final class ModelIdentityTests : XCTestCase
 // MARK: --
 // Addition/removal of entities affects model identity.
 
-@objc fileprivate class Extra : Entity
+fileprivate class Extra : Entity
   { }
 
 extension ModelIdentityTests
@@ -60,7 +49,7 @@ extension ModelIdentityTests
 // MARK: --
 // Addition/removal of attributes affects model identity.
 
-@objc fileprivate class PersonWithAge : Entity
+fileprivate class PersonWithAge : Entity
   {
     @Attribute("name")
     var name : String
@@ -83,7 +72,7 @@ extension ModelIdentityTests
 // Addition/removal of relationships affects model identity.
 
 fileprivate typealias PersonWithPlace = Person_v2
-@objc fileprivate class Person_v2 : Entity
+fileprivate class Person_v2 : Entity
   {
     @Attribute("name")
     var name : String
@@ -92,7 +81,7 @@ fileprivate typealias PersonWithPlace = Person_v2
   }
 
 fileprivate typealias PlaceWithOccupants = Place_v2
-@objc fileprivate class Place_v2 : Entity
+fileprivate class Place_v2 : Entity
   {
     @Attribute("name")
     var name : String
@@ -115,7 +104,7 @@ extension ModelIdentityTests
 // Addition/removal of fetched properties does not affect model identity.
 
 fileprivate typealias PlaceWithSortedOccupants = Place_v3
-@objc fileprivate class Place_v3 : Entity
+fileprivate class Place_v3 : Entity
   {
     @Attribute("name")
     var name : String

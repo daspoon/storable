@@ -8,28 +8,13 @@
 
 import XCTest
 import CoreData
+@testable import Storable
 
 
 final class CoreDataTests : XCTestCase
-  {  }
-
-
-// MARK: --
-// For testing convenience, enable common treatment of entity and property descriptor classes
-
-protocol ObjectModelComponent : NSObject
-  { var versionHash : Data { get } }
-
-extension NSEntityDescription : ObjectModelComponent {}
-extension NSPropertyDescription : ObjectModelComponent {}
-
-
-// MARK: --
-
-// The following tests show which properties of NSAttributeDescription, NSRelationshipDescription and NSEntityDescription affect their versionHash. The general form of each test is to create two instances of each component which differ in the value of a chosen property and to assert the effect on the version hashes.
-
-extension CoreDataTests
   {
+    // The following tests show which properties of NSAttributeDescription, NSRelationshipDescription and NSEntityDescription affect their versionHash. The general form of each test is to create two instances of each component which differ in the value of a chosen property and to assert the effect on the version hashes.
+
     /// A convenience structure representing an example change for a specific component and property.
     struct Example<T: ObjectModelComponent>
       {
@@ -126,15 +111,11 @@ extension CoreDataTests
           .init("userInfo", {$1.userInfo = ["x": 0]}),
         ])
       }
-  }
 
 
-// MARK: --
+    // MARK: --
+    // The following tests demonstrate how various scenarios affect mapping model inferrence. Each test creates source and target object models with a single same-named entity, then attempts to infer a mapping between the models.
 
-// The following tests demonstrate how various scenarios affect mapping model inferrence. Each test creates source and target object models with a single same-named entity, then attempts to infer a mapping between the models.
-
-extension CoreDataTests
-  {
     /// A convenience method for checking expected compatibility between two given entities.
     func ensureModelInferrence(succeeds: Bool, from sourceEntity: NSEntityDescription, to targetEntity: NSEntityDescription) throws
       {
@@ -229,16 +210,10 @@ extension CoreDataTests
           to: NSEntityDescription(name: "E") {$0.properties = [NSAttributeDescription(name: "a", type: .string) {$0.isOptional = true}]}
         )
       }
-  }
 
 
-// MARK: --
+    // MARK: --
 
-@testable import Storable
-
-
-extension CoreDataTests
-  {
     /// Adding a non-optional attribute (with no default) value requires more than lightweight migration.
     func testMigrateAddAttributeFail() throws
       {

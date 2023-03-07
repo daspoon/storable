@@ -2,6 +2,8 @@
 
   Created by David Spooner
 
+  Test dictionary difference calculation.
+
 */
 
 import XCTest

@@ -10,10 +10,10 @@ import XCTest
 import Storable
 
 
-// First define the test class and some convenience methods.
-
 final class ModelDifferenceTests : XCTestCase
   {
+    // First define some convenience methods for use in subsequent test cases
+
     func difference(from old: Entity.Type, to new: Entity.Type) throws -> EntityInfo.Difference?
       {
         let oldInfo = try EntityInfo(objectType: old)
@@ -52,14 +52,9 @@ final class ModelDifferenceTests : XCTestCase
           print(error)
         }
       }
-  }
 
 
-// MARK: --
-// Adding and removing Entity properties
-
-extension ModelDifferenceTests
-  {
+    // Detect property addition and removal
     func testPropertyAddition() throws
       {
         class E_v1 : Entity
@@ -83,15 +78,9 @@ extension ModelDifferenceTests
           relationshipsDifference: .init(removed: ["r"])
         ))
       }
-  }
 
 
-// MARK: --
-// Renaming Entity properties
-
-extension ModelDifferenceTests
-  {
-    // Rename attributes and relationships
+    // Detect property renaming
     func testPropertyRename() throws
       {
         class E_v1 : Entity
@@ -115,14 +104,9 @@ extension ModelDifferenceTests
           relationshipsDifference: .init(modified: ["q": [.name]])
         ))
       }
-  }
 
 
-// MARK: --
-// We can rename a previously-existing property while simultaneously adding a new property with the original name.
-
-extension ModelDifferenceTests
-  {
+    // We can rename a previously-existing property while simultaneously adding a new property with the original name.
     func testPropertyOverride() throws
       {
         class E_v1 : Entity
@@ -144,14 +128,9 @@ extension ModelDifferenceTests
           modified: ["b": [.name]]
         )))
       }
-  }
 
 
-// MARK: --
-// Changing attribute optionality
-
-extension ModelDifferenceTests
-  {
+    // Detect changing attribute optionality
     func testPropertyOptionality() throws
       {
         class E_v1 : Entity
@@ -169,14 +148,9 @@ extension ModelDifferenceTests
         try checkDifference(from: E_v1.self, to: E_v2.self, matches: .init(attributesDifference: .init(modified: ["a": [.isOptional]])))
         try checkDifference(from: E_v2.self, to: E_v1.self, matches: .init(attributesDifference: .init(modified: ["a": [.isOptional]])))
       }
-  }
 
 
-// MARK: --
-// Changing attribute type
-
-extension ModelDifferenceTests
-  {
+    // Detect changing attribute type
     func testPropertyRetype() throws
       {
         class E_v1 : Entity
@@ -193,14 +167,9 @@ extension ModelDifferenceTests
 
         try checkDifference(from: E_v1.self, to: E_v2.self, matches: .init(attributesDifference: .init(modified: ["a": [.type]])))
       }
-  }
 
 
-// MARK: --
-// Changing relationship range
-
-extension ModelDifferenceTests
-  {
+    // Detect changing relationship range
     func testRelationshipRange() throws
       {
         class E_v1 : Entity
@@ -225,14 +194,9 @@ extension ModelDifferenceTests
         try checkDifference(from: E_v1.self, to: E_v3.self, matches: .init(relationshipsDifference: .init(modified: ["r": [.rangeOfCount]])))
         try checkDifference(from: E_v2.self, to: E_v3.self, matches: .init(relationshipsDifference: .init(modified: ["r": [.rangeOfCount]])))
       }
-  }
 
 
-// MARK: --
-// Properties renamed in the target must exist in the source.
-
-extension ModelDifferenceTests
-  {
+    // Attributes renamed in the target must exist in the source.
     func testAttributeRenameUnknown() throws
       {
         class E_v1 : Entity
@@ -247,6 +211,8 @@ extension ModelDifferenceTests
         try checkDifferenceFails(from: E_v1.self, to: E_v2.self)
       }
 
+
+    // Relationships renamed in the target must exist in the source.
     func testRelationshipRenameUnknown() throws
       {
         class E_v1 : Entity
@@ -260,23 +226,18 @@ extension ModelDifferenceTests
 
         try checkDifferenceFails(from: E_v1.self, to: E_v2.self)
       }
-  }
 
 
-// MARK: --
-// Properties renamed in the target must map to distinct properties in the source.
-
-extension ModelDifferenceTests
-  {
+    // Properties renamed in the target must map to distinct properties in the source.
     func testAttributeRenameConflict() throws
       {
-        @objc class E_v1 : Entity
+        class E_v1 : Entity
           {
             @Attribute("a")
             var a : Int
           }
 
-        @objc class E_v2 : Entity
+        class E_v2 : Entity
           {
             @Attribute("b", renamingIdentifier: "a")
             var b : Int
@@ -286,26 +247,21 @@ extension ModelDifferenceTests
 
         try checkDifferenceFails(from: E_v1.self, to: E_v2.self)
       }
-  }
 
 
-// MARK: --
-// Adding, removing and modifying entities
-
-extension ModelDifferenceTests
-  {
+    // Detect added, removed and modified entities
     func testEntityAddition() throws
       {
-        @objc class Added : Entity
+        class Added : Entity
           { }
 
-        @objc class Removed : Entity
+        class Removed : Entity
           { }
 
-        @objc class Modified_v1 : Entity
+        class Modified_v1 : Entity
           { @Attribute("a") var a : Int }
 
-        @objc class Modified_v2 : Entity
+        class Modified_v2 : Entity
           { @Attribute("a") var a : Float }
 
         let s1 = try Schema(objectTypes: [Removed.self, Modified_v1.self])
@@ -316,14 +272,9 @@ extension ModelDifferenceTests
           modified: ["Modified": .init(attributesDifference: .init(modified: ["a": [.type]]))!]
         ))
       }
-  }
 
 
-// MARK: --
-// Renaming entities
-
-extension ModelDifferenceTests
-  {
+    // Detect renamed entities
     func testEntityRename() throws
       {
         class Old : Entity {
@@ -337,14 +288,9 @@ extension ModelDifferenceTests
         let s2 = try Schema(objectTypes: [New.self])
         try checkDifference(from: s1, to: s2, matches: .init(modified: ["New": .init(descriptorChanges: [.name])!]))
       }
-  }
 
 
-// MARK: --
-// Changing entity abstract(ness)
-
-extension ModelDifferenceTests
-  {
+    // Detect changing entity abstract(ness)
     func testEntityAbstraction() throws
       {
         class E_v1 : Entity {
@@ -358,13 +304,4 @@ extension ModelDifferenceTests
         let s2 = try Schema(objectTypes: [E_v2.self])
         try checkDifference(from: s1, to: s2, matches: .init(modified: ["E": .init(descriptorChanges: [.isAbstract])!]))
       }
-  }
-
-
-// MARK: --
-// Moving properties between inheritance-related entities
-
-extension ModelDifferenceTests
-  {
-    // TODO:
   }

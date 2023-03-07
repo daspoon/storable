@@ -2,14 +2,15 @@
 
   Created by David Spooner
 
+  Test expected behavior of fetched properties.
+
 */
 
 import XCTest
 import CoreData
-@testable import Storable
+import Storable
 
 
-@objc(Occupant)
 fileprivate class Occupant : Entity
   {
     @Attribute("name")
@@ -23,7 +24,6 @@ fileprivate class Occupant : Entity
   }
 
 
-@objc(Dwelling)
 fileprivate class Dwelling : Entity
   {
     @Relationship("occupants", inverseName: "dwelling", deleteRule: .nullifyDeleteRule)
