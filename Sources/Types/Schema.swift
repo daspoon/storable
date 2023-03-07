@@ -120,12 +120,12 @@ public struct Schema
             forwardDescription.destinationEntity = targetInfo.entityDescription
             forwardDescription.inverseRelationship = inverseDescription
             forwardDescription.deleteRule = relationship.deleteRule
-            forwardDescription.rangeOfCount = relationship.arity
+            forwardDescription.rangeOfCount = relationship.range
             inverseDescription.name = relationship.inverseName
             inverseDescription.destinationEntity = sourceInfo.entityDescription
             inverseDescription.inverseRelationship = forwardDescription
             inverseDescription.deleteRule = inverse.deleteRule
-            inverseDescription.rangeOfCount = inverse.arity
+            inverseDescription.rangeOfCount = inverse.range
             // Add the NSRelationshipDescriptions to the corresponding NSEntityDescriptions
             sourceInfo.entityDescription.properties.append(forwardDescription)
             targetInfo.entityDescription.properties.append(inverseDescription)
@@ -271,7 +271,7 @@ public struct Schema
               info.intermediateSchema.withEntityNamed(entityName) {
                 let targetRel = targetObjectInfo.relationships[relName]!
                 $0.addRelationship(targetRel)
-                if !(targetRel.arity.contains(0)) {
+                if !(targetRel.range.contains(0)) {
                   info.requiresMigrationScript = true
                 }
               }
@@ -283,11 +283,11 @@ public struct Schema
               for change in changes {
                 switch change {
                   case .rangeOfCount :
-                    // If the new arity does not contain the old arity then we must relax arity in the intermediate model and run a script to update each instance appropriately.
-                    let (sourceArity, targetArity) = (sourceRel.arity, targetRel.arity)
-                    if targetArity.contains(sourceArity) == false {
+                    // If the new range does not contain the old range then it must be relaxed in the intermediate model and a script must be run to update each instance appropriately.
+                    let (sourceRange, targetRange) = (sourceRel.range, targetRel.range)
+                    if targetRange.contains(sourceRange) == false {
                       info.intermediateSchema.withEntityNamed(entityName) {
-                        $0.withRelationshipNamed(relName) { $0.arity = min(sourceArity.lowerBound, targetArity.lowerBound) ... max(sourceArity.upperBound, targetArity.upperBound) }
+                        $0.withRelationshipNamed(relName) { $0.range = min(sourceRange.lowerBound, targetRange.lowerBound) ... max(sourceRange.upperBound, targetRange.upperBound) }
                       }
                       info.requiresMigrationScript = true
                     }

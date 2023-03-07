@@ -197,11 +197,11 @@ extension ModelDifferenceTests
 
 
 // MARK: --
-// Changing relationship arity
+// Changing relationship range
 
 extension ModelDifferenceTests
   {
-    func testRelationshipArity() throws
+    func testRelationshipRange() throws
       {
         class E_v1 : Entity
           {

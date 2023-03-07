@@ -224,11 +224,11 @@ extension MigrationTests
   }
 
 
-// MARK: - Test change of relationship arity -
+// MARK: - Test change of relationship range -
 
 extension MigrationTests
   {
-    func testRelationshipArity() throws
+    func testRelationshipRange() throws
       {
         // Define an initial schema with Thing and Place entities related by to-optional relationships 'place' and 'thing'.
         @objc class Thing : Entity {

@@ -23,8 +23,8 @@ public struct RelationshipInfo : PropertyInfo
     /// The name of the corresponding property of the source entity.
     public var name : String
 
-    /// The arity indicates the potential number of related objects.
-    public var arity : ClosedRange<Int>
+    /// The range indicates the potential number of related objects.
+    public var range : ClosedRange<Int>
 
     /// The name of the related entity.
     public var relatedEntityName : String
@@ -43,12 +43,12 @@ public struct RelationshipInfo : PropertyInfo
 
 
     /// Initialize a new instance.
-    public init(_ name: String, arity: ClosedRange<Int>, relatedEntityName: String, inverseName: String, deleteRule: NSDeleteRule, renamingIdentifier: String? = nil, ingest: (key: IngestKey, mode: IngestMode)? = nil)
+    public init(_ name: String, range: ClosedRange<Int>, relatedEntityName: String, inverseName: String, deleteRule: NSDeleteRule, renamingIdentifier: String? = nil, ingest: (key: IngestKey, mode: IngestMode)? = nil)
       {
-        precondition(arity.lowerBound >= 0 && arity.upperBound >= 1)
+        precondition(range.lowerBound >= 0 && range.upperBound >= 1)
 
         self.name = name
-        self.arity = arity
+        self.range = range
         self.relatedEntityName = relatedEntityName
         self.inverseName = inverseName
         self.deleteRule = deleteRule
@@ -79,7 +79,7 @@ extension RelationshipInfo : Diffable
           old.name != self.name ? .name : nil,
           old.relatedEntityName != self.relatedEntityName ? .relatedEntityName : nil,
           old.inverseName != self.inverseName ? .inverseName : nil,
-          old.arity != self.arity ? .rangeOfCount : nil,
+          old.range != self.range ? .rangeOfCount : nil,
         ].compactMap {$0}
         return changes.count > 0 ? Set(changes) : nil
       }

@@ -115,8 +115,8 @@ open class Entity : NSManagedObject
           do {
             let relatedInfo = try context.classInfo(for: relationship.relatedEntityName)
             let relatedClass = relatedInfo.managedObjectClass
-            switch (ingestData[ingest.key], ingest.mode, relationship.arity) {
-              case (.some(let jsonValue), .create(let format), let arity) where arity.upperBound > 1 :
+            switch (ingestData[ingest.key], ingest.mode, relationship.range) {
+              case (.some(let jsonValue), .create(let format), let range) where range.upperBound > 1 :
                 // When creating a to-many relationship, the format parameter determines the type and interpretation of the json data...
                 let relatedObjects = try relatedInfo.createObjects(from: jsonValue, with: format, in: context)
                 setValue(Set(relatedObjects), forKey: relationship.name)
@@ -125,7 +125,7 @@ open class Entity : NSManagedObject
                 guard format == .any else { throw Exception("") }
                 let relatedObject = try relatedInfo.createObject(from: jsonValue, in: context)
                 setValue(relatedObject, forKey: relationship.name)
-              case (.some(let jsonValue), .reference, let arity) where arity.upperBound > 1 :
+              case (.some(let jsonValue), .reference, let range) where range.upperBound > 1 :
                 // A to-many reference requires an array string instance identifiers. Evaluation is delayed until all entity instances have been created.
                 guard let instanceIds = jsonValue as? [String] else { throw Exception("an array of object identifiers is required") }
                 context.delay {
@@ -139,8 +139,8 @@ open class Entity : NSManagedObject
                   let relatedObject = try context.fetchObject(id: instanceId, of: relatedClass)
                   self.setValue(relatedObject, forKey: relationship.name)
                 }
-              case (.none, _, let arity) :
-                guard arity.lowerBound == 0 else { throw Exception("a value is required") }
+              case (.none, _, let range) :
+                guard range.lowerBound == 0 else { throw Exception("a value is required") }
             }
           }
           catch let error {
