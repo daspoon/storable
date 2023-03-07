@@ -52,7 +52,7 @@ public struct Attribute<Value: Storable> : ManagedPropertyWrapper
       }
 
     /// Declare an attribute which is transformed from an alternate format on ingestion. If a default value is provided, it must be of the input type of the given transform.
-    public init<Transform>(_ name: String, renamingIdentifier: String? = nil, ingestKey k: IngestKey? = nil, transform t: Transform, defaultIngestValue v: Transform.Input? = nil) where Value : Ingestible, Transform : IngestTransform, Transform.Output == Value.Input
+    public init<Alt>(_ name: String, renamingIdentifier: String? = nil, ingestKey k: IngestKey? = nil, transform t: @escaping (Alt) throws -> Value.Input, defaultIngestValue v: Alt? = nil) where Value : Ingestible
       {
         // Transform the given default value.
         let tv = v.map {try! Value.ingest($0, withTransform: t)}

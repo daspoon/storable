@@ -34,7 +34,7 @@ public struct OptionalAttribute<Value: Nullable> : ManagedPropertyWrapper where 
       }
 
     /// Declare an optional attribute which is transformed from an alternate format on ingestion.
-    public init<Transform>(_ name: String, renamingIdentifier: String? = nil, ingestKey k: IngestKey? = nil, transform t: Transform) where Value.Wrapped : Ingestible, Transform : IngestTransform, Transform.Output == Value.Wrapped.Input
+    public init<Alt>(_ name: String, renamingIdentifier: String? = nil, ingestKey k: IngestKey? = nil, transform t: @escaping (Alt) throws -> Value.Wrapped.Input) where Value.Wrapped : Ingestible
       {
         propertyInfo = AttributeInfo(name: name, type: Value.Wrapped.self, isOptional: true, renamingIdentifier: renamingIdentifier, ingest: (k ?? .element(name), {try Value.Wrapped.ingest($0, withTransform: t)}))
       }

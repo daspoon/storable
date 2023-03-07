@@ -26,8 +26,8 @@ extension Ingestible
       { try Self(json: try throwingCast(json)) }
 
     /// Attempt to create an instance from the given json value after applying the given transform. An exception is raised if the argument value is not of the transform's Input type.
-    static func ingest<Transform: IngestTransform>(_ json: Any, withTransform t: Transform) throws -> Self where Transform.Output == Input
-      { try Self(json: try t.transform(try throwingCast(json))) }
+    static func ingest<Alt>(_ json: Any, withTransform f: (Alt) throws -> Input) throws -> Self
+      { try Self(json: try f(try throwingCast(json))) }
   }
 
 
