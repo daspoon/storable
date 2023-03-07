@@ -8,33 +8,20 @@ import Foundation
 import Storable
 
 
-/// Act like a Bundle for the purpose of testing DataSource et.al., mapping resource names to subpaths of the 'resourcePath' specified in the launch arguments.
+/// Act like a Bundle for the purpose of testing, mapping resource names to json data objects.
 
-public struct MockBundle : DataBundle
+struct MockBundle : DataBundle
   {
-    let resourcePath : String
+    let resourceData : [String: Data]
 
-
-    public init() throws
+    init(resources: [String: Any])
       {
-        guard let resourcePathArg = ProcessInfo.processInfo.arguments.first(where: {$0.hasPrefix("resourcePath=")}) else {
-          throw Exception("missing argument value for 'resourcePath'")
-        }
-        resourcePath = resourcePathArg.removing(prefix: "resourcePath=")
+        resourceData = resources.mapValues { try JSONEncoder().encode($0) }
       }
 
-
-    // DataBundle
-
-    public func url(forResource resourceName: String?, withExtension fileExtension: String?) -> URL?
+    public func jsonData(for name: String) throws -> Data
       {
-        var absolutePath = resourcePath
-        if let resourceName {
-          absolutePath = (absolutePath as NSString).appendingPathComponent(resourceName)
-        }
-        if let fileExtension {
-          absolutePath = (absolutePath as NSString).appendingPathExtension(fileExtension)!
-        }
-        return URL(fileURLWithPath: absolutePath)
+        guard let data = resourceData[name] else { throw Exception("unknown resource name '\(name)'") }
+        return data
       }
   }

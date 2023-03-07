@@ -11,9 +11,5 @@ import Foundation
 
 public protocol DataBundle
   {
-    func url(forResource resourceName: String?, withExtension fileExtension: String?) -> URL?
+    func jsonData(for resourceName: String) throws -> Data
   }
-
-
-extension Bundle : DataBundle
-  { }

@@ -18,22 +18,6 @@ public class IngestContext
     private var delayedEffects : [() throws -> Void] = []
 
 
-    static func populate(dataStore: DataStore, from dataSource: DataSource) throws
-      {
-        let context = try IngestContext(dataStore: dataStore)
-
-        context.beginIngestion()
-
-        // Ingest each defined type
-        for definition in dataSource.definitions {
-          log(definition.ingestDescription)
-          try definition.ingest(from: dataSource, into: context)
-        }
-
-        try context.endIngestion()
-      }
-
-
     init(dataStore s: DataStore) throws
       {
         dataStore = s

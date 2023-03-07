@@ -135,29 +135,21 @@ public class DataStore
       }
 
 
-    /// Open the store using the previous method, populating if necessary from the given data source. The need to populate is determined by the absence of an instance of the specified State entity.
-    public func openWith(schema: Schema, stateEntityName: String = "State", dataSource: DataSource, migrations: [Migration] = []) throws
+    public func ingest(source: DataSource) throws
       {
-        try openWith(schema: schema, migrations: migrations)
+        precondition(state != nil, "not open")
 
-        // Ensure the State entity is defined and as has a single instance.
-        guard let stateInfo = classInfoByName[stateEntityName] else { throw Exception("Entity '\(stateEntityName)' is not defined") }
-        guard case .singleton = stateInfo.managedObjectClass.identity else { throw Exception("Entity '\(stateEntityName)' must have a single instance") }
+        let context = try IngestContext(dataStore: self)
 
-        // Retrieve the configuration if one exists; otherwise trigger ingestion from the data source.
-        var configurations = try managedObjectContext.fetch(NSFetchRequest<Entity>(entityName: stateEntityName))
-        switch configurations.count {
-          case 1 :
-            break
-          case 0 :
-            try IngestContext.populate(dataStore: self, from: dataSource)
-            configurations = try managedObjectContext.fetch(NSFetchRequest<Entity>(entityName: stateEntityName))
-            guard configurations.count == 1 else {
-              throw Exception("inconsistency after ingestion: \(configurations.count) configurations detected")
-            }
-          default :
-            throw Exception("inconsistency on initialization: \(configurations.count) configurations detected")
+        context.beginIngestion()
+
+        // Ingest each source
+        for definition in source.definitions {
+          log(definition.ingestDescription)
+          try definition.ingest(from: source, into: context)
         }
+
+        try context.endIngestion()
       }
 
 
