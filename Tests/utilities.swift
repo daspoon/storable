@@ -10,16 +10,6 @@ import XCTest
 
 
 // MARK: --
-// For testing convenience, ObjectModelComponent enables common treatment of model component classes which have a version hash.
-
-protocol ObjectModelComponent : NSObject
-  { var versionHash : Data { get } }
-
-extension NSEntityDescription : ObjectModelComponent {}
-extension NSPropertyDescription : ObjectModelComponent {}
-
-
-// MARK: --
 
 extension NSAttributeDescription
   {

@@ -15,6 +15,16 @@ final class CoreDataTests : XCTestCase
 
 
 // MARK: --
+// For testing convenience, enable common treatment of entity and property descriptor classes
+
+protocol ObjectModelComponent : NSObject
+  { var versionHash : Data { get } }
+
+extension NSEntityDescription : ObjectModelComponent {}
+extension NSPropertyDescription : ObjectModelComponent {}
+
+
+// MARK: --
 
 // The following tests show which properties of NSAttributeDescription, NSRelationshipDescription and NSEntityDescription affect their versionHash. The general form of each test is to create two instances of each component which differ in the value of a chosen property and to assert the effect on the version hashes.
 
