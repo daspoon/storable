@@ -17,7 +17,7 @@ public struct Migration
     public typealias Script = (NSManagedObjectContext) throws -> Void
 
     /// ScriptMarker defines an entity which appears in the intermediate model of a custom migration; an instance of this entity indicates the script has run to completion.
-    @objc class ScriptMarker : Entity {}
+    class ScriptMarker : Entity {}
 
     /// A step in a migration process.
     public enum Step
