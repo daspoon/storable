@@ -7,7 +7,7 @@
 import Foundation
 
 
-extension Bundle : DataBundle
+extension Bundle : IngestSource
   {
     public func jsonData(for resourceName: String) throws -> Data
       {
