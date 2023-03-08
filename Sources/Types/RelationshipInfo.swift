@@ -17,7 +17,7 @@ public struct RelationshipInfo : PropertyInfo
         /// Ingested values are the names of existing objects.
         case reference
         /// Ingested values are the data required to construct related objects.
-        case create(ClassInfo.IngestFormat = .dictionary)
+        case create(IngestFormat = .dictionary)
       }
 
     /// The name of the corresponding property of the source entity.

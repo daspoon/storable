@@ -26,9 +26,9 @@ public struct EntitySetDefinition : DataDefinition
   {
     public let entityType : Entity.Type
     public let resourceKeyPath : String?
-    public let ingestFormat : ClassInfo.IngestFormat
+    public let ingestFormat : IngestFormat
 
-    public init<T: Entity>(type: T.Type = T.self, keyPath: String? = nil, format: ClassInfo.IngestFormat = .dictionary)
+    public init<T: Entity>(type: T.Type = T.self, keyPath: String? = nil, format: IngestFormat = .dictionary)
       {
         entityType = type
         resourceKeyPath = keyPath
