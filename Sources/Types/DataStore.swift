@@ -135,7 +135,7 @@ public class DataStore
       }
 
 
-    public func ingest(from source: IngestSource, definitions: [DataDefinition]) throws
+    public func ingest(from source: IngestSource, definitions: [IngestMethod]) throws
       {
         precondition(state != nil, "not open")
 
