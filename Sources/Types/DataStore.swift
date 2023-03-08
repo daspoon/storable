@@ -135,7 +135,7 @@ public class DataStore
       }
 
 
-    public func ingest(source: DataSource) throws
+    public func ingest(from source: DataBundle, definitions: [DataDefinition]) throws
       {
         precondition(state != nil, "not open")
 
@@ -144,9 +144,17 @@ public class DataStore
         context.beginIngestion()
 
         // Ingest each source
-        for definition in source.definitions {
-          log(definition.ingestDescription)
-          try definition.ingest(from: source, into: context)
+        for definition in definitions {
+          log("ingesting \(definition.resourceName) data" + (definition.resourceKeyPath.map {" from " + $0} ?? ""))
+          let json : Any
+          switch definition.resourceKeyPath?.decomposeKeyPath() {
+            case .none :
+              json = [:]
+            case .some((let key, let suffix)) :
+              let data = try source.jsonData(for: key)
+              json = try JSONSerialization.load(from: data, context: key, keyPath: suffix)
+          }
+          try definition.ingest(json, into: context)
         }
 
         try context.endIngestion()

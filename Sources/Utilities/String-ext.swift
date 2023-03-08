@@ -22,4 +22,15 @@ extension String
 
         return trimmed
       }
+
+
+    /// Assuming the receiver is a key path, return the first element together with the remaining string. Returns (self, nil) if the specified separator (defaulting to ".") does not occur in the receiver.
+    public func decomposeKeyPath(separator: String = ".") -> (key: String, suffix: String?)
+      {
+        guard let range = range(of: separator) else { return (self, nil) }
+        return (
+          key: String(self[startIndex ..< range.lowerBound]),
+          suffix: String(self[range.upperBound ..< endIndex])
+        )
+      }
   }

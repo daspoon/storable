@@ -9,11 +9,14 @@
 
 public protocol DataDefinition
   {
-    /// Taking the required data from the given source, create the defined objects in the given context.
-    func ingest(from dataSource: DataSource, into context: IngestContext) throws
+    /// The name of the resource for logging purposes.
+    var resourceName : String { get }
 
-    /// Describe the data being ingested, for logging purposes.
-    var ingestDescription : String { get }
+    /// A dot-separated key path identifying the required JSON data as a component of a bundle resource; the first path element specifies the name of the bundle resource, and subsequent elements are treated as dictionary keys (meaning the bundle resource is a dictionary). Returning nil indicates the definition requires no data and thus the first argument of ingest(:into:) is arbitrary.
+    var resourceKeyPath : String? { get }
+
+    /// Create objects from the JSON resource data.
+    func ingest(_ json: Any, into context: IngestContext) throws
   }
 
 
@@ -21,33 +24,31 @@ public protocol DataDefinition
 
 public struct EntitySetDefinition : DataDefinition
   {
-    public let entityName : String
-    public let content : DataSource.Content?
+    public let entityType : Entity.Type
+    public let resourceKeyPath : String?
+    public let ingestFormat : ClassInfo.IngestFormat
 
-    public init(entityName x: String, content c: DataSource.Content? = nil)
+    public init<T: Entity>(type: T.Type = T.self, keyPath: String? = nil, format: ClassInfo.IngestFormat = .dictionary)
       {
-        entityName = x
-        content = c
+        entityType = type
+        resourceKeyPath = keyPath
+        ingestFormat = format
       }
 
-    public func ingest(from dataSource: DataSource, into context: IngestContext) throws
-      {
-        let info = try context.classInfo(for: entityName)
-        if let content {
-          let json = try dataSource.load(content)
-          try info.createObjects(from: json, with: content.format, in: context)
-        }
-        else {
-          try info.createObject(from: [:], in: context)
-        }
-      }
+    public var resourceName : String
+      { entityType.entityName }
 
-    public var ingestDescription : String
+    public func ingest(_ json: Any, into context: IngestContext) throws
       {
-        switch content {
-          case .some(let content) : return "ingesting \(entityName) from \(content.resourceNameAndKeyPath) as \(content.format)"
-          case .none : return "creating \(entityName)"
+        // Get the metadata for the class specified on initialization
+        let info = try context.classInfo(for: entityType)
+
+        // Create either a set of instances or a single instance depending on whether or not a resource name is supplied
+        switch resourceKeyPath {
+          case .none :
+            try info.createObject(from: [:], in: context)
+          case .some :
+            try info.createObjects(from: json, with: ingestFormat, in: context)
         }
       }
   }
-
