@@ -33,32 +33,32 @@ extension ClassInfo
   {
     /// Called on ingestion to create an instance of the represented entity from a given JSON value.
     @discardableResult
-    func createObject(from jsonValue: Any, in context: IngestContext) throws -> Entity
-      { try entityInfo.managedObjectClass.init(self, with: .value([:]), in: context) }
+    func createObject(from jsonValue: Any, in store: DataStore, delay: (@escaping () throws -> Void) -> Void) throws -> Entity
+      { try entityInfo.managedObjectClass.init(self, with: .value([:]), in: store, delay: delay) }
 
 
     /// Called on ingestion to create a list of instances of the represented entity from a given JSON value.
     @discardableResult
-    func createObjects(from jsonValue: Any, with format: IngestFormat, in context: IngestContext) throws -> [Entity]
+    func createObjects(from jsonValue: Any, with format: IngestFormat, in store: DataStore, delay: (@escaping () throws -> Void) -> Void) throws -> [Entity]
       {
         var objects : [Entity] = []
         switch format {
           case .any :
-            objects.append(try entityInfo.managedObjectClass.init(self, with: .value(jsonValue), in: context))
+            objects.append(try entityInfo.managedObjectClass.init(self, with: .value(jsonValue), in: store, delay: delay))
           case .array :
             let jsonArray = try throwingCast(jsonValue, as: [Any].self)
             for (index, value) in jsonArray.enumerated() {
-              objects.append(try entityInfo.managedObjectClass.init(self, with: .arrayElement(index: index, value: value), in: context))
+              objects.append(try entityInfo.managedObjectClass.init(self, with: .arrayElement(index: index, value: value), in: store, delay: delay))
             }
           case .dictionary :
             let jsonDict = try throwingCast(jsonValue, as: [String: Any].self)
             for (instanceName, jsonValue) in jsonDict {
-              objects.append(try entityInfo.managedObjectClass.init(self, with: .dictionaryEntry(key: instanceName, value: jsonValue), in: context))
+              objects.append(try entityInfo.managedObjectClass.init(self, with: .dictionaryEntry(key: instanceName, value: jsonValue), in: store, delay: delay))
             }
           case .dictionaryAsArrayOfKeys :
             let jsonArray = try throwingCast(jsonValue, as: [String].self)
             for instanceName in jsonArray {
-              objects.append(try entityInfo.managedObjectClass.init(self, with: .dictionaryEntry(key: instanceName, value: [:]), in: context))
+              objects.append(try entityInfo.managedObjectClass.init(self, with: .dictionaryEntry(key: instanceName, value: [:]), in: store, delay: delay))
             }
         }
         return objects

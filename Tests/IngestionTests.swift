@@ -91,7 +91,7 @@ final class IngestionTests : XCTestCase
         ])
 
         // ingest data
-        try store.ingest(from: bundle, definitions: [
+        try store.ingest(from: bundle, methods: [
           EntityIngestMethod(type: Race.self, keyPath: "race-data", format: .dictionaryAsArrayOfKeys),
           EntityIngestMethod(type: Demon.self, keyPath: "demon-data", format: .dictionary),
           EntityIngestMethod(type: Skill.self, keyPath: "skill-data", format: .array),

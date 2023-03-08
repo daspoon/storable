@@ -135,29 +135,43 @@ public class DataStore
       }
 
 
-    public func ingest(from source: IngestSource, definitions: [IngestMethod]) throws
+    /// Perform each of the given ingestion methods, taking JSON data from the given source.
+    public func ingest(from source: IngestSource, methods: [IngestMethod]) throws
       {
         precondition(state != nil, "not open")
 
-        let context = try IngestContext(dataStore: self)
-
-        context.beginIngestion()
-
-        // Ingest each source
-        for definition in definitions {
-          log("ingesting \(definition.resourceName) data" + (definition.resourceKeyPath.map {" from " + $0} ?? ""))
+        // Perform each method, allowing closures to be registered for delayed execution.
+        var delayedEffects : [() throws -> Void] = []
+        for method in methods {
+          log("ingesting \(method.methodIdentifier) data" + (method.resourceKeyPath.map {" from " + $0} ?? ""))
           let json : Any
-          switch definition.resourceKeyPath?.decomposeKeyPath() {
+          switch method.resourceKeyPath?.decomposeKeyPath() {
             case .none :
               json = [:]
             case .some((let key, let suffix)) :
               let data = try source.jsonData(for: key)
               json = try JSONSerialization.load(from: data, context: key, keyPath: suffix)
           }
-          try definition.ingest(json, into: context)
+          try method.ingest(json, into: self, delay: {delayedEffects.append($0)})
         }
 
-        try context.endIngestion()
+        // Perform the delayed closures
+        for effect in delayedEffects {
+          try effect()
+        }
+      }
+
+
+    public func classInfo(for entityName: String) throws -> ClassInfo
+      {
+        guard let info = classInfoByName[entityName] else { throw Exception("unknown entity name '\(entityName)'") }
+        return info
+      }
+
+
+    public func fetchObject<T: Entity>(id name: String, of type: T.Type = T.self) throws -> T
+      {
+        try managedObjectContext.fetchObject(makeFetchRequest(for: type, predicate: .init(format: "name = %@", name)))
       }
 
 

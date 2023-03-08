@@ -20,20 +20,20 @@ public struct EntityIngestMethod : IngestMethod
         ingestFormat = format
       }
 
-    public var resourceName : String
+    public var methodIdentifier : String
       { entityType.entityName }
 
-    public func ingest(_ json: Any, into context: IngestContext) throws
+    public func ingest(_ json: Any, into store: DataStore, delay: (@escaping () throws -> Void) -> Void) throws
       {
         // Get the metadata for the class specified on initialization
-        let info = try context.classInfo(for: entityType)
+        let info = try store.classInfo(for: entityType.entityName)
 
         // Create either a set of instances or a single instance depending on whether or not a resource name is supplied
         switch resourceKeyPath {
           case .none :
-            try info.createObject(from: [:], in: context)
+            try info.createObject(from: [:], in: store, delay: delay)
           case .some :
-            try info.createObjects(from: json, with: ingestFormat, in: context)
+            try info.createObjects(from: json, with: ingestFormat, in: store, delay: delay)
         }
       }
   }

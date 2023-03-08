@@ -87,10 +87,10 @@ open class Entity : NSManagedObject
 
 
     /// Initialize a new instance, taking property values from the given ingest data. This method is not intended to be overidden.
-    public required init(_ info: ClassInfo, with ingestData: IngestObject, in context: IngestContext) throws
+    public required init(_ info: ClassInfo, with ingestData: IngestObject, in store: DataStore, delay: (@escaping () throws -> Void) -> Void) throws
       {
         // Delegate to the designated initializer for NSManagedObject.
-        super.init(entity: info.entityDescription, insertInto: context.managedObjectContext)
+        super.init(entity: info.entityDescription, insertInto: store.managedObjectContext)
 
         // Ingest attributes.
         for attribute in info.attributes.values {
@@ -113,30 +113,30 @@ open class Entity : NSManagedObject
         for relationship in info.relationships.values {
           guard let ingest = relationship.ingest else { continue }
           do {
-            let relatedInfo = try context.classInfo(for: relationship.relatedEntityName)
+            let relatedInfo = try store.classInfo(for: relationship.relatedEntityName)
             let relatedClass = relatedInfo.managedObjectClass
             switch (ingestData[ingest.key], ingest.mode, relationship.range) {
               case (.some(let jsonValue), .create(let format), let range) where range.upperBound > 1 :
                 // When creating a to-many relationship, the format parameter determines the type and interpretation of the json data...
-                let relatedObjects = try relatedInfo.createObjects(from: jsonValue, with: format, in: context)
+                let relatedObjects = try relatedInfo.createObjects(from: jsonValue, with: format, in: store, delay: delay)
                 setValue(Set(relatedObjects), forKey: relationship.name)
               case (.some(let jsonValue), .create(let format), _) :
                 // When creating a to-one relationship, the json data is interpreted by the object initializer
                 guard format == .any else { throw Exception("") }
-                let relatedObject = try relatedInfo.createObject(from: jsonValue, in: context)
+                let relatedObject = try relatedInfo.createObject(from: jsonValue, in: store, delay: delay)
                 setValue(relatedObject, forKey: relationship.name)
               case (.some(let jsonValue), .reference, let range) where range.upperBound > 1 :
                 // A to-many reference requires an array string instance identifiers. Evaluation is delayed until all entity instances have been created.
                 guard let instanceIds = jsonValue as? [String] else { throw Exception("an array of object identifiers is required") }
-                context.delay {
-                  let relatedObjects = try instanceIds.map { try context.fetchObject(id: $0, of: relatedClass) }
+                delay {
+                  let relatedObjects = try instanceIds.map { try store.fetchObject(id: $0, of: relatedClass) }
                   self.setValue(Set(relatedObjects), forKey: relationship.name)
                 }
               case (.some(let jsonValue), .reference, _) :
                 // A to-one reference requires a string instance identifier. Evaluation is delayed until all entity instances have been created.
                 guard let instanceId = jsonValue as? String else { throw Exception("an object identifier is required") }
-                context.delay {
-                  let relatedObject = try context.fetchObject(id: instanceId, of: relatedClass)
+                delay {
+                  let relatedObject = try store.fetchObject(id: instanceId, of: relatedClass)
                   self.setValue(relatedObject, forKey: relationship.name)
                 }
               case (.none, _, let range) :
