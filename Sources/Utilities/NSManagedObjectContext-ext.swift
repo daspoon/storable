@@ -40,7 +40,7 @@ extension NSManagedObjectContext
           case 0 :
             return nil
           default :
-            throw Exception("multiple \(String(describing: request.entityName)) instances satisfying '\(String(describing: request.predicate))'")
+            throw Exception("multiple \(request.entityName!) instances" + (request.predicate.map {" satisfying '\($0)'"} ?? ""))
         }
       }
 
