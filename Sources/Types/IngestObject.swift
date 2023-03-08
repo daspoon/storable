@@ -5,9 +5,9 @@
 */
 
 
-/// IngestData provides a common interface to the variably-structured json data provided on ingestion of Entity instances. Property values are extracted from IngestData using IngestKeys.
+/// IngestObject unifies the variably-structured json data used to ingest Entity instances. Property values are extracted from IngestObject via IngestKey.
 
-public enum IngestData
+public enum IngestObject
   {
     /// The object ingest data is an arbitrary json value.
     case value(Any)

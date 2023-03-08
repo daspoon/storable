@@ -5,7 +5,7 @@
 */
 
 
-/// IngestKey determines how an object property value is extracted from the IngestData provided on initialization.
+/// IngestKey determines how an object property value is extracted from the IngestObject provided on initialization.
 
 public enum IngestKey : Equatable
   {

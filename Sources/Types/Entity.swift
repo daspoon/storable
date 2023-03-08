@@ -87,7 +87,7 @@ open class Entity : NSManagedObject
 
 
     /// Initialize a new instance, taking property values from the given ingest data. This method is not intended to be overidden.
-    public required init(_ info: ClassInfo, with ingestData: IngestData, in context: IngestContext) throws
+    public required init(_ info: ClassInfo, with ingestData: IngestObject, in context: IngestContext) throws
       {
         // Delegate to the designated initializer for NSManagedObject.
         super.init(entity: info.entityDescription, insertInto: context.managedObjectContext)
