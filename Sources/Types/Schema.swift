@@ -102,17 +102,17 @@ public struct Schema
             let targetName = relationship.relatedEntityName
             guard let targetInfo = classInfoByName[targetName]
               else { throw Exception("relationship \(sourceName).\(relationshipName) has unknown target entity name '\(targetName)'") }
-            // Get the inverse relationship (TODO: synthesize if possible)
+            // Get the inverse relationship from either a declared property on the related entity xor extra detail on the source property...
             let inverse : RelationshipInfo
-            switch targetInfo.relationships[relationship.inverseName] {
-              case .none :
-                throw Exception("specified inverse \(targetName).\(relationship.inverseName) of \(sourceName).\(relationshipName) is undefined")
-              case .some(let explicit) :
-                guard explicit.relatedEntityName == sourceName
-                  else { throw Exception("relatedEntityName '\(explicit.relatedEntityName)' of \(targetName).\(relationship.inverseName) is inconsistent with specified inverse \(sourceName).\(relationshipName)") }
-                guard explicit.inverseName == relationship.name
-                  else { throw Exception("inverseName '\(explicit.inverseName)' of \(targetName).\(relationship.inverseName) is inconsistent with specified inverse \(sourceName).\(relationshipName)") }
+            switch (targetInfo.relationships[relationship.inverse.name], relationship.inverse(toEntityName: sourceName)) {
+              case (.some(let explicit), .none) :
                 inverse = explicit
+              case (.none, .some(let implicit)) :
+                inverse = implicit
+              case (.none, .none) :
+                throw Exception("inverse \(targetName).\(relationship.inverse.name) of \(sourceName).\(relationshipName) is undefined")
+              case (.some, .some) :
+                throw Exception("inverse \(targetName).\(relationship.inverse.name) of \(sourceName).\(relationshipName) has multiple definitions")
             }
             // Create NSRelationshipDescriptions for the relationship pair.
             let (forwardDescription, inverseDescription) = (NSRelationshipDescription(), NSRelationshipDescription())
@@ -121,7 +121,7 @@ public struct Schema
             forwardDescription.inverseRelationship = inverseDescription
             forwardDescription.deleteRule = .init(relationship.deleteRule)
             forwardDescription.rangeOfCount = relationship.range
-            inverseDescription.name = relationship.inverseName
+            inverseDescription.name = relationship.inverse.name
             inverseDescription.destinationEntity = sourceInfo.entityDescription
             inverseDescription.inverseRelationship = forwardDescription
             inverseDescription.deleteRule = .init(inverse.deleteRule)

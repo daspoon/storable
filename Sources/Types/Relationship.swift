@@ -16,39 +16,39 @@ public struct Relationship<Value> : ManagedPropertyWrapper
 
 
     /// Declare a to-one relationship.
-    public init(_ name: String, inverseName: String, deleteRule r: RelationshipInfo.DeleteRule, renamingIdentifier oldName: String? = nil) where Value : Entity
+    public init(_ name: String, inverse inv: RelationshipInfo.InverseSpec, deleteRule r: RelationshipInfo.DeleteRule, renamingIdentifier oldName: String? = nil) where Value : Entity
       {
-        propertyInfo = RelationshipInfo(name, range: 1 ... 1, relatedEntityName: Value.entityName, inverseName: inverseName, deleteRule: r, renamingIdentifier: oldName)
+        propertyInfo = RelationshipInfo(name, range: 1 ... 1, relatedEntityName: Value.entityName, inverse: inv, deleteRule: r, renamingIdentifier: oldName)
       }
 
     /// Declare a to-one relationship.
-    public init(_ name: String, inverseName: String, deleteRule r: RelationshipInfo.DeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil) where Value : Entity
+    public init(_ name: String, inverse inv: RelationshipInfo.InverseSpec, deleteRule r: RelationshipInfo.DeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil) where Value : Entity
       {
-        propertyInfo = RelationshipInfo(name, range: 1 ... 1, relatedEntityName: Value.entityName, inverseName: inverseName, deleteRule: r, renamingIdentifier: oldName, ingest: (key: k ?? .element(name), mode: m))
+        propertyInfo = RelationshipInfo(name, range: 1 ... 1, relatedEntityName: Value.entityName, inverse: inv, deleteRule: r, renamingIdentifier: oldName, ingest: (key: k ?? .element(name), mode: m))
       }
 
     /// Declare a to-optional relationship.
-    public init<T: Entity>(_ name: String, inverseName: String, deleteRule r: RelationshipInfo.DeleteRule, renamingIdentifier oldName: String? = nil) where Value == T?
+    public init<T: Entity>(_ name: String, inverse inv: RelationshipInfo.InverseSpec, deleteRule r: RelationshipInfo.DeleteRule, renamingIdentifier oldName: String? = nil) where Value == T?
       {
-        propertyInfo = RelationshipInfo(name, range: 0 ... 1, relatedEntityName: T.entityName, inverseName: inverseName, deleteRule: r, renamingIdentifier: oldName)
+        propertyInfo = RelationshipInfo(name, range: 0 ... 1, relatedEntityName: T.entityName, inverse: inv, deleteRule: r, renamingIdentifier: oldName)
       }
 
     /// Declare a to-optional relationship which is ingestible.
-    public init<T: Entity>(_ name: String, inverseName: String, deleteRule r: RelationshipInfo.DeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil) where Value == T?
+    public init<T: Entity>(_ name: String, inverse inv: RelationshipInfo.InverseSpec, deleteRule r: RelationshipInfo.DeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil) where Value == T?
       {
-        propertyInfo = RelationshipInfo(name, range:  0 ... 1, relatedEntityName: T.entityName, inverseName: inverseName, deleteRule: r, renamingIdentifier: oldName, ingest: (key: k ?? .element(name), mode: m))
+        propertyInfo = RelationshipInfo(name, range:  0 ... 1, relatedEntityName: T.entityName, inverse: inv, deleteRule: r, renamingIdentifier: oldName, ingest: (key: k ?? .element(name), mode: m))
       }
 
     /// Declare a to-many relationship.
-    public init<T: Entity>(_ name: String, inverseName: String, deleteRule r: RelationshipInfo.DeleteRule, renamingIdentifier oldName: String? = nil) where Value == Set<T>
+    public init<T: Entity>(_ name: String, inverse inv: RelationshipInfo.InverseSpec, deleteRule r: RelationshipInfo.DeleteRule, renamingIdentifier oldName: String? = nil) where Value == Set<T>
       {
-        propertyInfo = RelationshipInfo(name, range: 0 ... .max, relatedEntityName: T.entityName, inverseName: inverseName, deleteRule: r, renamingIdentifier: oldName)
+        propertyInfo = RelationshipInfo(name, range: 0 ... .max, relatedEntityName: T.entityName, inverse: inv, deleteRule: r, renamingIdentifier: oldName)
       }
 
     /// Declare a to-many relationship which is ingestible.
-    public init<T: Entity>(_ name: String, inverseName: String, deleteRule r: RelationshipInfo.DeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil) where Value == Set<T>
+    public init<T: Entity>(_ name: String, inverse inv: RelationshipInfo.InverseSpec, deleteRule r: RelationshipInfo.DeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil) where Value == Set<T>
       {
-        propertyInfo = RelationshipInfo(name, range: 0 ... .max, relatedEntityName: T.entityName, inverseName: inverseName, deleteRule: r, renamingIdentifier: oldName, ingest: (key: k ?? .element(name), mode: m))
+        propertyInfo = RelationshipInfo(name, range: 0 ... .max, relatedEntityName: T.entityName, inverse: inv, deleteRule: r, renamingIdentifier: oldName, ingest: (key: k ?? .element(name), mode: m))
       }
 
 

@@ -76,7 +76,7 @@ fileprivate class Person_v2 : Entity
   {
     @Attribute("name")
     var name : String
-    @Relationship("place", inverseName: "occupants", deleteRule: .nullify)
+    @Relationship("place", inverse: "occupants", deleteRule: .nullify)
     var place : PlaceWithOccupants?
   }
 
@@ -85,7 +85,7 @@ fileprivate class Place_v2 : Entity
   {
     @Attribute("name")
     var name : String
-    @Relationship("occupants", inverseName: "place", deleteRule: .nullify)
+    @Relationship("occupants", inverse: "place", deleteRule: .nullify)
     var occupants : Set<PersonWithPlace>
   }
 
@@ -108,7 +108,7 @@ fileprivate class Place_v3 : Entity
   {
     @Attribute("name")
     var name : String
-    @Relationship("occupants", inverseName: "place", deleteRule: .nullify)
+    @Relationship("occupants", inverse: "place", deleteRule: .nullify)
     var occupants : Set<Person>
     @FetchedProperty("occupantsByName", fetchRequest: makeFetchRequest(for: PersonWithPlace.self, sortDescriptors: [.init(key: "name", ascending: true)]))
     var occupantsByName : [PersonWithPlace]

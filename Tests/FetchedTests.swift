@@ -19,14 +19,14 @@ fileprivate class Occupant : Entity
     @Attribute("age")
     var age : Int
 
-    @Relationship("dwelling", inverseName: "occupants", deleteRule: .nullify)
+    @Relationship("dwelling", inverse: "occupants", deleteRule: .nullify)
     var dwelling : Dwelling?
   }
 
 
 fileprivate class Dwelling : Entity
   {
-    @Relationship("occupants", inverseName: "dwelling", deleteRule: .nullify)
+    @Relationship("occupants", inverse: "dwelling", deleteRule: .nullify)
     var occupants : Set<Occupant>
 
     @FetchedProperty("occupantsByName", fetchRequest: makeFetchRequest(predicate: .init(format: "dwelling = $FETCH_SOURCE"), sortDescriptors: [.init(key: "name", ascending: true)]))

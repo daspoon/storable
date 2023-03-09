@@ -20,7 +20,7 @@ fileprivate class Category : Entity
     @Attribute("name")
     var name : String
 
-    @Relationship("items", inverseName: "category", deleteRule: .cascade)
+    @Relationship("items", inverse: "category", deleteRule: .cascade)
     var items : Set<Item>
   }
 
@@ -29,10 +29,10 @@ fileprivate class Item : Entity
     @Attribute("name")
     var name : String
 
-    @Relationship("category", inverseName: "items", deleteRule: .nullify)
+    @Relationship("category", inverse: "items", deleteRule: .nullify)
     var category : Category
 
-    @Relationship("box", inverseName: "items", deleteRule: .nullify)
+    @Relationship("box", inverse: "items", deleteRule: .nullify)
     var box : Box?
   }
 
@@ -41,7 +41,7 @@ fileprivate class Box : Entity
     @Attribute("number")
     var number : Int
 
-    @Relationship("items", inverseName: "box", deleteRule: .nullify)
+    @Relationship("items", inverse: "box", deleteRule: .nullify)
     var items : Set<Item>
   }
 

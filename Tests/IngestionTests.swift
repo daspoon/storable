@@ -22,25 +22,25 @@ final class IngestionTests : XCTestCase
       @Attribute("level", ingestKey: "lvl") var level : Int
       @Attribute("stats") var stats : [Int]
       @Attribute("resists", transform: { (s: String) in s.map {String($0)} }) var resists : [Resistance]
-      @Relationship("race", inverseName: "demons", deleteRule: .nullify) var race : Race
-      @Relationship("grants", inverseName: "demon", deleteRule: .nullify) var grants : Set<Grant>
+      @Relationship("race", inverse: "demons", deleteRule: .nullify) var race : Race
+      @Relationship("grants", inverse: "demon", deleteRule: .nullify) var grants : Set<Grant>
     }
 
     class Race : Entity {
       @Attribute("name", ingestKey: .key) var name : String
-      @Relationship("demons", inverseName: "race", deleteRule: .cascade) var demons : Set<Demon>
+      @Relationship("demons", inverse: "race", deleteRule: .cascade) var demons : Set<Demon>
     }
 
     class Skill : Entity {
       @Attribute("name") var name : String
       @Attribute("effect") var effect : String
-      @Relationship("grants", inverseName: "skill", deleteRule: .cascade) var grants : Set<Grant>
+      @Relationship("grants", inverse: "skill", deleteRule: .cascade) var grants : Set<Grant>
     }
 
     class Grant : Entity {
       @Attribute("level", ingestKey: .key) var level : Int
-      @Relationship("skill", inverseName: "grants", deleteRule: .nullify) var skill : Skill
-      @Relationship("demon", inverseName: "grants", deleteRule: .nullify) var demon : Demon
+      @Relationship("skill", inverse: "grants", deleteRule: .nullify) var skill : Skill
+      @Relationship("demon", inverse: "grants", deleteRule: .nullify) var demon : Demon
     }
 
 

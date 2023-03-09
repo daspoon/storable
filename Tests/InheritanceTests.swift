@@ -19,7 +19,7 @@ final class InheritanceTests : XCTestCase
           override class var abstractClass : Entity.Type { Combatant.self }
           @Attribute("name")
           var name : String
-          @Relationship("skills", inverseName: "wielders", deleteRule: .nullify)
+          @Relationship("skills", inverse: "wielders", deleteRule: .nullify)
           var skills : Set<Skill>
         }
         class Companion : Combatant {
@@ -33,7 +33,7 @@ final class InheritanceTests : XCTestCase
         class Skill : Entity {
           @Attribute("name")
           var name : String
-          @Relationship("wielders", inverseName: "skills", deleteRule: .nullify)
+          @Relationship("wielders", inverse: "skills", deleteRule: .nullify)
           var wielders : Set<Combatant>
         }
 

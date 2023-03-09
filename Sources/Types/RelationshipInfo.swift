@@ -15,6 +15,13 @@ public struct RelationshipInfo : PropertyInfo
     public enum DeleteRule
       { case noAction, nullify, cascade, deny }
 
+    /// A partial specification of an associated inverse relationship. If details is specified then the related class must not declare the inverse relationship.
+    public struct InverseSpec
+      {
+        var name : String
+        var detail : (range: ClosedRange<Int>, deleteRule: DeleteRule, renamingIdentifier: String?)?
+      }
+
     /// Determines how related objects are obtained from object ingest data.
     public enum IngestMode
       {
@@ -33,8 +40,8 @@ public struct RelationshipInfo : PropertyInfo
     /// The name of the related entity.
     public var relatedEntityName : String
 
-    /// The name of the inverse relationship on the destination entity.
-    public var inverseName : String
+    /// The details of the inverse relationship on the destination entity.
+    public var inverse : InverseSpec
 
     /// The effect which deleting the host object has on the related object.
     public var deleteRule : DeleteRule
@@ -47,17 +54,40 @@ public struct RelationshipInfo : PropertyInfo
 
 
     /// Initialize a new instance.
-    public init(_ name: String, range: ClosedRange<Int>, relatedEntityName: String, inverseName: String, deleteRule: DeleteRule, renamingIdentifier: String? = nil, ingest: (key: IngestKey, mode: IngestMode)? = nil)
+    public init(_ name: String, range: ClosedRange<Int>, relatedEntityName: String, inverse: InverseSpec, deleteRule: DeleteRule, renamingIdentifier: String? = nil, ingest: (key: IngestKey, mode: IngestMode)? = nil)
       {
         precondition(range.lowerBound >= 0 && range.upperBound >= 1)
 
         self.name = name
         self.range = range
         self.relatedEntityName = relatedEntityName
-        self.inverseName = inverseName
+        self.inverse = inverse
         self.deleteRule = deleteRule
         self.renamingIdentifier = renamingIdentifier
         self.ingest = ingest
+      }
+
+
+    /// Return a descriptor for the inverse relationship if possible.
+    func inverse(toEntityName thisEntityName: String) -> Self?
+      {
+        guard let detail = inverse.detail else { return nil }
+        return Self(inverse.name, range: detail.range, relatedEntityName: thisEntityName, inverse: .init(stringLiteral: relatedEntityName), deleteRule: detail.deleteRule, renamingIdentifier: detail.renamingIdentifier)
+      }
+  }
+
+
+extension RelationshipInfo.InverseSpec : ExpressibleByStringLiteral
+  {
+    /// Used to indicate the inverse relationship is explicitly declared by the related entity. In this case only the inverse name is required.
+    public init(stringLiteral name: String)
+      { self.name = name }
+
+    /// Used to indicate the inverse relationship is not declared by the related entity; in this case all necessary information must be spectified.
+    public init(name: String, range: ClosedRange<Int>, deleteRule: RelationshipInfo.DeleteRule, renamingIdentifier: String? = nil)
+      {
+        self.name = name
+        self.detail = (range, deleteRule, renamingIdentifier)
       }
   }
 
@@ -82,7 +112,7 @@ extension RelationshipInfo : Diffable
         let changes : [Change] = [
           old.name != self.name ? .name : nil,
           old.relatedEntityName != self.relatedEntityName ? .relatedEntityName : nil,
-          old.inverseName != self.inverseName ? .inverseName : nil,
+          old.inverse.name != self.inverse.name ? .inverseName : nil,
           old.range != self.range ? .rangeOfCount : nil,
         ].compactMap {$0}
         return changes.count > 0 ? Set(changes) : nil
