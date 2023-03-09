@@ -34,13 +34,13 @@ extension MigrationTests
           var name : String
           @Attribute("date")
           var date : Date = .now
-          @Relationship("place", inverseName: "occupants", deleteRule: .nullifyDeleteRule)
+          @Relationship("place", inverseName: "occupants", deleteRule: .nullify)
           var place : Place_v2?
         }
         class Place_v2 : Entity {
           @Attribute("name")
           var name : String
-          @Relationship("occupants", inverseName: "place", deleteRule: .nullifyDeleteRule)
+          @Relationship("occupants", inverseName: "place", deleteRule: .nullify)
           var occupants : Set<Person_v2>
         }
         let schema_v2 = try! Schema(objectTypes: [Person_v2.self, Place_v2.self])
@@ -232,21 +232,21 @@ extension MigrationTests
       {
         // Define an initial schema with Thing and Place entities related by to-optional relationships 'place' and 'thing'.
         class Thing : Entity {
-          @Relationship("place", inverseName: "thing", deleteRule: .nullifyDeleteRule)
+          @Relationship("place", inverseName: "thing", deleteRule: .nullify)
           var place : Place?
         }
         class Place : Entity {
-          @Relationship("thing", inverseName: "place", deleteRule: .nullifyDeleteRule)
+          @Relationship("thing", inverseName: "place", deleteRule: .nullify)
           var thing : Thing?
         }
 
         // Define an evolved schema where 'place' becomes to-one, and 'thing' becomes to-many and is renamed 'things'.
         class Thing_v2 : Entity {
-          @Relationship("place", inverseName: "things", deleteRule: .nullifyDeleteRule)
+          @Relationship("place", inverseName: "things", deleteRule: .nullify)
           var place : Place_v2
         }
         class Place_v2 : Entity {
-          @Relationship("things", inverseName: "place", deleteRule: .cascadeDeleteRule, renamingIdentifier: "thing")
+          @Relationship("things", inverseName: "place", deleteRule: .cascade, renamingIdentifier: "thing")
           var things : Set<Thing_v2>
         }
 

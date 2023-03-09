@@ -119,12 +119,12 @@ public struct Schema
             forwardDescription.name = relationship.name
             forwardDescription.destinationEntity = targetInfo.entityDescription
             forwardDescription.inverseRelationship = inverseDescription
-            forwardDescription.deleteRule = relationship.deleteRule
+            forwardDescription.deleteRule = .init(relationship.deleteRule)
             forwardDescription.rangeOfCount = relationship.range
             inverseDescription.name = relationship.inverseName
             inverseDescription.destinationEntity = sourceInfo.entityDescription
             inverseDescription.inverseRelationship = forwardDescription
-            inverseDescription.deleteRule = inverse.deleteRule
+            inverseDescription.deleteRule = .init(inverse.deleteRule)
             inverseDescription.rangeOfCount = inverse.range
             // Add the NSRelationshipDescriptions to the corresponding NSEntityDescriptions
             sourceInfo.entityDescription.properties.append(forwardDescription)

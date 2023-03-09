@@ -64,7 +64,7 @@ final class ModelDifferenceTests : XCTestCase
           {
             @Attribute("a")
             var a : String
-            @Relationship("r", inverseName: "_", deleteRule: .noActionDeleteRule)
+            @Relationship("r", inverseName: "_", deleteRule: .noAction)
             var r : Entity
           }
 
@@ -87,7 +87,7 @@ final class ModelDifferenceTests : XCTestCase
           {
             @Attribute("a")
             var a : Int
-            @Relationship("r", inverseName: "_", deleteRule: .noActionDeleteRule)
+            @Relationship("r", inverseName: "_", deleteRule: .noAction)
             var r : Entity
           }
 
@@ -95,7 +95,7 @@ final class ModelDifferenceTests : XCTestCase
           {
             @Attribute("b", renamingIdentifier: "a")
             var b : Int
-            @Relationship("q", inverseName: "_", deleteRule: .noActionDeleteRule, renamingIdentifier: "r")
+            @Relationship("q", inverseName: "_", deleteRule: .noAction, renamingIdentifier: "r")
             var q : Entity
           }
 
@@ -174,19 +174,19 @@ final class ModelDifferenceTests : XCTestCase
       {
         class E_v1 : Entity
           {
-            @Relationship("r", inverseName: "q", deleteRule: .noActionDeleteRule)
+            @Relationship("r", inverseName: "q", deleteRule: .noAction)
             var r : Entity
           }
 
         class E_v2 : Entity
           {
-            @Relationship("r", inverseName: "q", deleteRule: .noActionDeleteRule)
+            @Relationship("r", inverseName: "q", deleteRule: .noAction)
             var r : Entity?
           }
 
         class E_v3 : Entity
           {
-            @Relationship("r", inverseName: "q", deleteRule: .noActionDeleteRule)
+            @Relationship("r", inverseName: "q", deleteRule: .noAction)
             var r : Set<Entity>
           }
 
@@ -220,7 +220,7 @@ final class ModelDifferenceTests : XCTestCase
 
         class E_v2 : Entity
           {
-            @Relationship("r", inverseName: "q", deleteRule: .noActionDeleteRule, renamingIdentifier: "s")
+            @Relationship("r", inverseName: "q", deleteRule: .noAction, renamingIdentifier: "s")
             var r : Entity
           }
 

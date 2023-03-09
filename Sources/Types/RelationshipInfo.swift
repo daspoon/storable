@@ -11,6 +11,10 @@ import CoreData
 
 public struct RelationshipInfo : PropertyInfo
   {
+    /// Determines the effect on related objects when the source object is deleted; this type corresponds directly to NSDeleteRule.
+    public enum DeleteRule
+      { case noAction, nullify, cascade, deny }
+
     /// Determines how related objects are obtained from object ingest data.
     public enum IngestMode
       {
@@ -33,7 +37,7 @@ public struct RelationshipInfo : PropertyInfo
     public var inverseName : String
 
     /// The effect which deleting the host object has on the related object.
-    public var deleteRule : NSDeleteRule
+    public var deleteRule : DeleteRule
 
     /// The name of the relationship in the previous entity version, if necessary.
     public var renamingIdentifier : String?
@@ -43,7 +47,7 @@ public struct RelationshipInfo : PropertyInfo
 
 
     /// Initialize a new instance.
-    public init(_ name: String, range: ClosedRange<Int>, relatedEntityName: String, inverseName: String, deleteRule: NSDeleteRule, renamingIdentifier: String? = nil, ingest: (key: IngestKey, mode: IngestMode)? = nil)
+    public init(_ name: String, range: ClosedRange<Int>, relatedEntityName: String, inverseName: String, deleteRule: DeleteRule, renamingIdentifier: String? = nil, ingest: (key: IngestKey, mode: IngestMode)? = nil)
       {
         precondition(range.lowerBound >= 0 && range.upperBound >= 1)
 
