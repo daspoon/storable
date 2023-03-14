@@ -23,6 +23,10 @@ open class Entity : NSManagedObject
       }
 
 
+    open class var declaredPropertyInfoByName : [String: PropertyInfo]
+      { [:] }
+
+
     /// Return the name of the defined entity.
     public class var entityName : String
       { entityNameAndVersion.entityName }
