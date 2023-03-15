@@ -73,10 +73,10 @@ final class AttributeTests : XCTestCase
 
         // Assign attribute values and save
         object.bool = boolValue
+        object.int = intValue
         object.int16 = int16Value
         object.int32 = int32Value
         object.int64 = int64Value
-        object.int = intValue
         object.float = floatValue
         object.double = doubleValue
         object.string = stringValue
@@ -89,20 +89,20 @@ final class AttributeTests : XCTestCase
         try store.save()
 
         // Ensure attributes have the expected values
-        if object.bool != boolValue { XCTFail("") }
-        if object.int != intValue { XCTFail("") }
-        if object.int16 != int16Value { XCTFail("") }
-        if object.int32 != int32Value { XCTFail("") }
-        if object.int64 != int64Value { XCTFail("") }
-        if object.float != floatValue { XCTFail("") }
-        if object.double != doubleValue { XCTFail("") }
-        if object.string != stringValue { XCTFail("") }
-        if object.date != dateValue { XCTFail("") }
-        if object.data != dataValue { XCTFail("") }
-        if object.url != urlValue { XCTFail("") }
-        if object.uuid != uuidValue { XCTFail("") }
-        if object.point != pointValue { XCTFail("") }
-        if object.level != levelValue { XCTFail("") }
+        if object.bool != boolValue { XCTFail("bool") }
+        if object.int != intValue { XCTFail("int") }
+        if object.int16 != int16Value { XCTFail("int16") }
+        if object.int32 != int32Value { XCTFail("int32") }
+        if object.int64 != int64Value { XCTFail("int64") }
+        if object.float != floatValue { XCTFail("float") }
+        if object.double != doubleValue { XCTFail("double") }
+        if object.string != stringValue { XCTFail("string") }
+        if object.date != dateValue { XCTFail("date") }
+        if object.data != dataValue { XCTFail("data") }
+        if object.url != urlValue { XCTFail("url") }
+        if object.uuid != uuidValue { XCTFail("uuid") }
+        if object.point != pointValue { XCTFail("point") }
+        if object.level != levelValue { XCTFail("level") }
       }
 
 
@@ -137,20 +137,20 @@ final class AttributeTests : XCTestCase
         try store.save()
 
         // Ensure attributes have the expected values
-        XCTAssertEqual(object.bool, boolValue)
-        XCTAssertEqual(object.int, intValue)
-        XCTAssertEqual(object.int16, int16Value)
-        XCTAssertEqual(object.int32, int32Value)
-        XCTAssertEqual(object.int64, int64Value)
-        XCTAssertEqual(object.float, floatValue)
-        XCTAssertEqual(object.double, doubleValue)
-        XCTAssertEqual(object.string, stringValue)
-        XCTAssertEqual(object.date, dateValue)
-        XCTAssertEqual(object.data, dataValue)
-        XCTAssertEqual(object.url, urlValue)
-        XCTAssertEqual(object.uuid, uuidValue)
-        XCTAssertEqual(object.point, pointValue)
-        XCTAssertEqual(object.level, levelValue)
+        if object.bool != boolValue { XCTFail("") }
+        if object.int != intValue { XCTFail("") }
+        if object.int16 != int16Value { XCTFail("") }
+        if object.int32 != int32Value { XCTFail("") }
+        if object.int64 != int64Value { XCTFail("") }
+        if object.float != floatValue { XCTFail("") }
+        if object.double != doubleValue { XCTFail("") }
+        if object.string != stringValue { XCTFail("") }
+        if object.date != dateValue { XCTFail("") }
+        if object.data != dataValue { XCTFail("") }
+        if object.url != urlValue { XCTFail("") }
+        if object.uuid != uuidValue { XCTFail("") }
+        if object.point != pointValue { XCTFail("") }
+        if object.level != levelValue { XCTFail("") }
       }
 
 
@@ -200,20 +200,20 @@ final class AttributeTests : XCTestCase
         try store.save()
 
         // Ensure attributes have the expected values
-        XCTAssertEqual(object.bool, boolValue)
-        XCTAssertEqual(object.int, intValue)
-        XCTAssertEqual(object.int16, int16Value)
-        XCTAssertEqual(object.int32, int32Value)
-        XCTAssertEqual(object.int64, int64Value)
-        XCTAssertEqual(object.float, floatValue)
-        XCTAssertEqual(object.double, doubleValue)
-        XCTAssertEqual(object.string, stringValue)
-        XCTAssertEqual(object.date, dateValue)
-        XCTAssertEqual(object.data, dataValue)
-        XCTAssertEqual(object.url, urlValue)
-        XCTAssertEqual(object.uuid, uuidValue)
-        XCTAssertEqual(object.point, pointValue)
-        XCTAssertEqual(object.level, levelValue)
+        if object.bool != boolValue { XCTFail("") }
+        if object.int != intValue { XCTFail("") }
+        if object.int16 != int16Value { XCTFail("") }
+        if object.int32 != int32Value { XCTFail("") }
+        if object.int64 != int64Value { XCTFail("") }
+        if object.float != floatValue { XCTFail("") }
+        if object.double != doubleValue { XCTFail("") }
+        if object.string != stringValue { XCTFail("") }
+        if object.date != dateValue { XCTFail("") }
+        if object.data != dataValue { XCTFail("") }
+        if object.url != urlValue { XCTFail("") }
+        if object.uuid != uuidValue { XCTFail("") }
+        if object.point != pointValue { XCTFail("") }
+        if object.level != levelValue { XCTFail("") }
 
         // Nullify attribute values and save
         object.bool = nil
