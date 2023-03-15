@@ -41,21 +41,22 @@ final class AttributeTests : XCTestCase
     func testNonOptional() throws
       {
         // Define an entity with the range of supported attribute types
-        class Object : Entity {
-          @Attribute("bool") var bool : Bool
-          @Attribute("int") var int : Int
-          @Attribute("int16") var int16 : Int16
-          @Attribute("int32") var int32 : Int32
-          @Attribute("int64") var int64 : Int64
-          @Attribute("float") var float : Float
-          @Attribute("double") var double : Double
-          @Attribute("string") var string : String
-          @Attribute("date") var date : Date
-          @Attribute("data") var data : Data
-          @Attribute("url") var url : URL
-          @Attribute("uuid") var uuid : UUID
-          @Attribute("point") var point : Point
-          @Attribute("level") var level : Level
+
+        @Entity class Object : Entity {
+          @Attribute var bool : Bool
+          @Attribute var int : Int
+          @Attribute var int16 : Int16
+          @Attribute var int32 : Int32
+          @Attribute var int64 : Int64
+          @Attribute var float : Float
+          @Attribute var double : Double
+          @Attribute var string : String
+          @Attribute var date : Date
+          @Attribute var data : Data
+          @Attribute var url : URL
+          @Attribute var uuid : UUID
+          @Attribute var point : Point
+          @Attribute var level : Level
         }
 
         let store = try createAndOpenStoreWith(schema: Schema(objectTypes: [Object.self]))
@@ -88,20 +89,20 @@ final class AttributeTests : XCTestCase
         try store.save()
 
         // Ensure attributes have the expected values
-        XCTAssertEqual(object.bool, boolValue)
-        XCTAssertEqual(object.int, intValue)
-        XCTAssertEqual(object.int16, int16Value)
-        XCTAssertEqual(object.int32, int32Value)
-        XCTAssertEqual(object.int64, int64Value)
-        XCTAssertEqual(object.float, floatValue)
-        XCTAssertEqual(object.double, doubleValue)
-        XCTAssertEqual(object.string, stringValue)
-        XCTAssertEqual(object.date, dateValue)
-        XCTAssertEqual(object.data, dataValue)
-        XCTAssertEqual(object.url, urlValue)
-        XCTAssertEqual(object.uuid, uuidValue)
-        XCTAssertEqual(object.point, pointValue)
-        XCTAssertEqual(object.level, levelValue)
+        if object.bool != boolValue { XCTFail("") }
+        if object.int != intValue { XCTFail("") }
+        if object.int16 != int16Value { XCTFail("") }
+        if object.int32 != int32Value { XCTFail("") }
+        if object.int64 != int64Value { XCTFail("") }
+        if object.float != floatValue { XCTFail("") }
+        if object.double != doubleValue { XCTFail("") }
+        if object.string != stringValue { XCTFail("") }
+        if object.date != dateValue { XCTFail("") }
+        if object.data != dataValue { XCTFail("") }
+        if object.url != urlValue { XCTFail("") }
+        if object.uuid != uuidValue { XCTFail("") }
+        if object.point != pointValue { XCTFail("") }
+        if object.level != levelValue { XCTFail("") }
       }
 
 
@@ -109,21 +110,22 @@ final class AttributeTests : XCTestCase
     func testNonOptionalDefaults() throws
       {
         // Define an entity with the range of supported attribute types, with assigned default values
-        class Object : Entity {
-          @Attribute("bool") var bool : Bool = boolValue
-          @Attribute("int") var int : Int = intValue
-          @Attribute("int16") var int16 : Int16 = int16Value
-          @Attribute("int32") var int32 : Int32 = int32Value
-          @Attribute("int64") var int64 : Int64 = int64Value
-          @Attribute("float") var float : Float = floatValue
-          @Attribute("double") var double : Double = doubleValue
-          @Attribute("string") var string : String = stringValue
-          @Attribute("date") var date : Date = dateValue
-          @Attribute("data") var data : Data = dataValue
-          @Attribute("url") var url : URL = urlValue
-          @Attribute("uuid") var uuid : UUID = uuidValue
-          @Attribute("point") var point : Point = pointValue
-          @Attribute("level") var level : Level = levelValue
+
+        @Entity class Object : Entity {
+          @Attribute var bool : Bool = boolValue
+          @Attribute var int : Int = intValue
+          @Attribute var int16 : Int16 = int16Value
+          @Attribute var int32 : Int32 = int32Value
+          @Attribute var int64 : Int64 = int64Value
+          @Attribute var float : Float = floatValue
+          @Attribute var double : Double = doubleValue
+          @Attribute var string : String = stringValue
+          @Attribute var date : Date = dateValue
+          @Attribute var data : Data = dataValue
+          @Attribute var url : URL = urlValue
+          @Attribute var uuid : UUID = uuidValue
+          @Attribute var point : Point = pointValue
+          @Attribute var level : Level = levelValue
         }
 
         let store = try createAndOpenStoreWith(schema: Schema(objectTypes: [Object.self]))
@@ -155,21 +157,21 @@ final class AttributeTests : XCTestCase
     func testOptional() throws
       {
         // Define an entity with the range of optional attribute types
-        class Object : Entity {
-          @OptionalAttribute("bool") var bool : Bool?
-          @OptionalAttribute("int") var int : Int?
-          @OptionalAttribute("int16") var int16 : Int16?
-          @OptionalAttribute("int32") var int32 : Int32?
-          @OptionalAttribute("int64") var int64 : Int64?
-          @OptionalAttribute("float") var float : Float?
-          @OptionalAttribute("double") var double : Double?
-          @OptionalAttribute("string") var string : String?
-          @OptionalAttribute("date") var date : Date?
-          @OptionalAttribute("data") var data : Data?
-          @OptionalAttribute("url") var url : URL?
-          @OptionalAttribute("uuid") var uuid : UUID?
-          @OptionalAttribute("point") var point : Point?
-          @OptionalAttribute("level") var level : Level?
+        @Entity class Object : Entity {
+          @Attribute var bool : Bool?
+          @Attribute var int : Int?
+          @Attribute var int16 : Int16?
+          @Attribute var int32 : Int32?
+          @Attribute var int64 : Int64?
+          @Attribute var float : Float?
+          @Attribute var double : Double?
+          @Attribute var string : String?
+          @Attribute var date : Date?
+          @Attribute var data : Data?
+          @Attribute var url : URL?
+          @Attribute var uuid : UUID?
+          @Attribute var point : Point?
+          @Attribute var level : Level?
         }
 
         let store = try createAndOpenStoreWith(schema: Schema(objectTypes: [Object.self]))

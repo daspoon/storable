@@ -9,7 +9,7 @@ import CoreData
 
 /// AttributeInfo maintains the metadata for a managed attribute of an Entity class; it is analogous to CoreData's NSAttributeDescription.
 
-public struct AttributeInfo : PropertyInfo
+public struct AttributeInfo
   {
     /// The managed property name.
     public var name : String

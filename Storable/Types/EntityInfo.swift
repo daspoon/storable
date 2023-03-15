@@ -24,25 +24,14 @@ public struct EntityInfo
         name = objectType.entityNameAndVersion.entityName
         managedObjectClass = objectType
 
-        // Skip the base class Entity since it has no properties, and attempting to create a mirror crashes...
-        guard objectType != Entity.self else { return }
-
-        for (label, value) in objectType.instanceMirror.children {
-          guard let label, label.hasPrefix("_") else { continue }
-          guard let info = (value as? ManagedPropertyWrapper)?.propertyInfo else { continue }
-          let propertyName = label.removing(prefix: "_")
-          guard info.name == propertyName else {
-            throw Exception("declared property name must match wrapper argument")
-          }
+        for (name, info) in objectType.declaredPropertyInfoByName {
           switch info {
-            case let attribute as AttributeInfo :
-              attributes[propertyName] = attribute
-            case let relationship as RelationshipInfo :
-              relationships[propertyName] = relationship
-            case let fetchedProperty as FetchedPropertyInfo :
-              fetchedProperties[propertyName] = fetchedProperty
-            default :
-              log("unsupported PropertyInfo type: \(type(of: info))")
+            case .attribute(let info) :
+              attributes[name] = info
+            case .relationship(let info) :
+              relationships[name] = info
+            case .fetched(let info) :
+              fetchedProperties[name] = info
           }
         }
       }

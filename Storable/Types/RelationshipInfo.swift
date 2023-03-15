@@ -9,7 +9,7 @@ import CoreData
 
 /// RelationshipInfo maintains the metadata for a relationship defined of an Entity class; it is analogous to CoreData's NSRelationshipDescription.
 
-public struct RelationshipInfo : PropertyInfo
+public struct RelationshipInfo
   {
     /// Determines the effect on related objects when the source object is deleted; this type corresponds directly to NSDeleteRule.
     public enum DeleteRule

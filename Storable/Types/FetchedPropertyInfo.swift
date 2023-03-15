@@ -9,7 +9,7 @@ import CoreData
 
 /// FetchedPropertyInfo maintains the data required to define a fetched property on a subclass of Entity; it is analogous to CoreData's NSFetchedPropertyDescription.
 
-public struct FetchedPropertyInfo : PropertyInfo
+public struct FetchedPropertyInfo
   {
     public let name : String
     public let fetchRequest : NSFetchRequest<NSFetchRequestResult>

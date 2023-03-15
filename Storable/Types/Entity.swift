@@ -72,19 +72,6 @@ open class Entity : NSManagedObject
       { Self.self == abstractClass }
 
 
-    /// Return a mirror for instances of this class.
-    class var instanceMirror : Mirror
-      {
-        let templateObjectModel = NSManagedObjectModel()
-        let templateEntity = NSEntityDescription()
-        templateEntity.name = Self.entityName
-        templateEntity.managedObjectClassName = NSStringFromClass(Self.self)
-        templateObjectModel.entities = [templateEntity]
-
-        return Mirror(reflecting: Self.init(entity: templateEntity, insertInto: nil))
-      }
-
-
     /// Override init(entity:insertInto:) to be 'required' in order to create instances from class objects. This method is not intended to be overidden.
     public required override init(entity: NSEntityDescription, insertInto context: NSManagedObjectContext?)
       { super.init(entity: entity, insertInto: context) }
