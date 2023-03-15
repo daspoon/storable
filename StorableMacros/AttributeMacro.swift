@@ -39,7 +39,7 @@ public struct AttributeMacro  : AccessorMacro
           """,
           """
           set {
-            setValue(newValue, forKey: "\(raw: info.name)")
+            setValue(newValue.storedValue(), forKey: "\(raw: info.name)")
           }
           """,
         ]
