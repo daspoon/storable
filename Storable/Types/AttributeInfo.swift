@@ -36,7 +36,8 @@ public struct AttributeInfo
     public var ingest : (key: IngestKey, method: (Any) throws -> any Storable)?
 
 
-    public init<Value: Storable>(name: String, type: Value.Type, isOptional: Bool = false, defaultValue: Value? = nil, renamingIdentifier: String? = nil, ingest: (key: IngestKey, method: (Any) throws -> any Storable)? = nil)
+    /// Initialize a new instance.
+    private init<Value: Storable>(name: String, type: Value.Type, isOptional: Bool, defaultValue: Value?, renamingIdentifier: String?, ingest: (key: IngestKey, method: (Any) throws -> any Storable)? = nil)
       {
         self.name = name
         self.type = type
@@ -47,6 +48,44 @@ public struct AttributeInfo
         self.renamingIdentifier = renamingIdentifier
         self.ingest = ingest
       }
+
+
+    /// Declare a non-optional attribute.
+    public init<T: Storable>(name: String, type t: T.Type, defaultValue v: T? = nil, renamingIdentifier id: String? = nil)
+      { self.init(name: name, type: t, isOptional: false, defaultValue: v, renamingIdentifier: id) }
+
+    /// Declare a non-optional attribute which is ingestible.
+    public init<T: Storable&Ingestible>(name: String, type t: T.Type, defaultValue v: T? = nil, renamingIdentifier id: String? = nil)
+      { self.init(name: name, type: t, isOptional: false, defaultValue: v, renamingIdentifier: id, ingest: (.element(name), T.ingest)) }
+
+    /// Declare a non-optional attribute which is ingestible using the specified key.
+    public init<T: Storable&Ingestible>(name: String, type t: T.Type, defaultValue v: T? = nil, renamingIdentifier id: String? = nil, ingestKey k: IngestKey)
+      { self.init(name: name, type: t, isOptional: false, defaultValue: v, renamingIdentifier: id, ingest: (k, T.ingest)) }
+
+    /// Declare an attribute which is transformed from an alternate format on ingestion. If a default value is provided, it must be of the input type of the given transform.
+    public init<T: Storable&Ingestible, Alt>(name: String, type t: T.Type, renamingIdentifier id: String? = nil, ingestKey k: IngestKey? = nil, transform f: @escaping (Alt) throws -> T.Input, defaultIngestValue v: Alt? = nil)
+      {
+        // Transform the given default value.
+        let u = v.map {try! T.ingest($0, withTransform: f)}
+        self.init(name: name, type: t, isOptional: false, defaultValue: u, renamingIdentifier: id, ingest: (k ?? .element(name), {try T.ingest($0, withTransform: f)}))
+      }
+
+
+    /// Declare an optional attribute.
+    public init<T: Nullable>(name: String, type t: T.Type, renamingIdentifier id: String? = nil) where T.Wrapped : Storable
+      { self.init(name: name, type: T.Wrapped.self, isOptional: true, defaultValue: nil, renamingIdentifier: id) }
+
+    /// Declare an optional attribute which is ingestible.
+    public init<T: Nullable>(name: String, type t: T.Type, renamingIdentifier id: String? = nil) where T.Wrapped : Storable&Ingestible
+      { self.init(name: name, type: T.Wrapped.self, isOptional: true, defaultValue: nil, renamingIdentifier: id, ingest: (.element(name), T.Wrapped.ingest)) }
+
+    /// Declare an optional attribute which is ingestible using the specified key.
+    public init<T: Nullable>(name: String, type t: T.Type, renamingIdentifier id: String? = nil, ingestKey k: IngestKey) where T.Wrapped : Storable&Ingestible
+      { self.init(name: name, type: T.Wrapped.self, isOptional: true, defaultValue: nil, renamingIdentifier: id, ingest: (k, T.Wrapped.ingest)) }
+
+    /// Declare an optional attribute which is transformed from an alternate format on ingestion.
+    public init<T: Nullable, Alt>(name: String, type t: T.Type, renamingIdentifier id: String? = nil, ingestKey k: IngestKey? = nil, transform f: @escaping (Alt) throws -> T.Wrapped.Input) where T.Wrapped : Storable&Ingestible
+      { self.init(name: name, type: T.Wrapped.self, isOptional: true, defaultValue: nil, renamingIdentifier: id, ingest: (k ?? .element(name), {try T.Wrapped.ingest($0, withTransform: f)})) }
 
 
     /// Return a copy of the receiver with changes made by the given code block.
