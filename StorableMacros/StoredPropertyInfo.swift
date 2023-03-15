@@ -12,6 +12,7 @@ struct StoredPropertyInfo
     var name : String
     var type : TypeSyntax
     var value : ExprSyntax?
+    var attributes : AttributeListSyntax?
 
     init?(_ decl: DeclSyntaxProtocol)
       {
@@ -47,6 +48,7 @@ struct StoredPropertyInfo
         self.name = name
         self.type = type
         self.value = binding.initializer?.value
+        self.attributes = variable.attributes
       }
   }
 
