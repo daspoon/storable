@@ -34,11 +34,14 @@ public class DataStore
     public private(set) var classInfoByName : [String: ClassInfo] = [:]
 
 
-    /// Create an instance with the given name. The location of the persistent store is determined by the application's document directory.
-    public required init(name: String = "store", saveRequestNotificationName: Notification.Name? = nil)
+    /// Create an instance with the given name in the given directory, which defaults to the application's document directory.
+    public required init(name: String = "store", directoryURL specifiedURL: URL? = nil, saveRequestNotificationName: Notification.Name? = nil)
       {
-        guard let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).last else { fatalError("failed to get URL for document directory") }
-        guard let storeURL = URL(string: "\(name).sqlite", relativeTo: documentsURL) else { fatalError("failed to create relative URL") }
+        guard let directoryURL = specifiedURL ?? FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).last
+          else { fatalError("failed to get URL for document directory") }
+
+        guard let storeURL = URL(string: "\(name).sqlite", relativeTo: directoryURL) else { fatalError("failed to create relative URL") }
+log("storeURL = \(storeURL.absoluteString)")
 
         self.storeURL = storeURL
         self.saveRequestNotificationName = saveRequestNotificationName
@@ -79,6 +82,8 @@ public class DataStore
     public func openWith(model: NSManagedObjectModel) throws
       {
         precondition(state == nil, "already open")
+
+//log("model is \n\(model)")
 
         // Create the persistent store coordinator and managed object context.
         let coordinator = NSPersistentStoreCoordinator(managedObjectModel: model)
