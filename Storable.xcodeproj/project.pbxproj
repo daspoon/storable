@@ -53,6 +53,8 @@
 		5531F98B29C105CC004B1204 /* TestIngestSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5531F98629C105CC004B1204 /* TestIngestSource.swift */; };
 		5531F98C29C105CC004B1204 /* XCTestCase-ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5531F98929C105CC004B1204 /* XCTestCase-ext.swift */; };
 		5531F98D29C105CC004B1204 /* CoreData-ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5531F98829C105CC004B1204 /* CoreData-ext.swift */; };
+		55C14B3B29C235AB00686C5D /* ProcessInfo-ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55C14B3A29C235AB00686C5D /* ProcessInfo-ext.swift */; };
+		55C14B3D29C236C500686C5D /* AttributeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5531F96929C0F5CF004B1204 /* AttributeTests.swift */; };
 		55DF58AB29C0DD5B005AB19D /* Storable.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55DF58A029C0DD5B005AB19D /* Storable.framework */; };
 		55DF58D529C0E02C005AB19D /* StoredPropertyInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55DF58D429C0E02C005AB19D /* StoredPropertyInfo.swift */; };
 		55DF58D729C0E041005AB19D /* EntityMacro.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55DF58D629C0E041005AB19D /* EntityMacro.swift */; };
@@ -161,6 +163,7 @@
 		5531F98729C105CC004B1204 /* DataStore-ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DataStore-ext.swift"; sourceTree = "<group>"; };
 		5531F98829C105CC004B1204 /* CoreData-ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CoreData-ext.swift"; sourceTree = "<group>"; };
 		5531F98929C105CC004B1204 /* XCTestCase-ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "XCTestCase-ext.swift"; sourceTree = "<group>"; };
+		55C14B3A29C235AB00686C5D /* ProcessInfo-ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ProcessInfo-ext.swift"; sourceTree = "<group>"; };
 		55DF58A029C0DD5B005AB19D /* Storable.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Storable.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		55DF58AA29C0DD5B005AB19D /* StorableTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = StorableTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		55DF58CB29C0DFE3005AB19D /* libStorableMacros.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libStorableMacros.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -317,6 +320,7 @@
 				5531F96F29C0F5CF004B1204 /* RelationshipTests.swift */,
 				5531F98829C105CC004B1204 /* CoreData-ext.swift */,
 				5531F98729C105CC004B1204 /* DataStore-ext.swift */,
+				55C14B3A29C235AB00686C5D /* ProcessInfo-ext.swift */,
 				5531F98629C105CC004B1204 /* TestIngestSource.swift */,
 				5531F98929C105CC004B1204 /* XCTestCase-ext.swift */,
 			);
@@ -533,6 +537,8 @@
 			files = (
 				5531F98C29C105CC004B1204 /* XCTestCase-ext.swift in Sources */,
 				5531F98D29C105CC004B1204 /* CoreData-ext.swift in Sources */,
+				55C14B3D29C236C500686C5D /* AttributeTests.swift in Sources */,
+				55C14B3B29C235AB00686C5D /* ProcessInfo-ext.swift in Sources */,
 				5531F98A29C105CC004B1204 /* DataStore-ext.swift in Sources */,
 				5531F98B29C105CC004B1204 /* TestIngestSource.swift in Sources */,
 			);

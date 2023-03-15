@@ -39,7 +39,11 @@ extension XCTestCase
 
         let storeName = "\(Self.self)"
         guard activeStores[storeName] == nil else { throw Exception("store name in use: \(storeName)") }
-        let store = DataStore(name: storeName)
+        let directory = ProcessInfo.processInfo.argument(forKey: "storeDirectory")
+        if let directory {
+          try FileManager.default.createDirectory(atPath: directory, withIntermediateDirectories: true)
+        }
+        let store = DataStore(name: storeName, directoryURL: directory.map { URL(filePath: $0) })
         activeStores[storeName] = store
 
         addTeardownBlock {
