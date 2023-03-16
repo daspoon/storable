@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5518180D29C298DC00F8F74C /* RelationshipTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5531F96F29C0F5CF004B1204 /* RelationshipTests.swift */; };
+		5518181029C29CBD00F8F74C /* TypeSyntax-ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5518180F29C29CBD00F8F74C /* TypeSyntax-ext.swift */; };
 		5529B97229C119BE00AB8904 /* RelationshipMacro.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5529B97129C119BE00AB8904 /* RelationshipMacro.swift */; };
 		5531F92D29C0F319004B1204 /* IngestSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5531F90D29C0F318004B1204 /* IngestSource.swift */; };
 		5531F92F29C0F319004B1204 /* RelationshipInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5531F90F29C0F318004B1204 /* RelationshipInfo.swift */; };
@@ -102,6 +104,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		5518180F29C29CBD00F8F74C /* TypeSyntax-ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TypeSyntax-ext.swift"; sourceTree = "<group>"; };
 		5529B97129C119BE00AB8904 /* RelationshipMacro.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RelationshipMacro.swift; sourceTree = "<group>"; };
 		5531F90C29C0F318004B1204 /* Relationship.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Relationship.swift; sourceTree = "<group>"; };
 		5531F90D29C0F318004B1204 /* IngestSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IngestSource.swift; sourceTree = "<group>"; };
@@ -334,6 +337,7 @@
 				55DF58D629C0E041005AB19D /* EntityMacro.swift */,
 				5529B97129C119BE00AB8904 /* RelationshipMacro.swift */,
 				55DF58D429C0E02C005AB19D /* StoredPropertyInfo.swift */,
+				5518180F29C29CBD00F8F74C /* TypeSyntax-ext.swift */,
 			);
 			path = StorableMacros;
 			sourceTree = "<group>";
@@ -537,6 +541,7 @@
 			files = (
 				5531F98C29C105CC004B1204 /* XCTestCase-ext.swift in Sources */,
 				5531F98D29C105CC004B1204 /* CoreData-ext.swift in Sources */,
+				5518180D29C298DC00F8F74C /* RelationshipTests.swift in Sources */,
 				55C14B3D29C236C500686C5D /* AttributeTests.swift in Sources */,
 				55C14B3B29C235AB00686C5D /* ProcessInfo-ext.swift in Sources */,
 				5531F98A29C105CC004B1204 /* DataStore-ext.swift in Sources */,
@@ -551,6 +556,7 @@
 				55DF58D529C0E02C005AB19D /* StoredPropertyInfo.swift in Sources */,
 				55DF58D729C0E041005AB19D /* EntityMacro.swift in Sources */,
 				5529B97229C119BE00AB8904 /* RelationshipMacro.swift in Sources */,
+				5518181029C29CBD00F8F74C /* TypeSyntax-ext.swift in Sources */,
 				55DF58D929C0E04A005AB19D /* AttributeMacro.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -32,11 +32,7 @@ public struct EntityMacro : MemberMacro
         else {
           text.append("\n")
           for info in storedPropertyInfoArray {
-            text.append(
-              """
-                  \"\(info.name)\" : .attribute(.init(name: "\(info.name)", type: \(info.type).self, defaultValue: \(info.value ?? "nil"))),\n
-              """
-            )
+            text.append("\"\(info.name)\" : \(info.swiftText),\n")
           }
           text.append("  ]\n")
         }

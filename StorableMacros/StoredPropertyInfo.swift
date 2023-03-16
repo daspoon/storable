@@ -84,4 +84,25 @@ struct StoredPropertyInfo
             return false
         }
       }
+
+
+    var swiftText : String
+      {
+        var result = ""
+        switch attribute.attributeName.trimmed.description {
+          case "Attribute" :
+            result += ".attribute(.init(name: \"\(name)\", type: \(type.longName).self, defaultValue: \(value ?? "nil")"
+          case "Relationship" :
+            result += ".relationship(.init(name: \"\(name)\", type: \(type.longName).self"
+          default :
+            return "?"
+        }
+        if case .argumentList(let tupleExprElementList) = attribute.argument {
+          for tupleExprElement in tupleExprElementList {
+            result += ", \(tupleExprElement.label.map({$0}) ?? "")\(tupleExprElement.colon.map({$0}) ?? "")\(tupleExprElement.expression)"
+          }
+        }
+        result += "))"
+        return result
+      }
   }
