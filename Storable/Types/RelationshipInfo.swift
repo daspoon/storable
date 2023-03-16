@@ -69,28 +69,28 @@ public struct RelationshipInfo
 
 
     /// Declare a to-one relationship.
-    public init<T: Entity>(name: String, relatedType: T.Type, inverse inv: RelationshipInfo.InverseSpec, deleteRule r: RelationshipInfo.DeleteRule, renamingIdentifier oldName: String? = nil)
+    public init<T: Entity>(name: String, type: T.Type, inverse inv: RelationshipInfo.InverseSpec, deleteRule r: RelationshipInfo.DeleteRule, renamingIdentifier oldName: String? = nil)
       { self.init(name: name, range: 1 ... 1, relatedEntityName: T.entityName, inverse: inv, deleteRule: r, renamingIdentifier: oldName) }
 
     /// Declare a to-optional relationship.
-    public init<T: Nullable>(name: String, relatedType: T.Type, inverse inv: RelationshipInfo.InverseSpec, deleteRule r: RelationshipInfo.DeleteRule, renamingIdentifier oldName: String? = nil) where T.Wrapped : Entity
+    public init<T: Nullable>(name: String, type: T.Type, inverse inv: RelationshipInfo.InverseSpec, deleteRule r: RelationshipInfo.DeleteRule, renamingIdentifier oldName: String? = nil) where T.Wrapped : Entity
       { self.init(name: name, range: 0 ... 1, relatedEntityName: T.Wrapped.entityName, inverse: inv, deleteRule: r, renamingIdentifier: oldName) }
 
     /// Declare a to-many relationship.
-    public init<T: SetAlgebra>(name: String, relatedType: T.Type, inverse inv: RelationshipInfo.InverseSpec, deleteRule r: RelationshipInfo.DeleteRule, renamingIdentifier oldName: String? = nil) where T.Element : Entity
+    public init<T: SetAlgebra>(name: String, type: T.Type, inverse inv: RelationshipInfo.InverseSpec, deleteRule r: RelationshipInfo.DeleteRule, renamingIdentifier oldName: String? = nil) where T.Element : Entity
       { self.init(name: name, range: 0 ... .max, relatedEntityName: T.Element.entityName, inverse: inv, deleteRule: r, renamingIdentifier: oldName) }
 
 
     /// Declare a to-optional relationship which is ingestible.
-    public init<T: Entity>(name: String, relatedType: T.Type, inverse inv: RelationshipInfo.InverseSpec, deleteRule r: RelationshipInfo.DeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil)
+    public init<T: Entity>(name: String, type: T.Type, inverse inv: RelationshipInfo.InverseSpec, deleteRule r: RelationshipInfo.DeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil)
       { self.init(name: name, range: 1 ... 1, relatedEntityName: T.entityName, inverse: inv, deleteRule: r, renamingIdentifier: oldName, ingest: (key: k ?? .element(name), mode: m)) }
 
     /// Declare a to-optional relationship which is ingestible.
-    public init<T: Nullable>(name: String, relatedType: T.Type, inverse inv: RelationshipInfo.InverseSpec, deleteRule r: RelationshipInfo.DeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil) where T.Wrapped : Entity
+    public init<T: Nullable>(name: String, type: T.Type, inverse inv: RelationshipInfo.InverseSpec, deleteRule r: RelationshipInfo.DeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil) where T.Wrapped : Entity
       { self.init(name: name, range:  0 ... 1, relatedEntityName: T.Wrapped.entityName, inverse: inv, deleteRule: r, renamingIdentifier: oldName, ingest: (key: k ?? .element(name), mode: m)) }
 
     /// Declare a to-many relationship which is ingestible.
-    public init<T: SetAlgebra>(name: String, relatedType: T.Type, inverse inv: RelationshipInfo.InverseSpec, deleteRule r: RelationshipInfo.DeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil) where T.Element : Entity
+    public init<T: SetAlgebra>(name: String, type: T.Type, inverse inv: RelationshipInfo.InverseSpec, deleteRule r: RelationshipInfo.DeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil) where T.Element : Entity
       { self.init(name: name, range: 0 ... .max, relatedEntityName: T.Element.entityName, inverse: inv, deleteRule: r, renamingIdentifier: oldName, ingest: (key: k ?? .element(name), mode: m)) }
 
 
