@@ -8,21 +8,22 @@ import SwiftSyntax
 import SwiftSyntaxMacros
 
 
-public struct AttributeMacro  : AccessorMacro
+public struct AttributeMacro  : AccessorMacro, ManagedPropertyMacro
   {
-    public static func expansion<Ctx: MacroExpansionContext, Decl: DeclSyntaxProtocol>(
-      of node: AttributeSyntax,
-      providingAccessorsOf decl: Decl,
-      in ctx: Ctx
-    ) throws -> [AccessorDeclSyntax]
+    static var attributeName : String { "Attribute" }
+
+    static func generateDescriptorText(for decl: StoredPropertyInfo, using attribute: AttributeSyntax) throws -> String
       {
-        // TODO: ensure enclosing type is an NSManagedObject
-        // TODO: ensure declared type is Storable
-        // TODO: use enclosing class name in error messages
-        guard
-          let info = StoredPropertyInfo(decl)
-        else {
-          return []
+        return ".attribute(.init(name: \"\(decl.name)\", type: \(decl.type.longName).self, defaultValue: \(decl.value ?? "nil")"
+          + generateDescriptorArgumentText(for: attribute.argument, withInitialComma: true)
+          + "))"
+      }
+
+    public static func expansion<Ctx, Dcl>(of node: AttributeSyntax, providingAccessorsOf dcl: Dcl, in ctx: Ctx) throws -> [AccessorDeclSyntax]
+      where Ctx: MacroExpansionContext, Dcl: DeclSyntaxProtocol
+      {
+        guard let info = dcl.storedPropertyInfo else {
+          throw Exception("@Attribute is only applicable to stored properties")
         }
 
         switch info.type.as(OptionalTypeSyntax.self) {

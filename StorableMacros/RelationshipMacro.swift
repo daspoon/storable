@@ -8,22 +8,22 @@ import SwiftSyntax
 import SwiftSyntaxMacros
 
 
-public struct RelationshipMacro  : AccessorMacro
+public struct RelationshipMacro  : AccessorMacro, ManagedPropertyMacro
   {
-    public static func expansion<Ctx: MacroExpansionContext, Decl: DeclSyntaxProtocol>(
-      of node: AttributeSyntax,
-      providingAccessorsOf decl: Decl,
-      in ctx: Ctx
-    ) throws -> [AccessorDeclSyntax]
-      {
-        // TODO: ensure enclosing type is an Entity
-        // TODO: ensure declared type is an Entity
-        // TODO: use enclosing class name in error messages
+    static var attributeName : String { "Relationship" }
 
-        guard
-          let info = StoredPropertyInfo(decl)
-        else {
-          return []
+    static func generateDescriptorText(for decl: StoredPropertyInfo, using attribute: AttributeSyntax) throws -> String
+      {
+        return ".relationship(.init(name: \"\(decl.name)\", type: \(decl.type.longName).self"
+          + generateDescriptorArgumentText(for: attribute.argument, withInitialComma: true)
+          + "))"
+      }
+
+    public static func expansion<Ctx, Dcl>(of node: AttributeSyntax, providingAccessorsOf dcl: Dcl, in ctx: Ctx) throws -> [AccessorDeclSyntax]
+      where Ctx: MacroExpansionContext, Dcl: DeclSyntaxProtocol
+      {
+        guard let info = dcl.storedPropertyInfo else {
+          throw Exception("@Attribute is only applicable to stored properties")
         }
 
         return [

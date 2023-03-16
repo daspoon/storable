@@ -10,32 +10,47 @@ import SwiftSyntaxMacros
 
 public struct EntityMacro : MemberMacro
   {
-    public static func expansion(
-      of node: AttributeSyntax,
-      providingMembersOf declaration: some DeclGroupSyntax,
-      in context: some MacroExpansionContext
-    ) throws -> [DeclSyntax]
+    static let propertyMacroTypes : [ManagedPropertyMacro.Type] = [
+      AttributeMacro.self,
+      FetchedMacro.self,
+      RelationshipMacro.self,
+    ]
+
+    static let propertyMacroNames : Set<String>
+      = Set(propertyMacroTypes.map {$0.attributeName})
+    static let propertyMacroTypesByName : [String: ManagedPropertyMacro.Type]
+      = .init(uniqueKeysWithValues: propertyMacroTypes.map {($0.attributeName, $0)})
+
+
+    public static func expansion(of node: AttributeSyntax, providingMembersOf dcl: some DeclGroupSyntax, in ctx: some MacroExpansionContext) throws -> [DeclSyntax]
       {
-        guard
-          let classDecl = declaration.as(ClassDeclSyntax.self)
-          //let inheritedType : TypeSyntax = classDecl.inheritanceClause?.inheritedTypeCollection.first?.typeName
-        else {
-          return []
+        guard let dcl = dcl.as(ClassDeclSyntax.self) else {
+          throw Exception("@Entity is applicable only to class definitions")
         }
 
-        let storedPropertyInfoArray = classDecl.members.members.compactMap {StoredPropertyInfo($0.decl)}
-        var text = "public override class var declaredPropertyInfoByName : [String: PropertyInfo] {"
+        var text = "public override class var declaredPropertyInfoByName : [String: PropertyInfo] {\n"
         text.append("  return [")
-        if storedPropertyInfoArray.count == 0 {
-          text.append(":]\n")
-        }
-        else {
-          text.append("\n")
-          for info in storedPropertyInfoArray {
-            text.append("\"\(info.name)\" : \(info.swiftText),\n")
+        var count = 0
+        for item in dcl.members.members {
+          // Ignore member declarations which are not stored properties
+          guard let info = item.decl.storedPropertyInfo else { continue }
+          // Get the attributes which correspond to managed property declarations
+          let attributes = try info.attributes?.attributesWithNames(propertyMacroNames) ?? []
+          // Ignore members declarations which have no attributes and complain abount member declarations which have multiple attributes
+          switch attributes.count {
+            case 0 :
+              continue
+            case let n where n > 1 :
+              throw Exception("cannot intermix attributes among \(propertyMacroNames)")
+            default :
+              break
           }
-          text.append("  ]\n")
+          // Generate a dictionary entry mapping the variable name to a managed property descriptor
+          guard let macroType = propertyMacroTypesByName[attributes[0].trimmedName] else { throw Exception("*** failed to get generator type for '\(attributes[0].trimmedName)' ***") }
+          text.append("    \"\(info.name)\" : \(try macroType.generateDescriptorText(for: info, using: attributes[0])),\n")
+          count += 1
         }
+        text.append((count == 0 ? ":]" : "  ]") + "\n")
         text.append("}\n")
 
         return [DeclSyntax(stringLiteral: text)]

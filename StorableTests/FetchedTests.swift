@@ -11,37 +11,38 @@ import CoreData
 import Storable
 
 
-fileprivate class Occupant : Entity
+@Entity fileprivate class Occupant : Entity
   {
-    @Attribute("name")
+    @Attribute
     var name : String
 
-    @Attribute("age")
+    @Attribute
     var age : Int
 
-    @Relationship("dwelling", inverse: "occupants", deleteRule: .nullify)
+    @Relationship(inverse: "occupants", deleteRule: .nullify)
     var dwelling : Dwelling?
   }
 
 
-fileprivate class Dwelling : Entity
+
+@Entity fileprivate class Dwelling : Entity
   {
-    @Relationship("occupants", inverse: "dwelling", deleteRule: .nullify)
+    @Relationship(inverse: "dwelling", deleteRule: .nullify)
     var occupants : Set<Occupant>
 
-    @FetchedProperty("occupantsByName", fetchRequest: makeFetchRequest(predicate: .init(format: "dwelling = $FETCH_SOURCE"), sortDescriptors: [.init(key: "name", ascending: true)]))
+    @Fetched(predicate: .init(format: "dwelling = $FETCH_SOURCE"), sortDescriptors: [.init(key: "name", ascending: true)])
     var occupantsByName : [Occupant]
 
-    @FetchedProperty("minorOccupantsByAge", fetchRequest: makeFetchRequest(predicate: .init(format: "dwelling = $FETCH_SOURCE && age < 18"), sortDescriptors: [.init(key: "age", ascending: true)]))
+    @Fetched(predicate: .init(format: "dwelling = $FETCH_SOURCE && age < 18"), sortDescriptors: [.init(key: "age", ascending: true)])
     var minorOccupantsByAge : [Occupant]
 
-    @FetchedProperty("occupantIdsByName", fetchRequest: makeFetchRequest(for: Occupant.self, predicate: .init(format: "dwelling = $FETCH_SOURCE"), sortDescriptors: [.init(key: "name", ascending: true)]))
+    @Fetched(identifiersOf: Occupant.self, predicate: .init(format: "dwelling = $FETCH_SOURCE"), sortDescriptors: [.init(key: "name", ascending: true)])
     var occupantIdsByName : [NSManagedObjectID]
 
-    @FetchedProperty("occupantNamesAndAges", fetchRequest: makeFetchRequest(for: Occupant.self, predicate: .init(format: "dwelling = $FETCH_SOURCE"), sortDescriptors: [.init(key: "name", ascending: true)]))
+    @Fetched(dictionariesOf: Occupant.self, predicate: .init(format: "dwelling = $FETCH_SOURCE"), sortDescriptors: [.init(key: "name", ascending: true)])
     var occupantNamesAndAges : [[String: Any]]
 
-    @FetchedProperty("numberOfOccupants", fetchRequest: makeFetchRequest(for: Occupant.self, predicate: .init(format: "dwelling = $FETCH_SOURCE")))
+    @Fetched(countOf: Occupant.self, predicate: .init(format: "dwelling = $FETCH_SOURCE"))
     var numberOfOccupants : Int
   }
 
@@ -63,9 +64,9 @@ final class FetchedTests : XCTestCase
 
         try store.save()
 
-        XCTAssertEqual(flintstone.occupantsByName, [fred, pebbles, wilma])
-        XCTAssertEqual(flintstone.minorOccupantsByAge, [pebbles])
-        XCTAssertEqual(rubble.occupantIdsByName, [bambam, barney, betty].map { $0.objectID })
-        XCTAssertEqual(flintstone.numberOfOccupants, 3)
+        if flintstone.occupantsByName != [fred, pebbles, wilma] { XCTFail("flintstone.occupantsByName") }
+        if flintstone.minorOccupantsByAge != [pebbles] { XCTFail("flintstone.minorOccupantsByAge") }
+        if rubble.occupantIdsByName != [bambam, barney, betty].map({$0.objectID}) { XCTFail("rubble.occupantIdsByName") }
+        if flintstone.numberOfOccupants != 3 { XCTFail("flintstone.numberOfOccupants") }
       }
   }
