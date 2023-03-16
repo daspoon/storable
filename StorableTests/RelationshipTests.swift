@@ -4,54 +4,32 @@
 
   Demonstrate the function of supported relationship kinds...
 
-    - to-one with to-many
-    - to-one with optional to-one
-
 */
 
 import XCTest
 @testable import Storable
 
 
-// MARK: --
-
-fileprivate class Category : Entity
-  {
-    @Attribute("name")
-    var name : String
-
-    @Relationship("items", inverse: "category", deleteRule: .cascade)
-    var items : Set<Item>
-  }
-
-fileprivate class Item : Entity
-  {
-    @Attribute("name")
-    var name : String
-
-    @Relationship("category", inverse: "items", deleteRule: .nullify)
-    var category : Category
-
-    @Relationship("box", inverse: "items", deleteRule: .nullify)
-    var box : Box?
-  }
-
-fileprivate class Box : Entity
-  {
-    @Attribute("number")
-    var number : Int
-
-    @Relationship("items", inverse: "box", deleteRule: .nullify)
-    var items : Set<Item>
-  }
-
-
-// MARK: --
-
 final class RelationshipTests : XCTestCase
   {
     func test() throws
       {
+        @Entity class Category : Entity {
+          @Attribute var name : String
+          @Relationship(inverse: "category", deleteRule: .cascade) var items : Set<Item>
+        }
+
+        @Entity class Item : Entity {
+          @Attribute var name : String
+          @Relationship(inverse: "items", deleteRule: .nullify) var category : Category
+          @Relationship(inverse: "items", deleteRule: .nullify) var box : Box?
+        }
+
+        @Entity class Box : Entity {
+          @Attribute var number : Int
+          @Relationship(inverse: "box", deleteRule: .nullify) var items : Set<Item>
+        }
+
         let store = try createAndOpenStoreWith(schema: Schema(objectTypes: [Box.self, Category.self, Item.self]))
 
         let pencils = try store.create(Category.self) { $0.name = "pencils" }
@@ -66,10 +44,10 @@ final class RelationshipTests : XCTestCase
 
         try store.save()
 
-        XCTAssertEqual(pencils.items, [sharp, dull])
-        XCTAssertEqual(staplers.items, [full, empty, broken])
-        XCTAssertEqual(good.items, [sharp, full])
-        XCTAssertEqual(bad.items, [dull, empty])
-        XCTAssertEqual(broken.box, nil)
+        if pencils.items != [sharp, dull] { XCTFail("") }
+        if staplers.items != [full, empty, broken] { XCTFail("") }
+        if good.items != [sharp, full] { XCTFail("") }
+        if bad.items != [dull, empty] { XCTFail("") }
+        if broken.box != nil { XCTFail("") }
       }
   }
