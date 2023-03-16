@@ -25,24 +25,46 @@ public struct AttributeMacro  : AccessorMacro
           return []
         }
 
-        return [
-          """
-          get {
-            switch value(forKey: "\(raw: info.name)") {
-              case .some(let objectValue) :
-                guard let encodedValue = objectValue as? \(raw: info.type).EncodingType else { fatalError("\(raw: info.name) is not of expected type ...") }
-                return \(raw: info.type).decodeStoredValue(encodedValue)
-              case .none :
-                fatalError("\(raw: info.name) is not initialized")
-            }
-          }
-          """,
-          """
-          set {
-            setValue(newValue.storedValue(), forKey: "\(raw: info.name)")
-          }
-          """,
-        ]
+        switch info.type.as(OptionalTypeSyntax.self) {
+          case .none :
+            return [
+              """
+              get {
+                switch self.value(forKey: "\(raw: info.name)") {
+                  case .some(let objectValue) :
+                    guard let encodedValue = objectValue as? \(raw: info.type).EncodingType else { fatalError("\(raw: info.name) is not of expected type ...") }
+                    return \(raw: info.type).decodeStoredValue(encodedValue)
+                  case .none :
+                    fatalError("\(raw: info.name) is not initialized")
+                }
+              }
+              """,
+              """
+              set {
+                self.setValue(newValue.storedValue(), forKey: "\(raw: info.name)")
+              }
+              """,
+            ]
+          case .some(let optionalType) :
+            return [
+              """
+              get {
+                switch self.value(forKey: "\(raw: info.name)") {
+                  case .some(let objectValue) :
+                    guard let encodedValue = objectValue as? \(raw: optionalType.wrappedType).EncodingType else { fatalError("\(raw: info.name) is not of expected type ...") }
+                    return \(raw: optionalType.longName).inject(\(raw: optionalType.wrappedType).decodeStoredValue(encodedValue))
+                  case .none :
+                    return nil
+                }
+              }
+              """,
+              """
+              set {
+                self.setValue(\(raw: optionalType.longName).project(newValue)?.storedValue(), forKey: "\(raw: info.name)")
+              }
+              """,
+            ]
+        }
       }
 
   }
