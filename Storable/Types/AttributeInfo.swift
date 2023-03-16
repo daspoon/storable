@@ -63,7 +63,7 @@ public struct AttributeInfo
       { self.init(name: name, type: t, isOptional: false, defaultValue: v, renamingIdentifier: id, ingest: (k, T.ingest)) }
 
     /// Declare an attribute which is transformed from an alternate format on ingestion. If a default value is provided, it must be of the input type of the given transform.
-    public init<T: Storable&Ingestible, Alt>(name: String, type t: T.Type, renamingIdentifier id: String? = nil, ingestKey k: IngestKey? = nil, transform f: @escaping (Alt) throws -> T.Input, defaultIngestValue v: Alt? = nil)
+    public init<T: Storable&Ingestible, Alt>(name: String, type t: T.Type, defaultValue v: Alt? = nil, renamingIdentifier id: String? = nil, ingestKey k: IngestKey? = nil, transform f: @escaping (Alt) throws -> T.Input)
       {
         // Transform the given default value.
         let u = v.map {try! T.ingest($0, withTransform: f)}
@@ -72,20 +72,24 @@ public struct AttributeInfo
 
 
     /// Declare an optional attribute.
-    public init<T: Nullable>(name: String, type t: T.Type, renamingIdentifier id: String? = nil) where T.Wrapped : Storable
-      { self.init(name: name, type: T.Wrapped.self, isOptional: true, defaultValue: nil, renamingIdentifier: id) }
+    public init<T: Nullable>(name: String, type t: T.Type, defaultValue v: T.Wrapped? = nil, renamingIdentifier id: String? = nil) where T.Wrapped : Storable
+      { self.init(name: name, type: T.Wrapped.self, isOptional: true, defaultValue: v, renamingIdentifier: id) }
 
     /// Declare an optional attribute which is ingestible.
-    public init<T: Nullable>(name: String, type t: T.Type, renamingIdentifier id: String? = nil) where T.Wrapped : Storable&Ingestible
-      { self.init(name: name, type: T.Wrapped.self, isOptional: true, defaultValue: nil, renamingIdentifier: id, ingest: (.element(name), T.Wrapped.ingest)) }
+    public init<T: Nullable>(name: String, type t: T.Type, defaultValue v: T.Wrapped? = nil, renamingIdentifier id: String? = nil) where T.Wrapped : Storable&Ingestible
+      { self.init(name: name, type: T.Wrapped.self, isOptional: true, defaultValue: v, renamingIdentifier: id, ingest: (.element(name), T.Wrapped.ingest)) }
 
     /// Declare an optional attribute which is ingestible using the specified key.
-    public init<T: Nullable>(name: String, type t: T.Type, renamingIdentifier id: String? = nil, ingestKey k: IngestKey) where T.Wrapped : Storable&Ingestible
-      { self.init(name: name, type: T.Wrapped.self, isOptional: true, defaultValue: nil, renamingIdentifier: id, ingest: (k, T.Wrapped.ingest)) }
+    public init<T: Nullable>(name: String, type t: T.Type, defaultValue v: T.Wrapped? = nil, renamingIdentifier id: String? = nil, ingestKey k: IngestKey) where T.Wrapped : Storable&Ingestible
+      { self.init(name: name, type: T.Wrapped.self, isOptional: true, defaultValue: v, renamingIdentifier: id, ingest: (k, T.Wrapped.ingest)) }
 
     /// Declare an optional attribute which is transformed from an alternate format on ingestion.
-    public init<T: Nullable, Alt>(name: String, type t: T.Type, renamingIdentifier id: String? = nil, ingestKey k: IngestKey? = nil, transform f: @escaping (Alt) throws -> T.Wrapped.Input) where T.Wrapped : Storable&Ingestible
-      { self.init(name: name, type: T.Wrapped.self, isOptional: true, defaultValue: nil, renamingIdentifier: id, ingest: (k ?? .element(name), {try T.Wrapped.ingest($0, withTransform: f)})) }
+    public init<T: Nullable, Alt>(name: String, type t: T.Type, defaultValue v: Alt? = nil, renamingIdentifier id: String? = nil, ingestKey k: IngestKey? = nil, transform f: @escaping (Alt) throws -> T.Wrapped.Input) where T.Wrapped : Storable&Ingestible
+      {
+        // Transform the given default value.
+        let u = v.map {try! T.Wrapped.ingest($0, withTransform: f)}
+        self.init(name: name, type: T.Wrapped.self, isOptional: true, defaultValue: u, renamingIdentifier: id, ingest: (k ?? .element(name), {try T.Wrapped.ingest($0, withTransform: f)}))
+      }
 
 
     /// Return a copy of the receiver with changes made by the given code block.
