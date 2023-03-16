@@ -154,6 +154,7 @@ final class AttributeTests : XCTestCase
       }
 
 
+   /// Test assignment and retrieval of optional attributes
     func testOptional() throws
       {
         // Define an entity with the range of optional attribute types
