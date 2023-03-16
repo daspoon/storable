@@ -15,26 +15,20 @@ final class InheritanceTests : XCTestCase
     func testAbstractRelationship() throws
       {
         // Define a Skill entity related to an abstract Combatant entity with subclasses Companion and Enemy
-        class Combatant : Entity {
+        @Entity class Combatant : Entity {
           override class var abstractClass : Entity.Type { Combatant.self }
-          @Attribute("name")
-          var name : String
-          @Relationship("skills", inverse: "wielders", deleteRule: .nullify)
-          var skills : Set<Skill>
+          @Attribute var name : String
+          @Relationship(inverse: "wielders", deleteRule: .nullify) var skills : Set<Skill>
         }
-        class Companion : Combatant {
-          @Attribute("joinDate")
-          var joinDate : Date
+        @Entity class Companion : Combatant {
+          @Attribute var joinDate : Date
         }
-        class Enemy : Combatant {
-          @Attribute("loot")
-          var loot : String
+        @Entity class Enemy : Combatant {
+          @Attribute var loot : String
         }
-        class Skill : Entity {
-          @Attribute("name")
-          var name : String
-          @Relationship("wielders", inverse: "skills", deleteRule: .nullify)
-          var wielders : Set<Combatant>
+        @Entity class Skill : Entity {
+          @Attribute var name : String
+          @Relationship(inverse: "skills", deleteRule: .nullify) var wielders : Set<Combatant>
         }
 
         // Create and open a store
@@ -50,21 +44,19 @@ final class InheritanceTests : XCTestCase
         try store.save()
 
         // Retrieve the combatants of each skill, which include both companions and enemies
-        XCTAssertEqual(hack.wielders, [orc, dwarf])
-        XCTAssertEqual(slash.wielders, [goblin, elf])
+        if hack.wielders != [orc, dwarf] { XCTFail("") }
+        if slash.wielders != [goblin, elf] { XCTFail("") }
       }
 
 
     func testInheritedNameConflict() throws
       {
         // Define entities related by inheritance which have define a same-named attribute
-        class Super : Entity {
-          @Attribute("id")
-          var id : String
+        @Entity class Super : Entity {
+          @Attribute var id : String
         }
-        class Sub : Super {
-          @Attribute("id")
-          var id2 : String
+        @Entity class Sub : Super {
+          @Attribute var id2 : String
         }
 
         // Attempting to create a schema must fail

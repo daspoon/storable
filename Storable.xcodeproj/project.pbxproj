@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		5518180D29C298DC00F8F74C /* RelationshipTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5531F96F29C0F5CF004B1204 /* RelationshipTests.swift */; };
 		5518181029C29CBD00F8F74C /* TypeSyntax-ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5518180F29C29CBD00F8F74C /* TypeSyntax-ext.swift */; };
+		5518181129C29E2400F8F74C /* InheritanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5531F96E29C0F5CF004B1204 /* InheritanceTests.swift */; };
 		5529B97229C119BE00AB8904 /* RelationshipMacro.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5529B97129C119BE00AB8904 /* RelationshipMacro.swift */; };
 		5531F92D29C0F319004B1204 /* IngestSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5531F90D29C0F318004B1204 /* IngestSource.swift */; };
 		5531F92F29C0F319004B1204 /* RelationshipInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5531F90F29C0F318004B1204 /* RelationshipInfo.swift */; };
@@ -545,6 +546,7 @@
 				55C14B3D29C236C500686C5D /* AttributeTests.swift in Sources */,
 				55C14B3B29C235AB00686C5D /* ProcessInfo-ext.swift in Sources */,
 				5531F98A29C105CC004B1204 /* DataStore-ext.swift in Sources */,
+				5518181129C29E2400F8F74C /* InheritanceTests.swift in Sources */,
 				5531F98B29C105CC004B1204 /* TestIngestSource.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
