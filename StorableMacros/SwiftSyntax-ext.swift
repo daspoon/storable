@@ -7,6 +7,74 @@
 import SwiftSyntax
 
 
+extension AttributeListSyntax
+  {
+    /// Return the single attribute instance whose name matches one of the given names. Returns a error if multiple attributes have matching names.
+    func attributesWithNames(_ names: Set<String>) throws -> [AttributeSyntax]
+      {
+        var interesting : [AttributeSyntax] = []
+        for element in self {
+          guard case .attribute(let attribute) = element else { continue }
+          guard names.contains(attribute.trimmedName) else { continue }
+          interesting.append(attribute)
+        }
+        return interesting
+      }
+  }
+
+
+extension AttributeSyntax
+  {
+    var trimmedName : String
+      { attributeName.trimmed.description }
+
+    var firstArgumentElement : TupleExprElementSyntax?
+      {
+        guard case .some(.argumentList(let elements)) = argument else { return nil }
+        return elements.first
+      }
+  }
+
+
+extension DeclSyntaxProtocol
+  {
+    /// Return the components of a stored property declaration, if applicable.
+    var storedPropertyInfo : StoredPropertyInfo?
+      {
+        // Ensure the given declaration corresponds to a single variable with a name and a type...
+        guard
+          let variable = self.as(VariableDeclSyntax.self),
+          let binding = variable.bindings.first, variable.bindings.count == 1,
+          let name = binding.pattern.as(IdentifierPatternSyntax.self)?.identifier.text,
+          let type = binding.typeAnnotation?.type.trimmed
+        else {
+          return nil
+        }
+
+        // Ensure the declaration's binding corresponds to a stored property
+        switch binding.accessor {
+          case .none :
+            break
+          case .accessors(let node) :
+            for accessor in node.accessors {
+              switch accessor.accessorKind.tokenKind {
+                case .keyword(.willSet), .keyword(.didSet) :
+                  break
+                default :
+                  return nil
+              }
+            }
+          case .getter :
+            return nil
+          @unknown default:
+            return nil
+        }
+
+        return (name, type, variable.attributes, binding.initializer?.value)
+      }
+  }
+
+
 extension TypeSyntaxProtocol
   {
     var longName : String
@@ -70,69 +138,3 @@ extension TypeSyntaxProtocol
   }
 
 
-extension DeclSyntaxProtocol
-  {
-    /// Return the components of a stored property declaration, if applicable.
-    var storedPropertyInfo : StoredPropertyInfo?
-      {
-        // Ensure the given declaration corresponds to a single variable with a name and a type...
-        guard
-          let variable = self.as(VariableDeclSyntax.self),
-          let binding = variable.bindings.first, variable.bindings.count == 1,
-          let name = binding.pattern.as(IdentifierPatternSyntax.self)?.identifier.text,
-          let type = binding.typeAnnotation?.type.trimmed
-        else {
-          return nil
-        }
-
-        // Ensure the declaration's binding corresponds to a stored property
-        switch binding.accessor {
-          case .none :
-            break
-          case .accessors(let node) :
-            for accessor in node.accessors {
-              switch accessor.accessorKind.tokenKind {
-                case .keyword(.willSet), .keyword(.didSet) :
-                  break
-                default :
-                  return nil
-              }
-            }
-          case .getter :
-            return nil
-          @unknown default:
-            return nil
-        }
-
-        return (name, type, variable.attributes, binding.initializer?.value)
-      }
-  }
-
-
-extension AttributeSyntax
-  {
-    var trimmedName : String
-      { attributeName.trimmed.description }
-
-    var firstArgumentElement : TupleExprElementSyntax?
-      {
-        guard case .some(.argumentList(let elements)) = argument else { return nil }
-        return elements.first
-      }
-  }
-
-
-extension AttributeListSyntax
-  {
-    /// Return the single attribute instance whose name matches one of the given names. Returns a error if multiple attributes have matching names.
-    func attributesWithNames(_ names: Set<String>) throws -> [AttributeSyntax]
-      {
-        var interesting : [AttributeSyntax] = []
-        for element in self {
-          guard case .attribute(let attribute) = element else { continue }
-          guard names.contains(attribute.trimmedName) else { continue }
-          interesting.append(attribute)
-        }
-        return interesting
-      }
-  }
