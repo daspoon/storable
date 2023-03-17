@@ -236,7 +236,7 @@ final class CoreDataTests : XCTestCase
           try store.migrate(from: M.copy() as! NSManagedObjectModel, to: M1)
         }
         catch let error as NSError {
-          XCTAssert(error.domain == NSCocoaErrorDomain && error.code == NSMigrationError)
+          if !(error.domain == NSCocoaErrorDomain && error.code == NSMigrationError) { XCTFail("") }
         }
       }
 
@@ -262,7 +262,7 @@ final class CoreDataTests : XCTestCase
         try store.migrate(from: E, to: E1)
         try store.openWith(model: NSManagedObjectModel(entities: [E1]))
         let objects1 = try store.managedObjectContext.fetch(NSFetchRequest<NSManagedObject>(entityName: "E"))
-        XCTAssert(objects1.count == objectCount)
+        if !(objects1.count == objectCount) { XCTFail("") }
         for (i, object) in objects1.enumerated() {
           object.setValue(i, forKey: "a")
         }
@@ -272,7 +272,7 @@ final class CoreDataTests : XCTestCase
         try store.migrate(from: E1, to: E2)
         try store.openWith(model: NSManagedObjectModel(entities: [E2]))
         let objects2 = try store.managedObjectContext.fetch(NSFetchRequest<NSManagedObject>(entityName: "E"))
-        XCTAssert(objects2.count == objectCount)
+        if !(objects2.count == objectCount) { XCTFail("") }
       }
 
     /// Changing an attribute's storage type requires multiple steps.
@@ -303,7 +303,7 @@ final class CoreDataTests : XCTestCase
         // Then run a script to assign values for the new attribute.
         try store.update(as: Ei) { context in
           let objects = try context.fetch(NSFetchRequest<NSManagedObject>(entityName: "E"))
-          XCTAssert(objects.count == objectCount)
+          if !(objects.count == objectCount) { XCTFail("") }
           for object in objects {
             let i = object.value(forKey: "$a_old") as! Int
             object.setValue("\(i)", forKey: "$a_new")

@@ -14,17 +14,17 @@ final class DiffableTests : XCTestCase
   {
     func testDictionary() throws
       {
-        XCTAssertEqual(try [String:Int]().difference(from: [:]), .init())
+        if try [String:Int]().difference(from: [:]) != .init() { XCTFail("") }
 
-        XCTAssertEqual(try ["a": 1].difference(from: [:]), .init(added: ["a"]))
-        XCTAssertEqual(try ["a": 1].difference(from: ["a": 2]), .init(modified: ["a": -1]))
-        XCTAssertEqual(try [:].difference(from: ["a": 1]), .init(removed: ["a"]))
-
-        XCTAssertEqual(try ["a": 1, "b": 5, "d": 4].difference(from: ["a": 1, "b": 2, "c": 3]), .init(
+        if try ["a": 1].difference(from: [:]) != .init(added: ["a"]) { XCTFail("") }
+        if try ["a": 1].difference(from: ["a": 2]) != .init(modified: ["a": -1]) { XCTFail("") }
+        if try [:].difference(from: ["a": 1]) != .init(removed: ["a"]) { XCTFail("") }
+        
+        if try ["a": 1, "b": 5, "d": 4].difference(from: ["a": 1, "b": 2, "c": 3]) != .init(
           added: ["d"],
           removed: ["c"],
           modified: ["b": 3]
-        ))
+        ) { XCTFail("") }
       }
 
 
@@ -46,6 +46,6 @@ final class DiffableTests : XCTestCase
 
         let diff : Dictionary<String, Item>.Difference? = try d2.difference(from: d1, moduloRenaming: \.oldName)
 
-        XCTAssertEqual(diff, .init(modified: ["B": 2]))
+        if diff != .init(modified: ["B": 2]) { XCTFail("") }
       }
   }

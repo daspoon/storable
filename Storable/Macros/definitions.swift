@@ -15,11 +15,15 @@ public macro Entity() = #externalMacro(module: "StorableMacros", type: "EntityMa
 // Attribute
 @attached(accessor)
 public macro Attribute() = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
+@attached(accessor)
+public macro Attribute(renamingIdentifier: String) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
 
 
 // Relationship
 @attached(accessor)
 public macro Relationship(inverse: RelationshipInfo.InverseSpec, deleteRule: RelationshipInfo.DeleteRule) = #externalMacro(module: "StorableMacros", type: "RelationshipMacro")
+@attached(accessor)
+public macro Relationship(inverse: RelationshipInfo.InverseSpec, deleteRule: RelationshipInfo.DeleteRule, renamingIdentifier: String) = #externalMacro(module: "StorableMacros", type: "RelationshipMacro")
 
 
 // Fetched

@@ -23,7 +23,7 @@ final class ModelDifferenceTests : XCTestCase
 
     func checkDifference(from old: Entity.Type, to new: Entity.Type, matches expectedDifference: EntityInfo.Difference?) throws
       {
-        XCTAssertEqual(try difference(from: old, to: new), expectedDifference)
+        if try difference(from: old, to: new) != expectedDifference { XCTFail("") }
       }
 
     func checkDifferenceFails(from old: Entity.Type, to new: Entity.Type/*, with: ... */) throws
@@ -39,7 +39,7 @@ final class ModelDifferenceTests : XCTestCase
 
     func checkDifference(from old: Schema, to new: Schema, matches expectedDifference: Schema.Difference?) throws
       {
-        XCTAssertEqual(try new.difference(from: old), expectedDifference)
+        if try new.difference(from: old) != expectedDifference { XCTFail("") }
       }
 
     func checkDifferenceFails(from old: Schema, to new: Schema/*, with: ... */) throws
@@ -57,14 +57,14 @@ final class ModelDifferenceTests : XCTestCase
     // Detect property addition and removal
     func testPropertyAddition() throws
       {
-        class E_v1 : Entity
+        @Entity class E_v1 : Entity
           { }
 
-        class E_v2 : Entity
+        @Entity class E_v2 : Entity
           {
-            @Attribute("a")
+            @Attribute
             var a : String
-            @Relationship("r", inverse: "_", deleteRule: .noAction)
+            @Relationship(inverse: "_", deleteRule: .noAction)
             var r : Entity
           }
 
@@ -83,19 +83,19 @@ final class ModelDifferenceTests : XCTestCase
     // Detect property renaming
     func testPropertyRename() throws
       {
-        class E_v1 : Entity
+        @Entity class E_v1 : Entity
           {
-            @Attribute("a")
+            @Attribute
             var a : Int
-            @Relationship("r", inverse: "_", deleteRule: .noAction)
+            @Relationship(inverse: "_", deleteRule: .noAction)
             var r : Entity
           }
 
-        class E_v2 : Entity
+        @Entity class E_v2 : Entity
           {
-            @Attribute("b", renamingIdentifier: "a")
+            @Attribute(renamingIdentifier: "a")
             var b : Int
-            @Relationship("q", inverse: "_", deleteRule: .noAction, renamingIdentifier: "r")
+            @Relationship(inverse: "_", deleteRule: .noAction, renamingIdentifier: "r")
             var q : Entity
           }
 
@@ -109,17 +109,17 @@ final class ModelDifferenceTests : XCTestCase
     // We can rename a previously-existing property while simultaneously adding a new property with the original name.
     func testPropertyOverride() throws
       {
-        class E_v1 : Entity
+        @Entity class E_v1 : Entity
           {
-            @Attribute("a")
+            @Attribute
             var a : Int
           }
 
-        class E_v2 : Entity
+        @Entity class E_v2 : Entity
           {
-            @Attribute("b", renamingIdentifier: "a")
+            @Attribute(renamingIdentifier: "a")
             var b : Int
-            @Attribute("a")
+            @Attribute
             var a : String
           }
 
@@ -133,16 +133,14 @@ final class ModelDifferenceTests : XCTestCase
     // Detect changing attribute optionality
     func testPropertyOptionality() throws
       {
-        class E_v1 : Entity
+        @Entity class E_v1 : Entity
           {
-            @Attribute("a")
-            var a : Int
+            @Attribute var a : Int
           }
 
-        class E_v2 : Entity
+        @Entity class E_v2 : Entity
           {
-            @OptionalAttribute("a")
-            var a : Int?
+            @Attribute var a : Int?
           }
 
         try checkDifference(from: E_v1.self, to: E_v2.self, matches: .init(attributesDifference: .init(modified: ["a": [.isOptional]])))
@@ -153,15 +151,15 @@ final class ModelDifferenceTests : XCTestCase
     // Detect changing attribute type
     func testPropertyRetype() throws
       {
-        class E_v1 : Entity
+        @Entity class E_v1 : Entity
           {
-            @Attribute("a")
+            @Attribute
             var a : Int
           }
 
-        class E_v2 : Entity
+        @Entity class E_v2 : Entity
           {
-            @Attribute("a")
+            @Attribute
             var a : Float
           }
 
@@ -172,21 +170,21 @@ final class ModelDifferenceTests : XCTestCase
     // Detect changing relationship range
     func testRelationshipRange() throws
       {
-        class E_v1 : Entity
+        @Entity class E_v1 : Entity
           {
-            @Relationship("r", inverse: "q", deleteRule: .noAction)
+            @Relationship(inverse: "q", deleteRule: .noAction)
             var r : Entity
           }
 
-        class E_v2 : Entity
+        @Entity class E_v2 : Entity
           {
-            @Relationship("r", inverse: "q", deleteRule: .noAction)
+            @Relationship(inverse: "q", deleteRule: .noAction)
             var r : Entity?
           }
 
-        class E_v3 : Entity
+        @Entity class E_v3 : Entity
           {
-            @Relationship("r", inverse: "q", deleteRule: .noAction)
+            @Relationship(inverse: "q", deleteRule: .noAction)
             var r : Set<Entity>
           }
 
@@ -199,12 +197,12 @@ final class ModelDifferenceTests : XCTestCase
     // Attributes renamed in the target must exist in the source.
     func testAttributeRenameUnknown() throws
       {
-        class E_v1 : Entity
+        @Entity class E_v1 : Entity
           { }
 
-        class E_v2 : Entity
+        @Entity class E_v2 : Entity
           {
-            @Attribute("a", renamingIdentifier: "b")
+            @Attribute(renamingIdentifier: "b")
             var a : Int
           }
 
@@ -215,12 +213,12 @@ final class ModelDifferenceTests : XCTestCase
     // Relationships renamed in the target must exist in the source.
     func testRelationshipRenameUnknown() throws
       {
-        class E_v1 : Entity
+        @Entity class E_v1 : Entity
           { }
 
-        class E_v2 : Entity
+        @Entity class E_v2 : Entity
           {
-            @Relationship("r", inverse: "q", deleteRule: .noAction, renamingIdentifier: "s")
+            @Relationship(inverse: "q", deleteRule: .noAction, renamingIdentifier: "s")
             var r : Entity
           }
 
@@ -231,17 +229,17 @@ final class ModelDifferenceTests : XCTestCase
     // Properties renamed in the target must map to distinct properties in the source.
     func testAttributeRenameConflict() throws
       {
-        class E_v1 : Entity
+        @Entity class E_v1 : Entity
           {
-            @Attribute("a")
+            @Attribute
             var a : Int
           }
 
-        class E_v2 : Entity
+        @Entity class E_v2 : Entity
           {
-            @Attribute("b", renamingIdentifier: "a")
+            @Attribute(renamingIdentifier: "a")
             var b : Int
-            @Attribute("c", renamingIdentifier: "a")
+            @Attribute(renamingIdentifier: "a")
             var c : Int
           }
 
@@ -252,17 +250,17 @@ final class ModelDifferenceTests : XCTestCase
     // Detect added, removed and modified entities
     func testEntityAddition() throws
       {
-        class Added : Entity
+        @Entity class Added : Entity
           { }
 
-        class Removed : Entity
+        @Entity class Removed : Entity
           { }
 
-        class Modified_v1 : Entity
-          { @Attribute("a") var a : Int }
+        @Entity class Modified_v1 : Entity
+          { @Attribute var a : Int }
 
-        class Modified_v2 : Entity
-          { @Attribute("a") var a : Float }
+        @Entity class Modified_v2 : Entity
+          { @Attribute var a : Float }
 
         let s1 = try Schema(objectTypes: [Removed.self, Modified_v1.self])
         let s2 = try Schema(objectTypes: [Added.self, Modified_v2.self])
@@ -277,10 +275,10 @@ final class ModelDifferenceTests : XCTestCase
     // Detect renamed entities
     func testEntityRename() throws
       {
-        class Old : Entity {
+        @Entity class Old : Entity {
         }
 
-        class New : Entity {
+        @Entity class New : Entity {
           override class var renamingIdentifier : String? { "Old" }
         }
 

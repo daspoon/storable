@@ -20,27 +20,27 @@ extension MigrationTests
     func testLightweight() throws
       {
         // Define an initial schema with a single Person entity
-        class Person_v1 : Entity {
-          @Attribute("name")
+        @Entity class Person_v1 : Entity {
+          @Attribute
           var name : String
-          @Attribute("date")
+          @Attribute
           var date : Date = .now
         }
         let schema_v1 = try! Schema(objectTypes: [Person_v1.self])
 
         // Define an evolved schema which removes an attribute and adds an optional-to-many relationship to a new entity Place.
-        class Person_v2 : Entity {
-          @Attribute("name")
+        @Entity class Person_v2 : Entity {
+          @Attribute
           var name : String
-          @Attribute("date")
+          @Attribute
           var date : Date = .now
-          @Relationship("place", inverse: "occupants", deleteRule: .nullify)
+          @Relationship(inverse: "occupants", deleteRule: .nullify)
           var place : Place_v2?
         }
-        class Place_v2 : Entity {
-          @Attribute("name")
+        @Entity class Place_v2 : Entity {
+          @Attribute
           var name : String
-          @Relationship("occupants", inverse: "place", deleteRule: .nullify)
+          @Relationship(inverse: "place", deleteRule: .nullify)
           var occupants : Set<Person_v2>
         }
         let schema_v2 = try! Schema(objectTypes: [Person_v2.self, Place_v2.self])
@@ -62,7 +62,7 @@ extension MigrationTests
           let person = try store.fetchObject(of: Person_v2.self, satisfying: .init(format: "name = %@", name))
           person.place = here
         }
-        XCTAssertEqual(here.occupants.count, personNames.count)
+        if here.occupants.count != personNames.count { XCTFail("") }
       }
   }
 
@@ -74,12 +74,12 @@ extension MigrationTests
     func testAttributeStorageType() throws
       {
         // Define two entities with an attribute of the same name but different storage types.
-        class Attributed_v1 : Entity {
-          @Attribute("a")
+        @Entity class Attributed_v1 : Entity {
+          @Attribute
           var a : Int
         }
-        class Attributed_v2 : Entity {
-          @Attribute("a")
+        @Entity class Attributed_v2 : Entity {
+          @Attribute
           var a : String
         }
 
@@ -108,7 +108,7 @@ extension MigrationTests
         ])
         let objects = try store.managedObjectContext.fetch(makeFetchRequest(for: Attributed_v2.self))
         for object in objects {
-          XCTAssertNotNil(object.value(forKey: "a") as? String, "expecting string value")
+          if object.value(forKey: "a") as? String == nil { XCTFail("expecting string value") }
         }
       }
   }
@@ -125,14 +125,14 @@ extension MigrationTests
         struct Point3d : StorableAsData { var x, y, z : Int }
 
         // Define an initial entity with an attribute of type Point2d
-        class Thing_v2 : Entity {
-          @Attribute("point") var point : Point2d
+        @Entity class Thing_v2 : Entity {
+          @Attribute var point : Point2d
         }
         let schema_v2 = try Schema(objectTypes: [Thing_v2.self])
 
         // Define an evolved entity where the point attribute has changed type, but retains the storage type 'binaryData'.
-        class Thing_v3 : Entity {
-          @Attribute("point") var point : Point3d
+        @Entity class Thing_v3 : Entity {
+          @Attribute var point : Point3d
         }
         let schema_v3 = try Schema(objectTypes: [Thing_v3.self])
 
@@ -155,7 +155,7 @@ extension MigrationTests
           },
         ])
         let things = try store.managedObjectContext.fetch(NSFetchRequest<NSManagedObject>(entityName: "Thing"))
-        XCTAssertEqual(things.count, objectCount)
+        if things.count != objectCount { XCTFail("") }
         for thing in things {
           _ = try thing.unboxedValue(of: Point3d.self, forKey: "point")
         }
@@ -173,14 +173,14 @@ extension MigrationTests
 
         // Define entity e1 with a non-optional attribute a
         let schema_v1 = try Schema(objectTypes: [Entity_v1.self])
-        class Entity_v1 : Entity {
-          @Attribute("a") var a : Int
+        @Entity class Entity_v1 : Entity {
+          @Attribute var a : Int
         }
 
         // Define same-named entity e2 with an optional attribute a of the same type
         let schema_v2 = try Schema(objectTypes: [Entity_v2.self])
-        class Entity_v2 : Entity {
-          @OptionalAttribute("a") var a : Int?
+        @Entity class Entity_v2 : Entity {
+          @Attribute var a : Int?
         }
 
         // Create and populate a store using the schema in which the attribute is non-optional.
@@ -231,22 +231,22 @@ extension MigrationTests
     func testRelationshipRange() throws
       {
         // Define an initial schema with Thing and Place entities related by to-optional relationships 'place' and 'thing'.
-        class Thing : Entity {
-          @Relationship("place", inverse: "thing", deleteRule: .nullify)
+        @Entity class Thing : Entity {
+          @Relationship(inverse: "thing", deleteRule: .nullify)
           var place : Place?
         }
-        class Place : Entity {
-          @Relationship("thing", inverse: "place", deleteRule: .nullify)
+        @Entity class Place : Entity {
+          @Relationship(inverse: "place", deleteRule: .nullify)
           var thing : Thing?
         }
 
         // Define an evolved schema where 'place' becomes to-one, and 'thing' becomes to-many and is renamed 'things'.
-        class Thing_v2 : Entity {
-          @Relationship("place", inverse: "things", deleteRule: .nullify)
+        @Entity class Thing_v2 : Entity {
+          @Relationship(inverse: "things", deleteRule: .nullify)
           var place : Place_v2
         }
-        class Place_v2 : Entity {
-          @Relationship("things", inverse: "place", deleteRule: .cascade, renamingIdentifier: "thing")
+        @Entity class Place_v2 : Entity {
+          @Relationship(inverse: "place", deleteRule: .cascade, renamingIdentifier: "thing")
           var things : Set<Thing_v2>
         }
 
@@ -275,8 +275,8 @@ extension MigrationTests
           },
         ])
         let places = try store.managedObjectContext.fetch(NSFetchRequest<NSManagedObject>(entityName: "Place"))
-        XCTAssertEqual(places.count, 2)
+        if places.count != 2 { XCTFail("") }
         let things = try store.managedObjectContext.fetch(NSFetchRequest<NSManagedObject>(entityName: "Thing"))
-        XCTAssertEqual(things.count, thingCount)
+        if things.count != thingCount { XCTFail("") }
       }
   }

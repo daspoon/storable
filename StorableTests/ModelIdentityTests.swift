@@ -16,15 +16,15 @@ final class ModelIdentityTests : XCTestCase
 
 // Define some base entities. Although the subsequently defined variations have different class names, they have matching entity names due to their versioned class names (_v<i>).
 
-fileprivate class Person : Entity
+@Entity fileprivate class Person : Entity
   {
-    @Attribute("name")
+    @Attribute
     var name : String
   }
 
-fileprivate class Place : Entity
+@Entity fileprivate class Place : Entity
   {
-    @Attribute("name")
+    @Attribute
     var name : String
   }
 
@@ -49,11 +49,11 @@ extension ModelIdentityTests
 // MARK: --
 // Addition/removal of attributes affects model identity.
 
-fileprivate class PersonWithAge : Entity
+@Entity fileprivate class PersonWithAge : Entity
   {
-    @Attribute("name")
+    @Attribute
     var name : String
-    @Attribute("birthdate")
+    @Attribute
     var birthdate : Date = .now
   }
 
@@ -72,20 +72,20 @@ extension ModelIdentityTests
 // Addition/removal of relationships affects model identity.
 
 fileprivate typealias PersonWithPlace = Person_v2
-fileprivate class Person_v2 : Entity
+@Entity fileprivate class Person_v2 : Entity
   {
-    @Attribute("name")
+    @Attribute
     var name : String
-    @Relationship("place", inverse: "occupants", deleteRule: .nullify)
+    @Relationship(inverse: "occupants", deleteRule: .nullify)
     var place : PlaceWithOccupants?
   }
 
 fileprivate typealias PlaceWithOccupants = Place_v2
-fileprivate class Place_v2 : Entity
+@Entity fileprivate class Place_v2 : Entity
   {
-    @Attribute("name")
+    @Attribute
     var name : String
-    @Relationship("occupants", inverse: "place", deleteRule: .nullify)
+    @Relationship(inverse: "place", deleteRule: .nullify)
     var occupants : Set<PersonWithPlace>
   }
 
@@ -104,13 +104,13 @@ extension ModelIdentityTests
 // Addition/removal of fetched properties does not affect model identity.
 
 fileprivate typealias PlaceWithSortedOccupants = Place_v3
-fileprivate class Place_v3 : Entity
+@Entity fileprivate class Place_v3 : Entity
   {
-    @Attribute("name")
+    @Attribute
     var name : String
-    @Relationship("occupants", inverse: "place", deleteRule: .nullify)
+    @Relationship(inverse: "place", deleteRule: .nullify)
     var occupants : Set<Person>
-    @FetchedProperty("occupantsByName", fetchRequest: makeFetchRequest(for: PersonWithPlace.self, sortDescriptors: [.init(key: "name", ascending: true)]))
+    @Fetched(sortDescriptors: [.init(key: "name", ascending: true)])
     var occupantsByName : [PersonWithPlace]
   }
 

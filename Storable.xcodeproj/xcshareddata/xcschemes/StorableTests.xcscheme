@@ -28,11 +28,6 @@
                BlueprintName = "StorableTests"
                ReferencedContainer = "container:Storable.xcodeproj">
             </BuildableReference>
-            <SkippedTests>
-               <Test
-                  Identifier = "InheritanceTests">
-               </Test>
-            </SkippedTests>
             <LocationScenarioReference
                identifier = "com.apple.dt.IDEFoundation.CurrentLocationScenarioIdentifier"
                referenceType = "1">

@@ -540,14 +540,20 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5513A96929C404E500A1AEA9 /* CodableTests.swift in Sources */,
 				5531F98C29C105CC004B1204 /* XCTestCase-ext.swift in Sources */,
+				5513A96B29C404ED00A1AEA9 /* DiffableTests.swift in Sources */,
 				5531F98D29C105CC004B1204 /* CoreData-ext.swift in Sources */,
 				5513A96629C3C86500A1AEA9 /* RelationshipTests.swift in Sources */,
 				55337B9229C3784800ECC356 /* TestIngestSource.swift in Sources */,
 				55C14B3D29C236C500686C5D /* AttributeTests.swift in Sources */,
 				55C14B3B29C235AB00686C5D /* ProcessInfo-ext.swift in Sources */,
+				5513A96E29C4050100A1AEA9 /* ModelIdentityTests.swift in Sources */,
+				5513A96A29C404E900A1AEA9 /* CoreDataTests.swift in Sources */,
+				5513A96C29C404FB00A1AEA9 /* MigrationTests.swift in Sources */,
 				5513A96729C3C86900A1AEA9 /* InheritanceTests.swift in Sources */,
 				5531F98A29C105CC004B1204 /* DataStore-ext.swift in Sources */,
+				5513A96D29C404FE00A1AEA9 /* ModelDifferenceTests.swift in Sources */,
 				5513A96829C3D29100A1AEA9 /* FetchedTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

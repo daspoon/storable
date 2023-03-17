@@ -63,8 +63,12 @@ final class CodableTests : XCTestCase
         enum E1 : Codable { case one, two, three }
         enum E2 : Codable { case two, three, four }
 
-        XCTAssertEqual(try copy(E1.two, as: E2.self), .two)
+        if try copy(E1.two, as: E2.self) != .two { XCTFail("") }
 
-        XCTAssertThrowsError(try copy(E1.one, as: E2.self))
+        do {
+          _ = try copy(E1.one, as: E2.self)
+          XCTFail("")
+        }
+        catch { }
       }
   }
