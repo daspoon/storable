@@ -52,11 +52,13 @@ final class InheritanceTests : XCTestCase
     func testInheritedNameConflict() throws
       {
         // Define entities related by inheritance which have define a same-named attribute
+        // Note that Swift allows the override attribute because 'id' is a computed property.
+        // TODO: disallow use of override in conjunction with managed property macros
         @Entity class Super : Entity {
           @Attribute var id : String
         }
         @Entity class Sub : Super {
-          @Attribute var id2 : String
+          @Attribute override var id : String
         }
 
         // Attempting to create a schema must fail
