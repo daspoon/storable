@@ -10,6 +10,7 @@ import SwiftSyntaxMacros
 
 public struct EntityMacro : MemberMacro
   {
+    /// The types of macros which correspond to managed property declarations.
     static let propertyMacroTypes : [ManagedPropertyMacro.Type] = [
       AttributeMacro.self,
       FetchedMacro.self,
@@ -18,9 +19,12 @@ public struct EntityMacro : MemberMacro
 
     static let propertyMacroNames : Set<String>
       = Set(propertyMacroTypes.map {$0.attributeName})
+
     static let propertyMacroTypesByName : [String: ManagedPropertyMacro.Type]
       = .init(uniqueKeysWithValues: propertyMacroTypes.map {($0.attributeName, $0)})
 
+
+    // MemberMacro
 
     public static func expansion(of node: AttributeSyntax, providingMembersOf dcl: some DeclGroupSyntax, in ctx: some MacroExpansionContext) throws -> [DeclSyntax]
       {

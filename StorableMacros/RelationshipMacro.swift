@@ -8,8 +8,10 @@ import SwiftSyntax
 import SwiftSyntaxMacros
 
 
-public struct RelationshipMacro  : AccessorMacro, ManagedPropertyMacro
+public struct RelationshipMacro  : ManagedPropertyMacro, AccessorMacro
   {
+    // ManagedPropertyMacro
+
     static var attributeName : String { "Relationship" }
 
     static func generateDescriptorText(for decl: StoredPropertyInfo, using attribute: AttributeSyntax) throws -> String
@@ -18,6 +20,8 @@ public struct RelationshipMacro  : AccessorMacro, ManagedPropertyMacro
           + generateDescriptorArgumentText(for: attribute.argument, withInitialComma: true)
           + "))"
       }
+
+    // AccessorMacro
 
     public static func expansion<Ctx, Dcl>(of node: AttributeSyntax, providingAccessorsOf dcl: Dcl, in ctx: Ctx) throws -> [AccessorDeclSyntax]
       where Ctx: MacroExpansionContext, Dcl: DeclSyntaxProtocol

@@ -12,7 +12,7 @@ public struct FetchedMacro : ManagedPropertyMacro, AccessorMacro
   {
     enum Mode { case objects, count, identifiers, dictionaries }
 
-    // Determine the mode according to the label of the macro attribute's first argument, if any.
+    /// Determine the mode according to the label of the macro attribute's first argument, if any.
     private static func mode(for attribute: AttributeSyntax) -> Mode
       {
         switch attribute.firstArgumentElement?.label?.description {
