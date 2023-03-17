@@ -2,31 +2,66 @@
 
   Created by David Spooner
 
+  This file defines the macros used to declare managed entities and properties.
+  Note that macro definitions don't support optional arguments, so separate definitions are required for all combination of optional arguments.
+
 */
 
 import CoreData
 
 
-// Entity
+// MARK: - Entity -
+
 @attached(member, names: named(declaredPropertyInfoByName))
 public macro Entity() = #externalMacro(module: "StorableMacros", type: "EntityMacro")
 
 
-// Attribute
+// MARK: - Attribute -
+
 @attached(accessor)
 public macro Attribute() = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
 @attached(accessor)
 public macro Attribute(renamingIdentifier: String) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
+@attached(accessor)
+public macro Attribute(ingestKey: IngestKey) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
+@attached(accessor)
+public macro Attribute(renamingIdentifier: String, ingestKey: IngestKey) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
+@attached(accessor)
+public macro Attribute<V>(transform t: @escaping (V) throws -> Any) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
+@attached(accessor)
+public macro Attribute<V>(defaultValue: V, transform t: @escaping (V) throws -> Any) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
+@attached(accessor)
+public macro Attribute<V>(ingestKey: IngestKey, transform t: @escaping (V) throws -> Any) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
+@attached(accessor)
+public macro Attribute<V>(defaultValue: V, ingestKey: IngestKey, transform t: @escaping (V) throws -> Any) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
+@attached(accessor)
+public macro Attribute<V>(renamingIdentifier: String, transform t: @escaping (V) throws -> Any) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
+@attached(accessor)
+public macro Attribute<V>(defaultValue: V, renamingIdentifier: String, transform t: @escaping (V) throws -> Any) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
+@attached(accessor)
+public macro Attribute<V>(renamingIdentifier: String, ingestKey: IngestKey, transform t: @escaping (V) throws -> Any) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
+@attached(accessor)
+public macro Attribute<V>(defaultValue: V, renamingIdentifier: String, ingestKey: IngestKey, transform t: @escaping (V) throws -> Any) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
 
 
-// Relationship
+// MARK: - Relationship -
+
 @attached(accessor)
 public macro Relationship(inverse: RelationshipInfo.InverseSpec, deleteRule: RelationshipInfo.DeleteRule) = #externalMacro(module: "StorableMacros", type: "RelationshipMacro")
 @attached(accessor)
 public macro Relationship(inverse: RelationshipInfo.InverseSpec, deleteRule: RelationshipInfo.DeleteRule, renamingIdentifier: String) = #externalMacro(module: "StorableMacros", type: "RelationshipMacro")
+@attached(accessor)
+public macro Relationship(inverse: RelationshipInfo.InverseSpec, deleteRule: RelationshipInfo.DeleteRule, ingestMode: RelationshipInfo.IngestMode) = #externalMacro(module: "StorableMacros", type: "RelationshipMacro")
+@attached(accessor)
+public macro Relationship(inverse: RelationshipInfo.InverseSpec, deleteRule: RelationshipInfo.DeleteRule, ingestMode: RelationshipInfo.IngestMode, ingestKey: IngestKey) = #externalMacro(module: "StorableMacros", type: "RelationshipMacro")
+@attached(accessor)
+public macro Relationship(inverse: RelationshipInfo.InverseSpec, deleteRule: RelationshipInfo.DeleteRule, renamingIdentifier: String, ingestMode: RelationshipInfo.IngestMode) = #externalMacro(module: "StorableMacros", type: "RelationshipMacro")
+@attached(accessor)
+public macro Relationship(inverse: RelationshipInfo.InverseSpec, deleteRule: RelationshipInfo.DeleteRule, renamingIdentifier: String, ingestMode: RelationshipInfo.IngestMode, ingestKey: IngestKey) = #externalMacro(module: "StorableMacros", type: "RelationshipMacro")
 
 
-// Fetched
+// MARK: - Fetched -
+
 @attached(accessor)
 public macro Fetched() = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
 @attached(accessor)

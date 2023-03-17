@@ -66,6 +66,7 @@
 		55337B9229C3784800ECC356 /* TestIngestSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5531F98629C105CC004B1204 /* TestIngestSource.swift */; };
 		55337B9429C378F900ECC356 /* Exception.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55337B9329C378F900ECC356 /* Exception.swift */; };
 		55337B9629C3A38900ECC356 /* ManagedPropertyMacro.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55337B9529C3A38900ECC356 /* ManagedPropertyMacro.swift */; };
+		555D8B3A29C4C1C3000DDB06 /* IngestionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5531F97029C0F5CF004B1204 /* IngestionTests.swift */; };
 		55C14B3B29C235AB00686C5D /* ProcessInfo-ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55C14B3A29C235AB00686C5D /* ProcessInfo-ext.swift */; };
 		55C14B3D29C236C500686C5D /* AttributeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5531F96929C0F5CF004B1204 /* AttributeTests.swift */; };
 		55DF58AB29C0DD5B005AB19D /* Storable.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55DF58A029C0DD5B005AB19D /* Storable.framework */; };
@@ -542,6 +543,7 @@
 			files = (
 				5513A96929C404E500A1AEA9 /* CodableTests.swift in Sources */,
 				5531F98C29C105CC004B1204 /* XCTestCase-ext.swift in Sources */,
+				555D8B3A29C4C1C3000DDB06 /* IngestionTests.swift in Sources */,
 				5513A96B29C404ED00A1AEA9 /* DiffableTests.swift in Sources */,
 				5531F98D29C105CC004B1204 /* CoreData-ext.swift in Sources */,
 				5513A96629C3C86500A1AEA9 /* RelationshipTests.swift in Sources */,

@@ -17,30 +17,30 @@ final class IngestionTests : XCTestCase
     enum Resistance : String, Codable, Ingestible, Storable
       { case weak="w", normal="-", strong="s", null="n", repel="r", drain="d" }
 
-    class Demon : Entity {
-      @Attribute("name", ingestKey: .key) var name : String
-      @Attribute("level", ingestKey: "lvl") var level : Int
-      @Attribute("stats") var stats : [Int]
-      @Attribute("resists", transform: { (s: String) in s.map {String($0)} }) var resists : [Resistance]
-      @Relationship("race", inverse: "demons", deleteRule: .nullify) var race : Race
-      @Relationship("grants", inverse: "demon", deleteRule: .nullify) var grants : Set<Grant>
+    @Entity class Demon : Entity {
+      @Attribute(ingestKey: .key) var name : String
+      @Attribute(ingestKey: "lvl") var level : Int
+      @Attribute var stats : [Int]
+      @Attribute(defaultValue: "-------", transform: {(s: String) in s.map {String($0)}}) var resists : [Resistance]
+      @Relationship(inverse: "demons", deleteRule: .nullify) var race : Race
+      @Relationship(inverse: "demon", deleteRule: .nullify) var grants : Set<Grant>
     }
 
-    class Race : Entity {
-      @Attribute("name", ingestKey: .key) var name : String
-      @Relationship("demons", inverse: "race", deleteRule: .cascade) var demons : Set<Demon>
+    @Entity class Race : Entity {
+      @Attribute(ingestKey: .key) var name : String
+      @Relationship(inverse: "race", deleteRule: .cascade) var demons : Set<Demon>
     }
 
-    class Skill : Entity {
-      @Attribute("name") var name : String
-      @Attribute("effect") var effect : String
-      @Relationship("grants", inverse: "skill", deleteRule: .cascade) var grants : Set<Grant>
+    @Entity class Skill : Entity {
+      @Attribute var name : String
+      @Attribute var effect : String
+      @Relationship(inverse: "skill", deleteRule: .cascade) var grants : Set<Grant>
     }
 
-    class Grant : Entity {
-      @Attribute("level", ingestKey: .key) var level : Int
-      @Relationship("skill", inverse: "grants", deleteRule: .nullify) var skill : Skill
-      @Relationship("demon", inverse: "grants", deleteRule: .nullify) var demon : Demon
+    @Entity class Grant : Entity {
+      @Attribute(ingestKey: .key) var level : Int
+      @Relationship(inverse: "grants", deleteRule: .nullify) var skill : Skill
+      @Relationship(inverse: "grants", deleteRule: .nullify) var demon : Demon
     }
 
 

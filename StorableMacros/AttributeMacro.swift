@@ -14,7 +14,8 @@ public struct AttributeMacro  : AccessorMacro, ManagedPropertyMacro
 
     static func generateDescriptorText(for decl: StoredPropertyInfo, using attribute: AttributeSyntax) throws -> String
       {
-        return ".attribute(.init(name: \"\(decl.name)\", type: \(decl.type.longName).self, defaultValue: \(decl.value ?? "nil")"
+        return ".attribute(.init(name: \"\(decl.name)\", type: \(decl.type.longName).self"
+          + (decl.value.map { ", defaultValue: \($0)" } ?? "")
           + generateDescriptorArgumentText(for: attribute.argument, withInitialComma: true)
           + "))"
       }
