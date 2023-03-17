@@ -309,22 +309,8 @@
 		55DF58AE29C0DD5B005AB19D /* StorableTests */ = {
 			isa = PBXGroup;
 			children = (
-				5531F96929C0F5CF004B1204 /* AttributeTests.swift */,
-				5531F96629C0F5CF004B1204 /* CodableTests.swift */,
-				5531F96A29C0F5CF004B1204 /* CoreDataTests.swift */,
-				5531F96D29C0F5CF004B1204 /* DiffableTests.swift */,
-				5531F96829C0F5CF004B1204 /* FetchedTests.swift */,
-				5531F97029C0F5CF004B1204 /* IngestionTests.swift */,
-				5531F96E29C0F5CF004B1204 /* InheritanceTests.swift */,
-				5531F96729C0F5CF004B1204 /* MigrationTests.swift */,
-				5531F96B29C0F5CF004B1204 /* ModelDifferenceTests.swift */,
-				5531F97129C0F5CF004B1204 /* ModelIdentityTests.swift */,
-				5531F96F29C0F5CF004B1204 /* RelationshipTests.swift */,
-				5531F98829C105CC004B1204 /* CoreData-ext.swift */,
-				5531F98729C105CC004B1204 /* DataStore-ext.swift */,
-				55C14B3A29C235AB00686C5D /* ProcessInfo-ext.swift */,
-				5531F98629C105CC004B1204 /* TestIngestSource.swift */,
-				5531F98929C105CC004B1204 /* XCTestCase-ext.swift */,
+				55EEFE3929C504D100AED997 /* Tests */,
+				55EEFE3829C504B300AED997 /* Utilities */,
 			);
 			path = StorableTests;
 			sourceTree = "<group>";
@@ -342,6 +328,36 @@
 				5518180F29C29CBD00F8F74C /* SwiftSyntax-ext.swift */,
 			);
 			path = StorableMacros;
+			sourceTree = "<group>";
+		};
+		55EEFE3829C504B300AED997 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				5531F98829C105CC004B1204 /* CoreData-ext.swift */,
+				5531F98729C105CC004B1204 /* DataStore-ext.swift */,
+				55C14B3A29C235AB00686C5D /* ProcessInfo-ext.swift */,
+				5531F98629C105CC004B1204 /* TestIngestSource.swift */,
+				5531F98929C105CC004B1204 /* XCTestCase-ext.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		55EEFE3929C504D100AED997 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				5531F96929C0F5CF004B1204 /* AttributeTests.swift */,
+				5531F96629C0F5CF004B1204 /* CodableTests.swift */,
+				5531F96A29C0F5CF004B1204 /* CoreDataTests.swift */,
+				5531F96D29C0F5CF004B1204 /* DiffableTests.swift */,
+				5531F96829C0F5CF004B1204 /* FetchedTests.swift */,
+				5531F97029C0F5CF004B1204 /* IngestionTests.swift */,
+				5531F96E29C0F5CF004B1204 /* InheritanceTests.swift */,
+				5531F96729C0F5CF004B1204 /* MigrationTests.swift */,
+				5531F96B29C0F5CF004B1204 /* ModelDifferenceTests.swift */,
+				5531F97129C0F5CF004B1204 /* ModelIdentityTests.swift */,
+				5531F96F29C0F5CF004B1204 /* RelationshipTests.swift */,
+			);
+			path = Tests;
 			sourceTree = "<group>";
 		};
 		55F42F7029C0E29B00AB5EBC /* Frameworks */ = {
