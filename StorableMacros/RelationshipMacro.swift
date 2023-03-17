@@ -8,7 +8,8 @@ import SwiftSyntax
 import SwiftSyntaxMacros
 
 
-public struct RelationshipMacro  : ManagedPropertyMacro, AccessorMacro
+/// RelationshipMacro enables defining NSRelationshipDescriptions from compatible variables of a managed object class.
+public struct RelationshipMacro : ManagedPropertyMacro, AccessorMacro
   {
     // ManagedPropertyMacro
 

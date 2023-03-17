@@ -8,6 +8,7 @@ import SwiftSyntax
 import SwiftSyntaxMacros
 
 
+/// EntityMacro enables defining an NSEntityDescription from a managed object class.
 public struct EntityMacro : MemberMacro
   {
     /// The types of macros which correspond to managed property declarations.

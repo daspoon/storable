@@ -8,6 +8,7 @@ import SwiftSyntax
 import SwiftSyntaxMacros
 
 
+/// FetchedMacro enables defining NSFetchedPropertyDescriptions from compatible variables of a managed object class.
 public struct FetchedMacro : ManagedPropertyMacro, AccessorMacro
   {
     enum Mode { case objects, count, identifiers, dictionaries }

@@ -2,6 +2,8 @@
 
   Created by David Spooner
 
+  Convenience methods added to various types within the SwiftSyntax module.
+
 */
 
 import SwiftSyntax
@@ -25,9 +27,11 @@ extension AttributeListSyntax
 
 extension AttributeSyntax
   {
+    /// Return the attribute name with extraneous whitespace removed.
     var trimmedName : String
       { attributeName.trimmed.description }
 
+    /// Return the first element of the attribute argument list, if any.
     var firstArgumentElement : TupleExprElementSyntax?
       {
         guard case .some(.argumentList(let elements)) = argument else { return nil }
@@ -76,6 +80,7 @@ extension VariableDeclSyntax
 
 extension TypeSyntaxProtocol
   {
+    /// Return the type name with verbose spelling if necessary to ensure "\(longName).self" can be parsed as a type instance.
     var longName : String
       {
         switch self.as(OptionalTypeSyntax.self) {
@@ -128,7 +133,7 @@ extension TypeSyntaxProtocol
         return false
       }
 
-
+    /// Return the receiver's elementType if it is an array type, otherwise nil.
     var arrayElementType : TypeSyntax?
       {
         guard let arrayType = self.as(ArrayTypeSyntax.self) else { return nil }
