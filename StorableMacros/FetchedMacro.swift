@@ -42,9 +42,7 @@ public struct FetchedMacro : ManagedPropertyMacro, AccessorMacro
     public static func expansion<Ctx, Dcl>(of attribute: AttributeSyntax, providingAccessorsOf dcl: Dcl, in ctx: Ctx) throws -> [AccessorDeclSyntax]
       where Ctx: MacroExpansionContext, Dcl: DeclSyntaxProtocol
       {
-        guard let info = dcl.storedPropertyInfo else {
-          throw Exception("@Attribute is only applicable to stored properties")
-        }
+        let info = try getStoredPropertyInfo(from: dcl)
 
         let mode = Self.mode(for: attribute)
         switch mode {

@@ -17,6 +17,17 @@ protocol ManagedPropertyMacro
 
 extension ManagedPropertyMacro
   {
+    static func getStoredPropertyInfo(from decl: DeclSyntaxProtocol) throws -> StoredPropertyInfo
+      {
+        guard let vdecl = decl.as(VariableDeclSyntax.self), let info = vdecl.storedPropertyInfo else {
+          throw Exception("@\(attributeName) is only applicable to stored properties")
+        }
+        guard case .none = vdecl.modifiers?.contains(where: {$0.name.trimmed.description == "override"}) else {
+          throw Exception("@\(attributeName) is incompatible with override")
+        }
+        return info
+      }
+
     static func generateDescriptorArgumentText(for argument: AttributeSyntax.Argument?, withInitialComma: Bool) -> String
       {
         guard case .some(.argumentList(let elements)) = argument else { return "" }

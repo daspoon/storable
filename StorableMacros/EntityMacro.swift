@@ -37,21 +37,16 @@ public struct EntityMacro : MemberMacro
         var count = 0
         for item in dcl.members.members {
           // Ignore member declarations which are not stored properties
-          guard let info = item.decl.storedPropertyInfo else { continue }
+          guard let vdecl = item.decl.as(VariableDeclSyntax.self), let info = vdecl.storedPropertyInfo else { continue }
           // Get the attributes which correspond to managed property declarations
-          let attributes = try info.attributes?.attributesWithNames(propertyMacroNames) ?? []
-          // Ignore members declarations which have no attributes and complain abount member declarations which have multiple attributes
-          switch attributes.count {
-            case 0 :
-              continue
-            case let n where n > 1 :
-              throw Exception("cannot intermix attributes among \(propertyMacroNames)")
-            default :
-              break
-          }
-          // Generate a dictionary entry mapping the variable name to a managed property descriptor
-          guard let macroType = propertyMacroTypesByName[attributes[0].trimmedName] else { throw Exception("*** failed to get generator type for '\(attributes[0].trimmedName)' ***") }
-          text.append("    \"\(info.name)\" : \(try macroType.generateDescriptorText(for: info, using: attributes[0])),\n")
+          let macroAttrs = vdecl.attributes?.attributesWithNames(propertyMacroNames) ?? []
+          // Ignore members declarations which have no attributes
+          guard macroAttrs.count > 0 else { continue }
+          // Complain if multiple property macros are specified
+          guard macroAttrs.count == 1 else { throw Exception("cannot intermix attributes among \(propertyMacroNames)") }
+          // Generate a dictionary entry mapping the declared member name to a managed property descriptor
+          let macroType = propertyMacroTypesByName[macroAttrs[0].trimmedName]!
+          text.append("    \"\(info.name)\" : \(try macroType.generateDescriptorText(for: info, using: macroAttrs[0])),\n")
           count += 1
         }
         text.append((count == 0 ? ":]" : "  ]") + "\n")

@@ -48,26 +48,25 @@ final class InheritanceTests : XCTestCase
         if slash.wielders != [goblin, elf] { XCTFail("") }
       }
 
-
+    #if false
+    // Swift prevents declaring managed properties with the names already taken by ancestor entities, as desired.
     func testInheritedNameConflict() throws
       {
-        // Define entities related by inheritance which have define a same-named attribute
-        // Note that Swift allows the override attribute because 'id' is a computed property.
-        // TODO: disallow use of override in conjunction with managed property macros
         @Entity class Super : Entity {
-          @Attribute var id : String
+          @Attribute var contested : Int
         }
-        @Entity class Sub : Super {
-          @Attribute override var id : String
+        @Entity class Sub1 : Super {
+          @Attribute var contested : Int
         }
-
-        // Attempting to create a schema must fail
-        do {
-          _ = try Schema(objectTypes: [Sub.self])
-          XCTFail("expected error not thrown")
+        @Entity class Sub2 : Super {
+          @Attribute override var contested : Int
         }
-        catch let error {
-          print(error)
+        @Entity class Sub3 : Super {
+          @Attribute var contested : String
+        }
+        @Entity class Sub4 : Super {
+          @Relationship(inverse: "", deleteRule: .deny) var contested : Entity
         }
       }
+    #endif
   }

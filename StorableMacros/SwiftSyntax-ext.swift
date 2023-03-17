@@ -10,7 +10,7 @@ import SwiftSyntax
 extension AttributeListSyntax
   {
     /// Return the single attribute instance whose name matches one of the given names. Returns a error if multiple attributes have matching names.
-    func attributesWithNames(_ names: Set<String>) throws -> [AttributeSyntax]
+    func attributesWithNames(_ names: Set<String>) -> [AttributeSyntax]
       {
         var interesting : [AttributeSyntax] = []
         for element in self {
@@ -36,15 +36,14 @@ extension AttributeSyntax
   }
 
 
-extension DeclSyntaxProtocol
+extension VariableDeclSyntax
   {
     /// Return the components of a stored property declaration, if applicable.
     var storedPropertyInfo : StoredPropertyInfo?
       {
         // Ensure the given declaration corresponds to a single variable with a name and a type...
         guard
-          let variable = self.as(VariableDeclSyntax.self),
-          let binding = variable.bindings.first, variable.bindings.count == 1,
+          let binding = bindings.first, bindings.count == 1,
           let name = binding.pattern.as(IdentifierPatternSyntax.self)?.identifier.text,
           let type = binding.typeAnnotation?.type.trimmed
         else {
@@ -70,7 +69,7 @@ extension DeclSyntaxProtocol
             return nil
         }
 
-        return (name, type, variable.attributes, binding.initializer?.value)
+        return (name, type, binding.initializer?.value)
       }
   }
 

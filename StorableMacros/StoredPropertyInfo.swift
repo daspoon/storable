@@ -7,4 +7,4 @@
 import SwiftSyntax
 
 
-typealias StoredPropertyInfo = (name: String, type: TypeSyntax, attributes: AttributeListSyntax?, value: ExprSyntax?)
+typealias StoredPropertyInfo = (name: String, type: TypeSyntax, value: ExprSyntax?)
