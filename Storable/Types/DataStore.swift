@@ -174,7 +174,7 @@ log("storeURL = \(storeURL.absoluteString)")
       }
 
 
-    public func fetchObject<T: Entity>(id name: String, of type: T.Type = T.self) throws -> T
+    public func fetchObject<T: ManagedObject>(id name: String, of type: T.Type = T.self) throws -> T
       {
         try managedObjectContext.fetchObject(makeFetchRequest(for: type, predicate: .init(format: "name = %@", name)))
       }

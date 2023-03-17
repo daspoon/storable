@@ -5,7 +5,7 @@
 */
 
 
-/// IngestObject unifies the variably-structured json data used to ingest Entity instances. Property values are extracted from IngestObject via IngestKey.
+/// IngestObject unifies the variably-structured json data used to ingest ManagedObject instances. Property values are extracted from IngestObject via IngestKey.
 
 public enum IngestObject
   {

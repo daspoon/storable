@@ -9,7 +9,7 @@ import CoreData
 
 extension NSDeleteRule
   {
-    init(_ rule: RelationshipInfo.DeleteRule)
+    init(_ rule: Relationship.DeleteRule)
       {
         switch rule {
           case .noAction : self = .noActionDeleteRule

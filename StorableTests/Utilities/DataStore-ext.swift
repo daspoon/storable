@@ -13,15 +13,15 @@ import Storable
 extension DataStore
   {
     /// Create, insert and initialize an object instance.
-    func create<T: Entity>(_ type: T.Type = T.self, initialize f: (T) throws -> Void = {_ in }) throws -> T
+    func create<T: ManagedObject>(_ type: T.Type = T.self, initialize f: (T) throws -> Void = {_ in }) throws -> T
       { try managedObjectContext.create(type, initialize: f) }
 
     /// Fetch an array of objects matching the given predicate and sorted by the given descriptors.
-    func fetchObjects<T: Entity>(of type: T.Type = T.self, satisfying predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor] = []) throws -> [T]
+    func fetchObjects<T: ManagedObject>(of type: T.Type = T.self, satisfying predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor] = []) throws -> [T]
       { try managedObjectContext.fetchObjects(makeFetchRequest(for: type, predicate: predicate, sortDescriptors: sortDescriptors)) }
 
     /// Fetch the unique object satisfying the given predicate.
-    func fetchObject<T: Entity>(of type: T.Type = T.self, satisfying predicate: NSPredicate) throws -> T
+    func fetchObject<T: ManagedObject>(of type: T.Type = T.self, satisfying predicate: NSPredicate) throws -> T
       { try managedObjectContext.fetchObject(makeFetchRequest(for: type, predicate: predicate)) }
 
     /// Migrate the store from a model consisting only of the given source entity to a model consisting only of the given target entity.

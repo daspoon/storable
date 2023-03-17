@@ -11,7 +11,7 @@ import CoreData
 import Storable
 
 
-@Entity fileprivate class Occupant : Entity
+@ManagedObject fileprivate class Occupant : ManagedObject
   {
     @Attribute
     var name : String
@@ -25,24 +25,24 @@ import Storable
 
 
 
-@Entity fileprivate class Dwelling : Entity
+@ManagedObject fileprivate class Dwelling : ManagedObject
   {
     @Relationship(inverse: "dwelling", deleteRule: .nullify)
     var occupants : Set<Occupant>
 
-    @Fetched(predicate: .init(format: "dwelling = $FETCH_SOURCE"), sortDescriptors: [.init(key: "name", ascending: true)])
+    @Fetch(predicate: .init(format: "dwelling = $FETCH_SOURCE"), sortDescriptors: [.init(key: "name", ascending: true)])
     var occupantsByName : [Occupant]
 
-    @Fetched(predicate: .init(format: "dwelling = $FETCH_SOURCE && age < 18"), sortDescriptors: [.init(key: "age", ascending: true)])
+    @Fetch(predicate: .init(format: "dwelling = $FETCH_SOURCE && age < 18"), sortDescriptors: [.init(key: "age", ascending: true)])
     var minorOccupantsByAge : [Occupant]
 
-    @Fetched(identifiersOf: Occupant.self, predicate: .init(format: "dwelling = $FETCH_SOURCE"), sortDescriptors: [.init(key: "name", ascending: true)])
+    @Fetch(identifiersOf: Occupant.self, predicate: .init(format: "dwelling = $FETCH_SOURCE"), sortDescriptors: [.init(key: "name", ascending: true)])
     var occupantIdsByName : [NSManagedObjectID]
 
-    @Fetched(dictionariesOf: Occupant.self, predicate: .init(format: "dwelling = $FETCH_SOURCE"), sortDescriptors: [.init(key: "name", ascending: true)])
+    @Fetch(dictionariesOf: Occupant.self, predicate: .init(format: "dwelling = $FETCH_SOURCE"), sortDescriptors: [.init(key: "name", ascending: true)])
     var occupantNamesAndAges : [[String: Any]]
 
-    @Fetched(countOf: Occupant.self, predicate: .init(format: "dwelling = $FETCH_SOURCE"))
+    @Fetch(countOf: Occupant.self, predicate: .init(format: "dwelling = $FETCH_SOURCE"))
     var numberOfOccupants : Int
   }
 

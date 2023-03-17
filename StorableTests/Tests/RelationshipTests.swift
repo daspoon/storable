@@ -14,18 +14,18 @@ final class RelationshipTests : XCTestCase
   {
     func test() throws
       {
-        @Entity class Category : Entity {
+        @ManagedObject class Category : ManagedObject {
           @Attribute var name : String
           @Relationship(inverse: "category", deleteRule: .cascade) var items : Set<Item>
         }
 
-        @Entity class Item : Entity {
+        @ManagedObject class Item : ManagedObject {
           @Attribute var name : String
           @Relationship(inverse: "items", deleteRule: .nullify) var category : Category
           @Relationship(inverse: "items", deleteRule: .nullify) var box : Box?
         }
 
-        @Entity class Box : Entity {
+        @ManagedObject class Box : ManagedObject {
           @Attribute var number : Int
           @Relationship(inverse: "box", deleteRule: .nullify) var items : Set<Item>
         }

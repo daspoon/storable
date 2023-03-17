@@ -14,19 +14,19 @@ final class ModelDifferenceTests : XCTestCase
   {
     // First define some convenience methods for use in subsequent test cases
 
-    func difference(from old: Entity.Type, to new: Entity.Type) throws -> EntityInfo.Difference?
+    func difference(from old: ManagedObject.Type, to new: ManagedObject.Type) throws -> Entity.Difference?
       {
-        let oldInfo = try EntityInfo(objectType: old)
-        let newInfo = try EntityInfo(objectType: new)
+        let oldInfo = try Entity(objectType: old)
+        let newInfo = try Entity(objectType: new)
         return try newInfo.difference(from: oldInfo)
       }
 
-    func checkDifference(from old: Entity.Type, to new: Entity.Type, matches expectedDifference: EntityInfo.Difference?) throws
+    func checkDifference(from old: ManagedObject.Type, to new: ManagedObject.Type, matches expectedDifference: Entity.Difference?) throws
       {
         if try difference(from: old, to: new) != expectedDifference { XCTFail("") }
       }
 
-    func checkDifferenceFails(from old: Entity.Type, to new: Entity.Type/*, with: ... */) throws
+    func checkDifferenceFails(from old: ManagedObject.Type, to new: ManagedObject.Type/*, with: ... */) throws
       {
         do {
           _ = try difference(from: old, to: new)
@@ -57,15 +57,15 @@ final class ModelDifferenceTests : XCTestCase
     // Detect property addition and removal
     func testPropertyAddition() throws
       {
-        @Entity class E_v1 : Entity
+        @ManagedObject class E_v1 : ManagedObject
           { }
 
-        @Entity class E_v2 : Entity
+        @ManagedObject class E_v2 : ManagedObject
           {
             @Attribute
             var a : String
             @Relationship(inverse: "_", deleteRule: .noAction)
-            var r : Entity
+            var r : ManagedObject
           }
 
         try checkDifference(from: E_v1.self, to: E_v2.self, matches: .init(
@@ -83,20 +83,20 @@ final class ModelDifferenceTests : XCTestCase
     // Detect property renaming
     func testPropertyRename() throws
       {
-        @Entity class E_v1 : Entity
+        @ManagedObject class E_v1 : ManagedObject
           {
             @Attribute
             var a : Int
             @Relationship(inverse: "_", deleteRule: .noAction)
-            var r : Entity
+            var r : ManagedObject
           }
 
-        @Entity class E_v2 : Entity
+        @ManagedObject class E_v2 : ManagedObject
           {
             @Attribute(renamingIdentifier: "a")
             var b : Int
             @Relationship(inverse: "_", deleteRule: .noAction, renamingIdentifier: "r")
-            var q : Entity
+            var q : ManagedObject
           }
 
         try checkDifference(from: E_v1.self, to: E_v2.self, matches: .init(
@@ -109,13 +109,13 @@ final class ModelDifferenceTests : XCTestCase
     // We can rename a previously-existing property while simultaneously adding a new property with the original name.
     func testPropertyOverride() throws
       {
-        @Entity class E_v1 : Entity
+        @ManagedObject class E_v1 : ManagedObject
           {
             @Attribute
             var a : Int
           }
 
-        @Entity class E_v2 : Entity
+        @ManagedObject class E_v2 : ManagedObject
           {
             @Attribute(renamingIdentifier: "a")
             var b : Int
@@ -133,12 +133,12 @@ final class ModelDifferenceTests : XCTestCase
     // Detect changing attribute optionality
     func testPropertyOptionality() throws
       {
-        @Entity class E_v1 : Entity
+        @ManagedObject class E_v1 : ManagedObject
           {
             @Attribute var a : Int
           }
 
-        @Entity class E_v2 : Entity
+        @ManagedObject class E_v2 : ManagedObject
           {
             @Attribute var a : Int?
           }
@@ -151,13 +151,13 @@ final class ModelDifferenceTests : XCTestCase
     // Detect changing attribute type
     func testPropertyRetype() throws
       {
-        @Entity class E_v1 : Entity
+        @ManagedObject class E_v1 : ManagedObject
           {
             @Attribute
             var a : Int
           }
 
-        @Entity class E_v2 : Entity
+        @ManagedObject class E_v2 : ManagedObject
           {
             @Attribute
             var a : Float
@@ -170,22 +170,22 @@ final class ModelDifferenceTests : XCTestCase
     // Detect changing relationship range
     func testRelationshipRange() throws
       {
-        @Entity class E_v1 : Entity
+        @ManagedObject class E_v1 : ManagedObject
           {
             @Relationship(inverse: "q", deleteRule: .noAction)
-            var r : Entity
+            var r : ManagedObject
           }
 
-        @Entity class E_v2 : Entity
+        @ManagedObject class E_v2 : ManagedObject
           {
             @Relationship(inverse: "q", deleteRule: .noAction)
-            var r : Entity?
+            var r : ManagedObject?
           }
 
-        @Entity class E_v3 : Entity
+        @ManagedObject class E_v3 : ManagedObject
           {
             @Relationship(inverse: "q", deleteRule: .noAction)
-            var r : Set<Entity>
+            var r : Set<ManagedObject>
           }
 
         try checkDifference(from: E_v1.self, to: E_v2.self, matches: .init(relationshipsDifference: .init(modified: ["r": [.rangeOfCount]])))
@@ -197,10 +197,10 @@ final class ModelDifferenceTests : XCTestCase
     // Attributes renamed in the target must exist in the source.
     func testAttributeRenameUnknown() throws
       {
-        @Entity class E_v1 : Entity
+        @ManagedObject class E_v1 : ManagedObject
           { }
 
-        @Entity class E_v2 : Entity
+        @ManagedObject class E_v2 : ManagedObject
           {
             @Attribute(renamingIdentifier: "b")
             var a : Int
@@ -213,13 +213,13 @@ final class ModelDifferenceTests : XCTestCase
     // Relationships renamed in the target must exist in the source.
     func testRelationshipRenameUnknown() throws
       {
-        @Entity class E_v1 : Entity
+        @ManagedObject class E_v1 : ManagedObject
           { }
 
-        @Entity class E_v2 : Entity
+        @ManagedObject class E_v2 : ManagedObject
           {
             @Relationship(inverse: "q", deleteRule: .noAction, renamingIdentifier: "s")
-            var r : Entity
+            var r : ManagedObject
           }
 
         try checkDifferenceFails(from: E_v1.self, to: E_v2.self)
@@ -229,13 +229,13 @@ final class ModelDifferenceTests : XCTestCase
     // Properties renamed in the target must map to distinct properties in the source.
     func testAttributeRenameConflict() throws
       {
-        @Entity class E_v1 : Entity
+        @ManagedObject class E_v1 : ManagedObject
           {
             @Attribute
             var a : Int
           }
 
-        @Entity class E_v2 : Entity
+        @ManagedObject class E_v2 : ManagedObject
           {
             @Attribute(renamingIdentifier: "a")
             var b : Int
@@ -250,16 +250,16 @@ final class ModelDifferenceTests : XCTestCase
     // Detect added, removed and modified entities
     func testEntityAddition() throws
       {
-        @Entity class Added : Entity
+        @ManagedObject class Added : ManagedObject
           { }
 
-        @Entity class Removed : Entity
+        @ManagedObject class Removed : ManagedObject
           { }
 
-        @Entity class Modified_v1 : Entity
+        @ManagedObject class Modified_v1 : ManagedObject
           { @Attribute var a : Int }
 
-        @Entity class Modified_v2 : Entity
+        @ManagedObject class Modified_v2 : ManagedObject
           { @Attribute var a : Float }
 
         let s1 = try Schema(objectTypes: [Removed.self, Modified_v1.self])
@@ -275,10 +275,10 @@ final class ModelDifferenceTests : XCTestCase
     // Detect renamed entities
     func testEntityRename() throws
       {
-        @Entity class Old : Entity {
+        @ManagedObject class Old : ManagedObject {
         }
 
-        @Entity class New : Entity {
+        @ManagedObject class New : ManagedObject {
           override class var renamingIdentifier : String? { "Old" }
         }
 
@@ -291,11 +291,11 @@ final class ModelDifferenceTests : XCTestCase
     // Detect changing entity abstract(ness)
     func testEntityAbstraction() throws
       {
-        class E_v1 : Entity {
+        class E_v1 : ManagedObject {
         }
 
-        class E_v2 : Entity {
-          override class var abstractClass : Entity.Type { E_v2.self }
+        class E_v2 : ManagedObject {
+          override class var abstractClass : ManagedObject.Type { E_v2.self }
         }
 
         let s1 = try Schema(objectTypes: [E_v1.self])

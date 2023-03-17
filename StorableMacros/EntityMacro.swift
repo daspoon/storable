@@ -30,7 +30,7 @@ public struct EntityMacro : MemberMacro
     public static func expansion(of node: AttributeSyntax, providingMembersOf dcl: some DeclGroupSyntax, in ctx: some MacroExpansionContext) throws -> [DeclSyntax]
       {
         guard let dcl = dcl.as(ClassDeclSyntax.self) else {
-          throw Exception("@Entity is applicable only to class definitions")
+          throw Exception("@ManagedObject is applicable only to class definitions")
         }
 
         var text = "public override class var declaredPropertyInfoByName : [String: PropertyInfo] {\n"

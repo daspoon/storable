@@ -17,7 +17,7 @@ final class IngestionTests : XCTestCase
     enum Resistance : String, Codable, Ingestible, Storable
       { case weak="w", normal="-", strong="s", null="n", repel="r", drain="d" }
 
-    @Entity class Demon : Entity {
+    @ManagedObject class Demon : ManagedObject {
       @Attribute(ingestKey: .key) var name : String
       @Attribute(ingestKey: "lvl") var level : Int
       @Attribute var stats : [Int]
@@ -26,18 +26,18 @@ final class IngestionTests : XCTestCase
       @Relationship(inverse: "demon", deleteRule: .nullify) var grants : Set<Grant>
     }
 
-    @Entity class Race : Entity {
+    @ManagedObject class Race : ManagedObject {
       @Attribute(ingestKey: .key) var name : String
       @Relationship(inverse: "race", deleteRule: .cascade) var demons : Set<Demon>
     }
 
-    @Entity class Skill : Entity {
+    @ManagedObject class Skill : ManagedObject {
       @Attribute var name : String
       @Attribute var effect : String
       @Relationship(inverse: "skill", deleteRule: .cascade) var grants : Set<Grant>
     }
 
-    @Entity class Grant : Entity {
+    @ManagedObject class Grant : ManagedObject {
       @Attribute(ingestKey: .key) var level : Int
       @Relationship(inverse: "grants", deleteRule: .nullify) var skill : Skill
       @Relationship(inverse: "grants", deleteRule: .nullify) var demon : Demon

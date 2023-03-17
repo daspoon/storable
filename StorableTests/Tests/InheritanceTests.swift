@@ -15,18 +15,18 @@ final class InheritanceTests : XCTestCase
     func testAbstractRelationship() throws
       {
         // Define a Skill entity related to an abstract Combatant entity with subclasses Companion and Enemy
-        @Entity class Combatant : Entity {
-          override class var abstractClass : Entity.Type { Combatant.self }
+        @ManagedObject class Combatant : ManagedObject {
+          override class var abstractClass : ManagedObject.Type { Combatant.self }
           @Attribute var name : String
           @Relationship(inverse: "wielders", deleteRule: .nullify) var skills : Set<Skill>
         }
-        @Entity class Companion : Combatant {
+        @ManagedObject class Companion : Combatant {
           @Attribute var joinDate : Date
         }
-        @Entity class Enemy : Combatant {
+        @ManagedObject class Enemy : Combatant {
           @Attribute var loot : String
         }
-        @Entity class Skill : Entity {
+        @ManagedObject class Skill : ManagedObject {
           @Attribute var name : String
           @Relationship(inverse: "skills", deleteRule: .nullify) var wielders : Set<Combatant>
         }
@@ -52,20 +52,20 @@ final class InheritanceTests : XCTestCase
     // Swift prevents declaring managed properties with the names already taken by ancestor entities, as desired.
     func testInheritedNameConflict() throws
       {
-        @Entity class Super : Entity {
+        @ManagedObject class Super : ManagedObject {
           @Attribute var contested : Int
         }
-        @Entity class Sub1 : Super {
+        @ManagedObject class Sub1 : Super {
           @Attribute var contested : Int
         }
-        @Entity class Sub2 : Super {
+        @ManagedObject class Sub2 : Super {
           @Attribute override var contested : Int
         }
-        @Entity class Sub3 : Super {
+        @ManagedObject class Sub3 : Super {
           @Attribute var contested : String
         }
-        @Entity class Sub4 : Super {
-          @Relationship(inverse: "", deleteRule: .deny) var contested : Entity
+        @ManagedObject class Sub4 : Super {
+          @Relationship(inverse: "", deleteRule: .deny) var contested : ManagedObject
         }
       }
     #endif

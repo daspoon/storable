@@ -5,15 +5,15 @@
 */
 
 
-/// EntityIngestMethod is used to create a set of instances of an associated Entity subclass from a specified resource.
+/// EntityIngestMethod is used to create a set of instances of an associated ManagedObject subclass from a specified resource.
 
 public struct EntityIngestMethod : IngestMethod
   {
-    public let entityType : Entity.Type
+    public let entityType : ManagedObject.Type
     public let resourceKeyPath : String?
     public let ingestFormat : IngestFormat
 
-    public init<T: Entity>(type: T.Type = T.self, keyPath: String? = nil, format: IngestFormat = .dictionary)
+    public init<T: ManagedObject>(type: T.Type = T.self, keyPath: String? = nil, format: IngestFormat = .dictionary)
       {
         entityType = type
         resourceKeyPath = keyPath

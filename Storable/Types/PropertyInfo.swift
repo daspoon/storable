@@ -11,7 +11,7 @@ import Foundation
 
 public enum PropertyInfo
   {
-    case attribute(AttributeInfo)
-    case relationship(RelationshipInfo)
-    case fetched(FetchedPropertyInfo)
+    case attribute(Attribute)
+    case relationship(Relationship)
+    case fetched(Fetch)
   }

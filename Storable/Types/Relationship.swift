@@ -7,9 +7,9 @@
 import CoreData
 
 
-/// RelationshipInfo maintains the metadata for a relationship defined of an Entity class; it is analogous to CoreData's NSRelationshipDescription.
+/// The Relationship struct defines a relationship on a class of managed object; it is analogous to CoreData's NSRelationshipDescription.
 
-public struct RelationshipInfo
+public struct Relationship
   {
     /// Determines the effect on related objects when the source object is deleted; this type corresponds directly to NSDeleteRule.
     public enum DeleteRule
@@ -69,28 +69,28 @@ public struct RelationshipInfo
 
 
     /// Declare a to-one relationship.
-    public init<T: Entity>(name: String, type: T.Type, inverse inv: RelationshipInfo.InverseSpec, deleteRule r: RelationshipInfo.DeleteRule, renamingIdentifier oldName: String? = nil)
+    public init<T: ManagedObject>(name: String, type: T.Type, inverse inv: Relationship.InverseSpec, deleteRule r: Relationship.DeleteRule, renamingIdentifier oldName: String? = nil)
       { self.init(name: name, range: 1 ... 1, relatedEntityName: T.entityName, inverse: inv, deleteRule: r, renamingIdentifier: oldName) }
 
     /// Declare a to-optional relationship.
-    public init<T: Nullable>(name: String, type: T.Type, inverse inv: RelationshipInfo.InverseSpec, deleteRule r: RelationshipInfo.DeleteRule, renamingIdentifier oldName: String? = nil) where T.Wrapped : Entity
+    public init<T: Nullable>(name: String, type: T.Type, inverse inv: Relationship.InverseSpec, deleteRule r: Relationship.DeleteRule, renamingIdentifier oldName: String? = nil) where T.Wrapped : ManagedObject
       { self.init(name: name, range: 0 ... 1, relatedEntityName: T.Wrapped.entityName, inverse: inv, deleteRule: r, renamingIdentifier: oldName) }
 
     /// Declare a to-many relationship.
-    public init<T: SetAlgebra>(name: String, type: T.Type, inverse inv: RelationshipInfo.InverseSpec, deleteRule r: RelationshipInfo.DeleteRule, renamingIdentifier oldName: String? = nil) where T.Element : Entity
+    public init<T: SetAlgebra>(name: String, type: T.Type, inverse inv: Relationship.InverseSpec, deleteRule r: Relationship.DeleteRule, renamingIdentifier oldName: String? = nil) where T.Element : ManagedObject
       { self.init(name: name, range: 0 ... .max, relatedEntityName: T.Element.entityName, inverse: inv, deleteRule: r, renamingIdentifier: oldName) }
 
 
     /// Declare a to-optional relationship which is ingestible.
-    public init<T: Entity>(name: String, type: T.Type, inverse inv: RelationshipInfo.InverseSpec, deleteRule r: RelationshipInfo.DeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil)
+    public init<T: ManagedObject>(name: String, type: T.Type, inverse inv: Relationship.InverseSpec, deleteRule r: Relationship.DeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: Relationship.IngestMode, ingestKey k: IngestKey? = nil)
       { self.init(name: name, range: 1 ... 1, relatedEntityName: T.entityName, inverse: inv, deleteRule: r, renamingIdentifier: oldName, ingest: (key: k ?? .element(name), mode: m)) }
 
     /// Declare a to-optional relationship which is ingestible.
-    public init<T: Nullable>(name: String, type: T.Type, inverse inv: RelationshipInfo.InverseSpec, deleteRule r: RelationshipInfo.DeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil) where T.Wrapped : Entity
+    public init<T: Nullable>(name: String, type: T.Type, inverse inv: Relationship.InverseSpec, deleteRule r: Relationship.DeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: Relationship.IngestMode, ingestKey k: IngestKey? = nil) where T.Wrapped : ManagedObject
       { self.init(name: name, range:  0 ... 1, relatedEntityName: T.Wrapped.entityName, inverse: inv, deleteRule: r, renamingIdentifier: oldName, ingest: (key: k ?? .element(name), mode: m)) }
 
     /// Declare a to-many relationship which is ingestible.
-    public init<T: SetAlgebra>(name: String, type: T.Type, inverse inv: RelationshipInfo.InverseSpec, deleteRule r: RelationshipInfo.DeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: RelationshipInfo.IngestMode, ingestKey k: IngestKey? = nil) where T.Element : Entity
+    public init<T: SetAlgebra>(name: String, type: T.Type, inverse inv: Relationship.InverseSpec, deleteRule r: Relationship.DeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: Relationship.IngestMode, ingestKey k: IngestKey? = nil) where T.Element : ManagedObject
       { self.init(name: name, range: 0 ... .max, relatedEntityName: T.Element.entityName, inverse: inv, deleteRule: r, renamingIdentifier: oldName, ingest: (key: k ?? .element(name), mode: m)) }
 
 
@@ -103,14 +103,35 @@ public struct RelationshipInfo
   }
 
 
-extension RelationshipInfo.InverseSpec : ExpressibleByStringLiteral
+// MARK: --
+
+/// The Relationship macro, when applied to member variables of an ManagedObject subclass, generates instances of the Relationship struct.
+/// Note that a separate macro definition is required for each combination of optional parameter to corresponding init method of struct Relationship.
+
+@attached(accessor)
+public macro Relationship(inverse: Relationship.InverseSpec, deleteRule: Relationship.DeleteRule) = #externalMacro(module: "StorableMacros", type: "RelationshipMacro")
+@attached(accessor)
+public macro Relationship(inverse: Relationship.InverseSpec, deleteRule: Relationship.DeleteRule, renamingIdentifier: String) = #externalMacro(module: "StorableMacros", type: "RelationshipMacro")
+@attached(accessor)
+public macro Relationship(inverse: Relationship.InverseSpec, deleteRule: Relationship.DeleteRule, ingestMode: Relationship.IngestMode) = #externalMacro(module: "StorableMacros", type: "RelationshipMacro")
+@attached(accessor)
+public macro Relationship(inverse: Relationship.InverseSpec, deleteRule: Relationship.DeleteRule, ingestMode: Relationship.IngestMode, ingestKey: IngestKey) = #externalMacro(module: "StorableMacros", type: "RelationshipMacro")
+@attached(accessor)
+public macro Relationship(inverse: Relationship.InverseSpec, deleteRule: Relationship.DeleteRule, renamingIdentifier: String, ingestMode: Relationship.IngestMode) = #externalMacro(module: "StorableMacros", type: "RelationshipMacro")
+@attached(accessor)
+public macro Relationship(inverse: Relationship.InverseSpec, deleteRule: Relationship.DeleteRule, renamingIdentifier: String, ingestMode: Relationship.IngestMode, ingestKey: IngestKey) = #externalMacro(module: "StorableMacros", type: "RelationshipMacro")
+
+
+// MARK: --
+
+extension Relationship.InverseSpec : ExpressibleByStringLiteral
   {
     /// Used to indicate the inverse relationship is explicitly declared by the related entity. In this case only the inverse name is required.
     public init(stringLiteral name: String)
       { self.name = name }
 
     /// Used to indicate the inverse relationship is not declared by the related entity; in this case all necessary information must be spectified.
-    public init(name: String, range: ClosedRange<Int>, deleteRule: RelationshipInfo.DeleteRule, renamingIdentifier: String? = nil)
+    public init(name: String, range: ClosedRange<Int>, deleteRule: Relationship.DeleteRule, renamingIdentifier: String? = nil)
       {
         self.name = name
         self.detail = (range, deleteRule, renamingIdentifier)
@@ -118,9 +139,7 @@ extension RelationshipInfo.InverseSpec : ExpressibleByStringLiteral
   }
 
 
-// MARK: --
-
-extension RelationshipInfo : Diffable
+extension Relationship : Diffable
   {
     /// Changes which affect the version hash of the generated NSRelationshipDescription.
     public enum Change : Hashable

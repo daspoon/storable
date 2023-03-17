@@ -42,7 +42,7 @@ final class AttributeTests : XCTestCase
       {
         // Define an entity with the range of supported attribute types
 
-        @Entity class Object : Entity {
+        @ManagedObject class Object : ManagedObject {
           @Attribute var bool : Bool
           @Attribute var int : Int
           @Attribute var int16 : Int16
@@ -111,7 +111,7 @@ final class AttributeTests : XCTestCase
       {
         // Define an entity with the range of supported attribute types, with assigned default values
 
-        @Entity class Object : Entity {
+        @ManagedObject class Object : ManagedObject {
           @Attribute var bool : Bool = boolValue
           @Attribute var int : Int = intValue
           @Attribute var int16 : Int16 = int16Value
@@ -158,7 +158,7 @@ final class AttributeTests : XCTestCase
     func testOptional() throws
       {
         // Define an entity with the range of optional attribute types
-        @Entity class Object : Entity {
+        @ManagedObject class Object : ManagedObject {
           @Attribute var bool : Bool?
           @Attribute var int : Int?
           @Attribute var int16 : Int16?

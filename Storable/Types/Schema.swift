@@ -7,7 +7,7 @@
 import CoreData
 
 
-/// A Schema corresponds to an NSManagedObjectModel, but is generated from a list of Entity subclasses and maintains additional information about those classes.
+/// A Schema corresponds to an NSManagedObjectModel, but is generated from a list of ManagedObject subclasses and maintains additional information about those classes.
 
 public struct Schema
   {
@@ -15,11 +15,11 @@ public struct Schema
     public typealias RuntimeInfo = (managedObjectModel: NSManagedObjectModel, classInfoByName: [String: ClassInfo])
 
 
-    /// The Entity classes given on initialization, organized as a tree closed under inheritance.
-    private var classTree : ClassTree<Entity> = .init()
+    /// The ManagedObject classes given on initialization, organized as a tree closed under inheritance.
+    private var classTree : ClassTree<ManagedObject> = .init()
 
-    /// Map the names of defined entities to EntityInfo instances.
-    public private(set) var entityInfoByName : [String: EntityInfo] = [:]
+    /// Map the names of defined entities to Entity instances.
+    public private(set) var entityInfoByName : [String: Entity] = [:]
 
 
     /// An explicit version identifier optionally assigned on initialization.
@@ -29,8 +29,8 @@ public struct Schema
     static let versioningEntityName = "$Schema"
 
 
-    /// Create a new instance with a given list of Entity subclasses and an optional model version identifier.
-    public init(versionId: String? = nil, objectTypes: [Entity.Type]) throws
+    /// Create a new instance with a given list of ManagedObject subclasses and an optional model version identifier.
+    public init(versionId: String? = nil, objectTypes: [ManagedObject.Type]) throws
       {
         self.versionId = versionId
         for objectType in objectTypes {
@@ -39,8 +39,8 @@ public struct Schema
       }
 
 
-    /// Associate a new object type to a new instance of EntityInfo.
-    private mutating func addObjectType(_ givenType: Entity.Type, entityInfo givenInfo: EntityInfo? = nil) throws
+    /// Associate a new object type to a new instance of Entity.
+    private mutating func addObjectType(_ givenType: ManagedObject.Type, entityInfo givenInfo: Entity? = nil) throws
       {
         precondition(entityInfoByName[givenType.entityName] == nil && givenInfo.map({$0.managedObjectClass == givenType}) != .some(false), "invalid argument")
 
@@ -48,7 +48,7 @@ public struct Schema
           let entityName = newType.entityName
           let existingInfo = entityInfoByName[entityName]
           guard existingInfo == nil else { throw Exception("entity name \(entityName) is defined by both \(existingInfo!.managedObjectClass) and \(newType)") }
-          entityInfoByName[entityName] = try EntityInfo(objectType: newType)
+          entityInfoByName[entityName] = try Entity(objectType: newType)
         }
       }
 
@@ -60,10 +60,10 @@ public struct Schema
 
         // Perform a post-order traversal of the class hierarchy to create an entity description for each class, establish inheritance between entities, and populate classInfoByName...
         var classInfoByName : [String: ClassInfo] = [:]
-        _ = classTree.fold { (objectType: Entity.Type, subentities: [NSEntityDescription]) -> NSEntityDescription in
-          // Ignore the root class (i.e. Entity) which is not modeled.
-          guard objectType != Entity.self else { return .init() }
-          // Get the corresponding EntityInfo
+        _ = classTree.fold { (objectType: ManagedObject.Type, subentities: [NSEntityDescription]) -> NSEntityDescription in
+          // Ignore the root class (i.e. ManagedObject) which is not modeled.
+          guard objectType != ManagedObject.self else { return .init() }
+          // Get the corresponding Entity
           guard let entityInfo = entityInfoByName[objectType.entityName] else { fatalError() }
           // Create an NSEntityDescription
           let entityDescription = NSEntityDescription()
@@ -103,7 +103,7 @@ public struct Schema
             guard let targetInfo = classInfoByName[targetName]
               else { throw Exception("relationship \(sourceName).\(relationshipName) has unknown target entity name '\(targetName)'") }
             // Get the inverse relationship from either a declared property on the related entity xor extra detail on the source property...
-            let inverse : RelationshipInfo
+            let inverse : Relationship
             switch (targetInfo.relationships[relationship.inverse.name], relationship.inverse(toEntityName: sourceName)) {
               case (.some(let explicit), .none) :
                 inverse = explicit
@@ -160,7 +160,7 @@ public struct Schema
       }
 
 
-    mutating func withEntityNamed(_ entityName: String, update: (inout EntityInfo) -> Void)
+    mutating func withEntityNamed(_ entityName: String, update: (inout Entity) -> Void)
       { update(&entityInfoByName[entityName]!) }
 
 
@@ -309,7 +309,7 @@ public struct Schema
 
 extension Schema : Diffable
   {
-    public func difference(from old: Schema) throws -> Dictionary<String, EntityInfo>.Difference?
+    public func difference(from old: Schema) throws -> Dictionary<String, Entity>.Difference?
       {
         // assert: predecessor == .some(old)
         try entityInfoByName.difference(from: old.entityInfoByName, moduloRenaming: \.renamingIdentifier)

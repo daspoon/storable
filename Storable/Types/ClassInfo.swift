@@ -7,24 +7,24 @@
 import CoreData
 
 
-/// ClassInfo pairs instances of types EntityInfo and NSEntityDescription for a specific subclass of Entity. It exists primarily to enable ingestion of managed objects by providing access to property metadata.
+/// ClassInfo pairs instances of types Entity and NSEntityDescription for a specific subclass of ManagedObject. It exists primarily to enable ingestion of managed objects by providing access to property metadata.
 
 @dynamicMemberLookup
 public struct ClassInfo
   {
-    public let entityInfo : EntityInfo
+    public let entityInfo : Entity
     public let entityDescription : NSEntityDescription
 
 
-    public init(_ entityInfo: EntityInfo, _ entityDescription: NSEntityDescription)
+    public init(_ entityInfo: Entity, _ entityDescription: NSEntityDescription)
       {
         self.entityInfo = entityInfo
         self.entityDescription = entityDescription
       }
 
 
-    /// Provide convenient access to the properties of EntityInfo.
-    public subscript <Value>(dynamicMember path: KeyPath<EntityInfo, Value>) -> Value
+    /// Provide convenient access to the properties of Entity.
+    public subscript <Value>(dynamicMember path: KeyPath<Entity, Value>) -> Value
       { entityInfo[keyPath: path] }
   }
 
@@ -33,15 +33,15 @@ extension ClassInfo
   {
     /// Called on ingestion to create an instance of the represented entity from a given JSON value.
     @discardableResult
-    func createObject(from jsonValue: Any, in store: DataStore, delay: (@escaping () throws -> Void) -> Void) throws -> Entity
+    func createObject(from jsonValue: Any, in store: DataStore, delay: (@escaping () throws -> Void) -> Void) throws -> ManagedObject
       { try entityInfo.managedObjectClass.init(self, with: .value([:]), in: store, delay: delay) }
 
 
     /// Called on ingestion to create a list of instances of the represented entity from a given JSON value.
     @discardableResult
-    func createObjects(from jsonValue: Any, with format: IngestFormat, in store: DataStore, delay: (@escaping () throws -> Void) -> Void) throws -> [Entity]
+    func createObjects(from jsonValue: Any, with format: IngestFormat, in store: DataStore, delay: (@escaping () throws -> Void) -> Void) throws -> [ManagedObject]
       {
-        var objects : [Entity] = []
+        var objects : [ManagedObject] = []
         switch format {
           case .any :
             objects.append(try entityInfo.managedObjectClass.init(self, with: .value(jsonValue), in: store, delay: delay))

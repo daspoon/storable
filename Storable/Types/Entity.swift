@@ -7,136 +7,115 @@
 import CoreData
 
 
-/// Entity is the base class of NSManagedObject which supports model generation and ingestion through managed property wrappers.
+/// Entity maintains the metadata for a subclass of ManagedObject; it is analogous to CoreData's NSEntityDescription.
 
-open class Entity : NSManagedObject
+public struct Entity
   {
-    /// The notion of instance identity (within class).
-    public enum Identity : String, Ingestible
+    public let name : String
+    public private(set) var attributes : [String: Attribute] = [:]
+    public private(set) var relationships : [String: Relationship] = [:]
+    public private(set) var fetchedProperties : [String: Fetch] = [:]
+    public let managedObjectClass : ManagedObject.Type
+
+
+    /// Create a new instance for the given subclass of ManagedObject.
+    public init(objectType: ManagedObject.Type) throws
       {
-        /// There is no inherent identity.
-        case anonymous
-        /// Identity is given by the string value of the 'name' attribute.
+        name = objectType.entityNameAndVersion.entityName
+        managedObjectClass = objectType
+
+        for (name, info) in objectType.declaredPropertyInfoByName {
+          switch info {
+            case .attribute(let info) :
+              attributes[name] = info
+            case .relationship(let info) :
+              relationships[name] = info
+            case .fetched(let info) :
+              fetchedProperties[name] = info
+          }
+        }
+      }
+
+
+    public var isAbstract : Bool
+      { managedObjectClass.isAbstract }
+
+
+    public var renamingIdentifier : String?
+      { managedObjectClass.renamingIdentifier }
+
+
+    mutating func addAttribute(_ attribute: Attribute)
+      {
+        assert(attributes[attribute.name] == nil && relationships[attribute.name] == nil && fetchedProperties[attribute.name] == nil)
+        attributes[attribute.name] = attribute
+      }
+
+    mutating func addRelationship(_ relationship: Relationship)
+      {
+        assert(attributes[relationship.name] == nil && relationships[relationship.name] == nil && fetchedProperties[relationship.name] == nil)
+        relationships[relationship.name] = relationship
+      }
+
+    mutating func removeAttributeNamed(_ name: String)
+      {
+        attributes.removeValue(forKey: name)
+      }
+
+
+    mutating func withAttributeNamed(_ name: String, update: (inout Attribute) -> Void)
+      { update(&attributes[name]!) }
+
+    mutating func withRelationshipNamed(_ name: String, update: (inout Relationship) -> Void)
+      { update(&relationships[name]!) }
+  }
+
+
+extension Entity : Diffable
+  {
+    /// Changes which affect the version hash of the generated NSEntityDescription.
+    public enum DescriptorChange : Hashable
+      {
         case name
-        /// There is a single instance of the entity.
-        case singleton
+        case isAbstract
       }
 
-
-    open class var declaredPropertyInfoByName : [String: PropertyInfo]
-      { [:] }
-
-
-    /// Return the name of the defined entity.
-    public class var entityName : String
-      { entityNameAndVersion.entityName }
-
-
-    private static let entityNameAndVersionRegex = try! NSRegularExpression(pattern: "(\\w+)_v(\\d+)", options: [])
-
-    /// Return the pairing of defined entity name and version number by applying the regular expression (\w+)_v(\d+) to the receiver's name.
-    /// If no there is no unique match then the entity name is taken to be the receiver's name and the version is taken to be zero.
-    class var entityNameAndVersion : (entityName: String, version: Int)
+    /// The difference between two Entity instances combines the changes to the entity-specific state with the differences between attributes and relationships.
+    public struct Difference : Equatable
       {
-        let objcName = "\(Self.self)" as NSString
-        let objcNameRange = NSMakeRange(0, objcName.length)
+        public let descriptorChanges : Set<DescriptorChange>
+        public let attributesDifference : Dictionary<String, Attribute>.Difference
+        public let relationshipsDifference : Dictionary<String, Relationship>.Difference
 
-        let matches = entityNameAndVersionRegex.matches(in: (objcName as String), options: [], range: objcNameRange)
-
-        return matches.count == 1 && matches[0].range == objcNameRange
-          ? (
-            entityName: objcName.substring(with: matches[0].range(at: 1)) as String,
-            version: Int(objcName.substring(with: matches[0].range(at: 2)))!
-          )
-          : (entityName: objcName as String, version: 0)
+        public init?(descriptorChanges: [DescriptorChange] = [], attributesDifference: Dictionary<String, Attribute>.Difference? = nil, relationshipsDifference: Dictionary<String, Relationship>.Difference? = nil)
+          {
+            guard !(descriptorChanges.isEmpty && (attributesDifference ?? .empty).isEmpty && (relationshipsDifference ?? .empty).isEmpty) else { return nil }
+            self.descriptorChanges = Set(descriptorChanges)
+            self.attributesDifference = attributesDifference ?? .empty
+            self.relationshipsDifference = relationshipsDifference ?? .empty
+          }
       }
 
-
-    /// This method must be overridden to return non-nil if and only if the previous version exists with a different entity name. The default implementation returns nil.
-    open class var renamingIdentifier : String?
-      { nil }
-
-
-    /// Return the notion of instance identify for the purpose of relationship ingestion. The default implementation returns anonymous.
-    open class var identity : Identity
-      { .anonymous }
-
-
-    /// This method is used to determine whether or not the corresponding NSEntityDescription should be marked abstract, and should only be overridden in classes intended to be abstract by returning their concrete type. The default implementation returns Entity.
-    open class var abstractClass : Entity.Type
-      { Entity.self }
-
-
-    /// Return true iff the receiver is intended to represent an abstract entity.
-    public class var isAbstract : Bool
-      { Self.self == abstractClass }
-
-
-    /// Override init(entity:insertInto:) to be 'required' in order to create instances from class objects. This method is not intended to be overidden.
-    public required override init(entity: NSEntityDescription, insertInto context: NSManagedObjectContext?)
-      { super.init(entity: entity, insertInto: context) }
-
-
-    /// Initialize a new instance, taking property values from the given ingest data. This method is not intended to be overidden.
-    public required init(_ info: ClassInfo, with ingestData: IngestObject, in store: DataStore, delay: (@escaping () throws -> Void) -> Void) throws
+    /// Return the difference between the receiver and its prior version.
+    public func difference(from old: Self) throws -> Difference?
       {
-        // Delegate to the designated initializer for NSManagedObject.
-        super.init(entity: info.entityDescription, insertInto: store.managedObjectContext)
+        let descriptorChanges : [DescriptorChange] = [
+          old.name != self.name ? .name : nil,
+          old.isAbstract != self.isAbstract ? .isAbstract : nil,
+        ].compactMap {$0}
 
-        // Ingest attributes.
-        for attribute in info.attributes.values {
-          do {
-            guard let ingest = attribute.ingest else { continue }
-            if let jsonValue = ingestData[ingest.key] {
-              let storableValue = try ingest.method(jsonValue)
-              setValue(storableValue.storedValue(), forKey: attribute.name)
-            }
-            else {
-              guard attribute.defaultValue != nil || attribute.isOptional else { throw Exception("a value is required") }
-            }
-          }
-          catch let error {
-            throw Exception("failed to ingest attribute '\(attribute.name)' of '\(info.name)' -- " + error.localizedDescription)
-          }
-        }
-
-        // Ingest relationships.
-        for relationship in info.relationships.values {
-          guard let ingest = relationship.ingest else { continue }
-          do {
-            let relatedInfo = try store.classInfo(for: relationship.relatedEntityName)
-            let relatedClass = relatedInfo.managedObjectClass
-            switch (ingestData[ingest.key], ingest.mode, relationship.range) {
-              case (.some(let jsonValue), .create(let format), let range) where range.upperBound > 1 :
-                // When creating a to-many relationship, the format parameter determines the type and interpretation of the json data...
-                let relatedObjects = try relatedInfo.createObjects(from: jsonValue, with: format, in: store, delay: delay)
-                setValue(Set(relatedObjects), forKey: relationship.name)
-              case (.some(let jsonValue), .create(let format), _) :
-                // When creating a to-one relationship, the json data is interpreted by the object initializer
-                guard format == .any else { throw Exception("") }
-                let relatedObject = try relatedInfo.createObject(from: jsonValue, in: store, delay: delay)
-                setValue(relatedObject, forKey: relationship.name)
-              case (.some(let jsonValue), .reference, let range) where range.upperBound > 1 :
-                // A to-many reference requires an array string instance identifiers. Evaluation is delayed until all entity instances have been created.
-                guard let instanceIds = jsonValue as? [String] else { throw Exception("an array of object identifiers is required") }
-                delay {
-                  let relatedObjects = try instanceIds.map { try store.fetchObject(id: $0, of: relatedClass) }
-                  self.setValue(Set(relatedObjects), forKey: relationship.name)
-                }
-              case (.some(let jsonValue), .reference, _) :
-                // A to-one reference requires a string instance identifier. Evaluation is delayed until all entity instances have been created.
-                guard let instanceId = jsonValue as? String else { throw Exception("an object identifier is required") }
-                delay {
-                  let relatedObject = try store.fetchObject(id: instanceId, of: relatedClass)
-                  self.setValue(relatedObject, forKey: relationship.name)
-                }
-              case (.none, _, let range) :
-                guard range.lowerBound == 0 else { throw Exception("a value is required") }
-            }
-          }
-          catch let error {
-            throw Exception("failed to ingest relationship '\(relationship.name)' of '\(info.name)' -- " + error.localizedDescription)
-          }
-        }
+        return Difference(
+          descriptorChanges: descriptorChanges,
+          attributesDifference: try attributes.difference(from: old.attributes, moduloRenaming: \.renamingIdentifier),
+          relationshipsDifference: try relationships.difference(from: old.relationships, moduloRenaming: \.renamingIdentifier)
+        )
       }
   }
+
+
+// MARK: --
+
+/// The ManagedObject macro, when applied to definitions of ManagedObject subclasses, generates instances of the ManagedObject struct.
+
+@attached(member, names: named(declaredPropertyInfoByName))
+public macro ManagedObject() = #externalMacro(module: "StorableMacros", type: "EntityMacro")

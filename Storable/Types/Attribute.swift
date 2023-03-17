@@ -7,9 +7,9 @@
 import CoreData
 
 
-/// AttributeInfo maintains the metadata for a managed attribute of an Entity class; it is analogous to CoreData's NSAttributeDescription.
+/// The Attribute struct maintains defines an attribute on a class of managed object; it is analogous to CoreData's NSAttributeDescription.
 
-public struct AttributeInfo
+public struct Attribute
   {
     /// The managed property name.
     public var name : String
@@ -104,7 +104,38 @@ public struct AttributeInfo
 
 // MARK: --
 
-extension AttributeInfo : Diffable
+/// The Attribute macro applied to member variables of a managed object subclass generates instances of the Attribute struct.
+/// Note that a separate macro definition is required for each combination of optional parameter to corresponding init method of struct Attribute.
+
+@attached(accessor)
+public macro Attribute() = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
+@attached(accessor)
+public macro Attribute(renamingIdentifier: String) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
+@attached(accessor)
+public macro Attribute(ingestKey: IngestKey) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
+@attached(accessor)
+public macro Attribute(renamingIdentifier: String, ingestKey: IngestKey) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
+@attached(accessor)
+public macro Attribute<V>(transform t: @escaping (V) throws -> Any) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
+@attached(accessor)
+public macro Attribute<V>(defaultValue: V, transform t: @escaping (V) throws -> Any) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
+@attached(accessor)
+public macro Attribute<V>(ingestKey: IngestKey, transform t: @escaping (V) throws -> Any) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
+@attached(accessor)
+public macro Attribute<V>(defaultValue: V, ingestKey: IngestKey, transform t: @escaping (V) throws -> Any) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
+@attached(accessor)
+public macro Attribute<V>(renamingIdentifier: String, transform t: @escaping (V) throws -> Any) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
+@attached(accessor)
+public macro Attribute<V>(defaultValue: V, renamingIdentifier: String, transform t: @escaping (V) throws -> Any) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
+@attached(accessor)
+public macro Attribute<V>(renamingIdentifier: String, ingestKey: IngestKey, transform t: @escaping (V) throws -> Any) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
+@attached(accessor)
+public macro Attribute<V>(defaultValue: V, renamingIdentifier: String, ingestKey: IngestKey, transform t: @escaping (V) throws -> Any) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
+
+
+// MARK: --
+
+extension Attribute : Diffable
   {
     /// Changes which affect the version hash of the generated NSAttributeDescription.
     public enum Change : Hashable

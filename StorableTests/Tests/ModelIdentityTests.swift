@@ -16,13 +16,13 @@ final class ModelIdentityTests : XCTestCase
 
 // Define some base entities. Although the subsequently defined variations have different class names, they have matching entity names due to their versioned class names (_v<i>).
 
-@Entity fileprivate class Person : Entity
+@ManagedObject fileprivate class Person : ManagedObject
   {
     @Attribute
     var name : String
   }
 
-@Entity fileprivate class Place : Entity
+@ManagedObject fileprivate class Place : ManagedObject
   {
     @Attribute
     var name : String
@@ -32,7 +32,7 @@ final class ModelIdentityTests : XCTestCase
 // MARK: --
 // Addition/removal of entities affects model identity.
 
-fileprivate class Extra : Entity
+fileprivate class Extra : ManagedObject
   { }
 
 extension ModelIdentityTests
@@ -49,7 +49,7 @@ extension ModelIdentityTests
 // MARK: --
 // Addition/removal of attributes affects model identity.
 
-@Entity fileprivate class PersonWithAge : Entity
+@ManagedObject fileprivate class PersonWithAge : ManagedObject
   {
     @Attribute
     var name : String
@@ -72,7 +72,7 @@ extension ModelIdentityTests
 // Addition/removal of relationships affects model identity.
 
 fileprivate typealias PersonWithPlace = Person_v2
-@Entity fileprivate class Person_v2 : Entity
+@ManagedObject fileprivate class Person_v2 : ManagedObject
   {
     @Attribute
     var name : String
@@ -81,7 +81,7 @@ fileprivate typealias PersonWithPlace = Person_v2
   }
 
 fileprivate typealias PlaceWithOccupants = Place_v2
-@Entity fileprivate class Place_v2 : Entity
+@ManagedObject fileprivate class Place_v2 : ManagedObject
   {
     @Attribute
     var name : String
@@ -104,13 +104,13 @@ extension ModelIdentityTests
 // Addition/removal of fetched properties does not affect model identity.
 
 fileprivate typealias PlaceWithSortedOccupants = Place_v3
-@Entity fileprivate class Place_v3 : Entity
+@ManagedObject fileprivate class Place_v3 : ManagedObject
   {
     @Attribute
     var name : String
     @Relationship(inverse: "place", deleteRule: .nullify)
     var occupants : Set<Person>
-    @Fetched(sortDescriptors: [.init(key: "name", ascending: true)])
+    @Fetch(sortDescriptors: [.init(key: "name", ascending: true)])
     var occupantsByName : [PersonWithPlace]
   }
 

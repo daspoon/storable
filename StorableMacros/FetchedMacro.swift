@@ -27,7 +27,7 @@ public struct FetchedMacro : ManagedPropertyMacro, AccessorMacro
 
     // ManagedPropertyMacro
 
-    static var attributeName : String { "Fetched" }
+    static var attributeName : String { "Fetch" }
 
     static func generateDescriptorText(for decl: StoredPropertyInfo, using attribute: AttributeSyntax) throws -> String
       {
