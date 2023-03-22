@@ -9,7 +9,7 @@ import SwiftSyntaxMacros
 
 
 /// AttributeMacro enables defining NSAttributeDescriptions from compatible variables of a managed object class.
-public struct AttributeMacro  : ManagedPropertyMacro, AccessorMacro
+public struct AttributeMacro : ManagedPropertyMacro
   {
     // ManagedPropertyMacro
 

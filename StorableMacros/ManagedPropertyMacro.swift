@@ -5,10 +5,11 @@
 */
 
 import SwiftSyntax
+import SwiftSyntaxMacros
 
 
 /// ManagedPropertyMacro defines the common features of macro types used to declare managed properties.
-protocol ManagedPropertyMacro
+protocol ManagedPropertyMacro : AccessorMacro
   {
     /// The name of the macro attribute.
     static var attributeName : String { get }
