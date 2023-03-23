@@ -43,7 +43,7 @@
 		5531F94629C0F319004B1204 /* IngestKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5531F92629C0F318004B1204 /* IngestKey.swift */; };
 		5531F94729C0F319004B1204 /* ClassTree.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5531F92729C0F318004B1204 /* ClassTree.swift */; };
 		5531F94829C0F319004B1204 /* Entity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5531F92829C0F318004B1204 /* Entity.swift */; };
-		5531F94A29C0F319004B1204 /* PropertyInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5531F92A29C0F319004B1204 /* PropertyInfo.swift */; };
+		5531F94A29C0F319004B1204 /* Property.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5531F92A29C0F319004B1204 /* Property.swift */; };
 		5531F94B29C0F319004B1204 /* Storable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5531F92B29C0F319004B1204 /* Storable.swift */; };
 		5531F95829C0F324004B1204 /* Dictionary-ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5531F94C29C0F324004B1204 /* Dictionary-ext.swift */; };
 		5531F95929C0F324004B1204 /* NSManagedObject-ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5531F94D29C0F324004B1204 /* NSManagedObject-ext.swift */; };
@@ -140,7 +140,7 @@
 		5531F92629C0F318004B1204 /* IngestKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IngestKey.swift; sourceTree = "<group>"; };
 		5531F92729C0F318004B1204 /* ClassTree.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ClassTree.swift; sourceTree = "<group>"; };
 		5531F92829C0F318004B1204 /* Entity.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Entity.swift; sourceTree = "<group>"; };
-		5531F92A29C0F319004B1204 /* PropertyInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PropertyInfo.swift; sourceTree = "<group>"; };
+		5531F92A29C0F319004B1204 /* Property.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Property.swift; sourceTree = "<group>"; };
 		5531F92B29C0F319004B1204 /* Storable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Storable.swift; sourceTree = "<group>"; };
 		5531F94C29C0F324004B1204 /* Dictionary-ext.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Dictionary-ext.swift"; sourceTree = "<group>"; };
 		5531F94D29C0F324004B1204 /* NSManagedObject-ext.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSManagedObject-ext.swift"; sourceTree = "<group>"; };
@@ -230,7 +230,7 @@
 				5531F91629C0F318004B1204 /* ManagedObject.swift */,
 				5531F91029C0F318004B1204 /* Migration.swift */,
 				5531F91E29C0F318004B1204 /* Nullable.swift */,
-				5531F92A29C0F319004B1204 /* PropertyInfo.swift */,
+				5531F92A29C0F319004B1204 /* Property.swift */,
 				5531F90F29C0F318004B1204 /* Relationship.swift */,
 				5531F91829C0F318004B1204 /* Schema.swift */,
 				5531F92B29C0F319004B1204 /* Storable.swift */,
@@ -509,7 +509,7 @@
 				5531F93129C0F319004B1204 /* IngestFormat.swift in Sources */,
 				5531F93829C0F319004B1204 /* Schema.swift in Sources */,
 				5531F96129C0F324004B1204 /* NSDeleteRule-ext.swift in Sources */,
-				5531F94A29C0F319004B1204 /* PropertyInfo.swift in Sources */,
+				5531F94A29C0F319004B1204 /* Property.swift in Sources */,
 				5531F94229C0F319004B1204 /* Diffable.swift in Sources */,
 				5531F94129C0F319004B1204 /* BoxedValueTransformer.swift in Sources */,
 				5531F95D29C0F324004B1204 /* JSONSerialization-ext.swift in Sources */,

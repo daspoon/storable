@@ -7,9 +7,9 @@
 import Foundation
 
 
-/// The PropertyInfo enum unifies the types which serve as managed property descriptors.
+/// The Property enum unifies the types which serve as managed property descriptors.
 
-public enum PropertyInfo
+public enum Property
   {
     case attribute(Attribute)
     case relationship(Relationship)

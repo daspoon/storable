@@ -24,7 +24,7 @@ public struct Entity
         name = objectType.entityNameAndVersion.entityName
         managedObjectClass = objectType
 
-        for (name, info) in objectType.declaredPropertyInfoByName {
+        for (name, info) in objectType.declaredPropertiesByName {
           switch info {
             case .attribute(let info) :
               attributes[name] = info
@@ -117,5 +117,5 @@ extension Entity : Diffable
 
 /// The ManagedObject macro, when applied to definitions of ManagedObject subclasses, generates instances of the ManagedObject struct.
 
-@attached(member, names: named(declaredPropertyInfoByName))
+@attached(member, names: named(declaredPropertiesByName))
 public macro ManagedObject() = #externalMacro(module: "StorableMacros", type: "EntityMacro")

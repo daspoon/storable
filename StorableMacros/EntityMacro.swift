@@ -33,7 +33,7 @@ public struct EntityMacro : MemberMacro
           throw Exception("@ManagedObject is applicable only to class definitions")
         }
 
-        var text = "public override class var declaredPropertyInfoByName : [String: PropertyInfo] {\n"
+        var text = "public override class var declaredPropertiesByName : [String: Property] {\n"
         text.append("  return [")
         var count = 0
         for item in dcl.members.members {

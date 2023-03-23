@@ -23,7 +23,7 @@ open class ManagedObject : NSManagedObject
       }
 
 
-    open class var declaredPropertyInfoByName : [String: PropertyInfo]
+    open class var declaredPropertiesByName : [String: Property]
       { [:] }
 
 
