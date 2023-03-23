@@ -13,14 +13,9 @@ public struct RelationshipMacro : ManagedPropertyMacro
   {
     // ManagedPropertyMacro
 
-    static var attributeName : String { "Relationship" }
+    static func inferredMetadataConstructorArguments(for info: StoredPropertyInfo, with attr: AttributeSyntax) -> String?
+      { "name: \"\(info.name)\", type: \(info.type.longName).self" }
 
-    static func generateDescriptorText(for decl: StoredPropertyInfo, using attribute: AttributeSyntax) throws -> String
-      {
-        return ".relationship(.init(name: \"\(decl.name)\", type: \(decl.type.longName).self"
-          + generateDescriptorArgumentText(for: attribute.argument, withInitialComma: true)
-          + "))"
-      }
 
     // AccessorMacro
 

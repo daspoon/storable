@@ -31,11 +31,11 @@ extension AttributeSyntax
     var trimmedName : String
       { attributeName.trimmed.description }
 
-    /// Return the first element of the attribute argument list, if any.
-    var firstArgumentElement : TupleExprElementSyntax?
+    /// Return the associated argument list, if any.
+    var argumentList : TupleExprElementListSyntax?
       {
-        guard case .some(.argumentList(let elements)) = argument else { return nil }
-        return elements.first
+        guard case .argumentList(let list) = argument else { return nil }
+        return list
       }
   }
 

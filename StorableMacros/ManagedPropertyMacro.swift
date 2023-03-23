@@ -6,16 +6,14 @@
 
 import SwiftSyntax
 import SwiftSyntaxMacros
+import Foundation
 
 
 /// ManagedPropertyMacro defines the common features of macro types used to declare managed properties.
 protocol ManagedPropertyMacro : AccessorMacro
   {
-    /// The name of the macro attribute.
-    static var attributeName : String { get }
-
-    /// Return the textual expression of a managed property descriptor for the given variable declaration and macro attribute.
-    static func generateDescriptorText(for declaration: StoredPropertyInfo, using attribute: AttributeSyntax) throws -> String
+    /// Return the (string representation of the) initial sequence of arguments to the property metadata constructor which are inferred from the stored property declartion.
+    static func inferredMetadataConstructorArguments(for info: StoredPropertyInfo, with attr: AttributeSyntax) -> String?
   }
 
 
@@ -33,17 +31,28 @@ extension ManagedPropertyMacro
         return info
       }
 
-    /// Used to generate propagate specified macro arguments as arguments to a generated property descriptor expression.
-    static func generateDescriptorArgumentText(for argument: AttributeSyntax.Argument?, withInitialComma: Bool) -> String
+    /// Create an expression representing a new instance of the corresponding property metadata type from the details of the associated stored property and the arguments to the macro application.
+    static func metadataConstructorExpr(for info: StoredPropertyInfo, with attr: AttributeSyntax) -> ExprSyntax
       {
-        guard case .some(.argumentList(let elements)) = argument else { return "" }
-        var result = ""
-        for (i, element) in elements.enumerated() {
-          if i > 0 || withInitialComma {
-            result += ", "
-          }
-          result += "\(element.label.map({$0}) ?? "")\(element.colon.map({$0}) ?? "")\(element.expression)"
+        let args : String
+        switch (inferredMetadataConstructorArguments(for: info, with: attr), attr.argumentList) {
+          case (.some(let inferredArgs), .some(let explicitArgs)) : args = inferredArgs + ", " + explicitArgs.description
+          case (.some(let inferredArgs), .none) : args = inferredArgs
+          case (.none, .some(let explicitArgs)) : args = explicitArgs.description
+          case (.none, .none) : args = ""
         }
-        return result
+        return ".\(raw: Self.metadataTagName)(\(raw: Self.attributeName)(\(raw: args)))"
       }
+
+    /// Return the name of the corresponding macro attribute as the type name minus the "Macro" suffix.
+    static var attributeName : String
+      {
+        let typeName = "\(Self.self)"
+        guard let range = typeName.range(of: "Macro", options: [.anchored, .backwards]) else { return typeName }
+        return String(typeName[typeName.startIndex ..< range.lowerBound])
+      }
+
+    /// Return the case name for the enum which unifies the distinct property metadata types.
+    static var metadataTagName : String
+      { attributeName.lowercased() }
   }

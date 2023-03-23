@@ -13,5 +13,5 @@ public enum PropertyInfo
   {
     case attribute(Attribute)
     case relationship(Relationship)
-    case fetched(Fetch)
+    case fetched(Fetched)
   }

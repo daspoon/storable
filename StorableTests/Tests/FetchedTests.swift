@@ -30,19 +30,19 @@ import Storable
     @Relationship(inverse: "dwelling", deleteRule: .nullify)
     var occupants : Set<Occupant>
 
-    @Fetch(predicate: .init(format: "dwelling = $FETCH_SOURCE"), sortDescriptors: [.init(key: "name", ascending: true)])
+    @Fetched(predicate: .init(format: "dwelling = $FETCH_SOURCE"), sortDescriptors: [.init(key: "name", ascending: true)])
     var occupantsByName : [Occupant]
 
-    @Fetch(predicate: .init(format: "dwelling = $FETCH_SOURCE && age < 18"), sortDescriptors: [.init(key: "age", ascending: true)])
+    @Fetched(predicate: .init(format: "dwelling = $FETCH_SOURCE && age < 18"), sortDescriptors: [.init(key: "age", ascending: true)])
     var minorOccupantsByAge : [Occupant]
 
-    @Fetch(identifiersOf: Occupant.self, predicate: .init(format: "dwelling = $FETCH_SOURCE"), sortDescriptors: [.init(key: "name", ascending: true)])
+    @Fetched(identifiersOf: Occupant.self, predicate: .init(format: "dwelling = $FETCH_SOURCE"), sortDescriptors: [.init(key: "name", ascending: true)])
     var occupantIdsByName : [NSManagedObjectID]
 
-    @Fetch(dictionariesOf: Occupant.self, predicate: .init(format: "dwelling = $FETCH_SOURCE"), sortDescriptors: [.init(key: "name", ascending: true)])
+    @Fetched(dictionariesOf: Occupant.self, predicate: .init(format: "dwelling = $FETCH_SOURCE"), sortDescriptors: [.init(key: "name", ascending: true)])
     var occupantNamesAndAges : [[String: Any]]
 
-    @Fetch(countOf: Occupant.self, predicate: .init(format: "dwelling = $FETCH_SOURCE"))
+    @Fetched(countOf: Occupant.self, predicate: .init(format: "dwelling = $FETCH_SOURCE"))
     var numberOfOccupants : Int
   }
 

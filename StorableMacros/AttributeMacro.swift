@@ -13,15 +13,9 @@ public struct AttributeMacro : ManagedPropertyMacro
   {
     // ManagedPropertyMacro
 
-    static var attributeName : String { "Attribute" }
+    static func inferredMetadataConstructorArguments(for info: StoredPropertyInfo, with attr: AttributeSyntax) -> String?
+      { "name: \"\(info.name)\", type: \(info.type.longName).self" + (info.value.map {", defaultValue: \($0)"} ?? "") }
 
-    static func generateDescriptorText(for decl: StoredPropertyInfo, using attribute: AttributeSyntax) throws -> String
-      {
-        return ".attribute(.init(name: \"\(decl.name)\", type: \(decl.type.longName).self"
-          + (decl.value.map { ", defaultValue: \($0)" } ?? "")
-          + generateDescriptorArgumentText(for: attribute.argument, withInitialComma: true)
-          + "))"
-      }
 
     // AccessorMacro
 

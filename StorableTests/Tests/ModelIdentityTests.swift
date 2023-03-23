@@ -110,7 +110,7 @@ fileprivate typealias PlaceWithSortedOccupants = Place_v3
     var name : String
     @Relationship(inverse: "place", deleteRule: .nullify)
     var occupants : Set<Person>
-    @Fetch(sortDescriptors: [.init(key: "name", ascending: true)])
+    @Fetched(sortDescriptors: [.init(key: "name", ascending: true)])
     var occupantsByName : [PersonWithPlace]
   }
 

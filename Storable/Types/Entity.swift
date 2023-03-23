@@ -14,7 +14,7 @@ public struct Entity
     public let name : String
     public private(set) var attributes : [String: Attribute] = [:]
     public private(set) var relationships : [String: Relationship] = [:]
-    public private(set) var fetchedProperties : [String: Fetch] = [:]
+    public private(set) var fetchedProperties : [String: Fetched] = [:]
     public let managedObjectClass : ManagedObject.Type
 
 

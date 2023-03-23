@@ -47,7 +47,7 @@ public struct EntityMacro : MemberMacro
           guard macroAttrs.count == 1 else { throw Exception("cannot intermix attributes among \(propertyMacroNames)") }
           // Generate a dictionary entry mapping the declared member name to a managed property descriptor
           let macroType = propertyMacroTypesByName[macroAttrs[0].trimmedName]!
-          text.append("    \"\(info.name)\" : \(try macroType.generateDescriptorText(for: info, using: macroAttrs[0])),\n")
+          text.append("    \"\(info.name)\" : \(macroType.metadataConstructorExpr(for: info, with: macroAttrs[0])),\n")
           count += 1
         }
         text.append((count == 0 ? ":]" : "  ]") + "\n")

@@ -7,9 +7,9 @@
 import CoreData
 
 
-/// The Fetch struct defines a fetched property on a class of managed object; it is analogous to CoreData's NSFetchedPropertyDescription.
+/// The Fetched struct defines a fetched property on a class of managed object; it is analogous to CoreData's NSFetchedPropertyDescription.
 
-public struct Fetch
+public struct Fetched
   {
     public let fetchRequest : NSFetchRequest<NSFetchRequestResult>
 
@@ -102,42 +102,42 @@ public struct Fetch
 ///  * *dictionariesOf* corresponds to an array of dictionary representations of the matching objects.
 /// Note that a separate macro definition is required for each combination of optional parameter to corresponding init method of struct Fetch.
 
-// Fetch objects
+// Fetched objects
 @attached(accessor)
-public macro Fetch() = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
+public macro Fetched() = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
 @attached(accessor)
-public macro Fetch(predicate: NSPredicate) = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
+public macro Fetched(predicate: NSPredicate) = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
 @attached(accessor)
-public macro Fetch(sortDescriptors: [NSSortDescriptor]) = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
+public macro Fetched(sortDescriptors: [NSSortDescriptor]) = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
 @attached(accessor)
-public macro Fetch(predicate: NSPredicate, sortDescriptors: [NSSortDescriptor]) = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
+public macro Fetched(predicate: NSPredicate, sortDescriptors: [NSSortDescriptor]) = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
 
-// Fetch count
+// Fetched count
 @attached(accessor)
-public macro Fetch<T: ManagedObject>(countOf: T.Type) = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
+public macro Fetched<T: ManagedObject>(countOf: T.Type) = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
 @attached(accessor)
-public macro Fetch<T: ManagedObject>(countOf: T.Type, predicate: NSPredicate) = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
+public macro Fetched<T: ManagedObject>(countOf: T.Type, predicate: NSPredicate) = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
 @attached(accessor)
-public macro Fetch<T: ManagedObject>(countOf: T.Type, sortDescriptors: [NSSortDescriptor]) = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
+public macro Fetched<T: ManagedObject>(countOf: T.Type, sortDescriptors: [NSSortDescriptor]) = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
 @attached(accessor)
-public macro Fetch<T: ManagedObject>(countOf: T.Type, predicate: NSPredicate, sortDescriptors: [NSSortDescriptor]) = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
+public macro Fetched<T: ManagedObject>(countOf: T.Type, predicate: NSPredicate, sortDescriptors: [NSSortDescriptor]) = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
 
-// Fetch identifiers
+// Fetched identifiers
 @attached(accessor)
-public macro Fetch<T: ManagedObject>(identifiersOf: T.Type) = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
+public macro Fetched<T: ManagedObject>(identifiersOf: T.Type) = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
 @attached(accessor)
-public macro Fetch<T: ManagedObject>(identifiersOf: T.Type, predicate: NSPredicate) = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
+public macro Fetched<T: ManagedObject>(identifiersOf: T.Type, predicate: NSPredicate) = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
 @attached(accessor)
-public macro Fetch<T: ManagedObject>(identifiersOf: T.Type, sortDescriptors: [NSSortDescriptor]) = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
+public macro Fetched<T: ManagedObject>(identifiersOf: T.Type, sortDescriptors: [NSSortDescriptor]) = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
 @attached(accessor)
-public macro Fetch<T: ManagedObject>(identifiersOf: T.Type, predicate: NSPredicate, sortDescriptors: [NSSortDescriptor]) = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
+public macro Fetched<T: ManagedObject>(identifiersOf: T.Type, predicate: NSPredicate, sortDescriptors: [NSSortDescriptor]) = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
 
-// Fetch dictionaries
+// Fetched dictionaries
 @attached(accessor)
-public macro Fetch<T: ManagedObject>(dictionariesOf: T.Type) = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
+public macro Fetched<T: ManagedObject>(dictionariesOf: T.Type) = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
 @attached(accessor)
-public macro Fetch<T: ManagedObject>(dictionariesOf: T.Type, predicate: NSPredicate) = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
+public macro Fetched<T: ManagedObject>(dictionariesOf: T.Type, predicate: NSPredicate) = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
 @attached(accessor)
-public macro Fetch<T: ManagedObject>(dictionariesOf: T.Type, sortDescriptors: [NSSortDescriptor]) = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
+public macro Fetched<T: ManagedObject>(dictionariesOf: T.Type, sortDescriptors: [NSSortDescriptor]) = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
 @attached(accessor)
-public macro Fetch<T: ManagedObject>(dictionariesOf: T.Type, predicate: NSPredicate, sortDescriptors: [NSSortDescriptor]) = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
+public macro Fetched<T: ManagedObject>(dictionariesOf: T.Type, predicate: NSPredicate, sortDescriptors: [NSSortDescriptor]) = #externalMacro(module: "StorableMacros", type: "FetchedMacro")

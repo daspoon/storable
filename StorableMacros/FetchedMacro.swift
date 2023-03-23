@@ -16,7 +16,7 @@ public struct FetchedMacro : ManagedPropertyMacro
     /// Determine the mode according to the label of the macro attribute's first argument, if any.
     private static func mode(for attribute: AttributeSyntax) -> Mode
       {
-        switch attribute.firstArgumentElement?.label?.description {
+        switch attribute.argumentList?.first?.label?.description {
           case "countOf" : return .count
           case "identifiersOf" : return .identifiers
           case "dictionariesOf" : return .dictionaries
@@ -27,15 +27,14 @@ public struct FetchedMacro : ManagedPropertyMacro
 
     // ManagedPropertyMacro
 
-    static var attributeName : String { "Fetch" }
-
-    static func generateDescriptorText(for decl: StoredPropertyInfo, using attribute: AttributeSyntax) throws -> String
+    static func inferredMetadataConstructorArguments(for info: StoredPropertyInfo, with attribute: AttributeSyntax) -> String?
       {
-        let mode = Self.mode(for: attribute)
-        return ".fetched(.init("
-          + (mode == .objects ? "objectsOf: \(decl.type.arrayElementType!).self" : "")
-          + generateDescriptorArgumentText(for: attribute.argument, withInitialComma: mode == .objects)
-          + "))"
+        switch mode(for: attribute) {
+          case .objects :
+            return "objectsOf: \(info.type.arrayElementType!).self"
+          default :
+            return nil
+        }
       }
 
     // AccessorMacro
