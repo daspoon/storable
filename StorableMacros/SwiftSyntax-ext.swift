@@ -40,44 +40,6 @@ extension AttributeSyntax
   }
 
 
-extension VariableDeclSyntax
-  {
-    /// Return the components of a stored property declaration, if applicable.
-    var storedPropertyInfo : StoredPropertyInfo?
-      {
-        // Ensure the given declaration corresponds to a single variable with a name and a type...
-        guard
-          let binding = bindings.first, bindings.count == 1,
-          let name = binding.pattern.as(IdentifierPatternSyntax.self)?.identifier.text,
-          let type = binding.typeAnnotation?.type.trimmed
-        else {
-          return nil
-        }
-
-        // Ensure the declaration's binding corresponds to a stored property
-        switch binding.accessor {
-          case .none :
-            break
-          case .accessors(let node) :
-            for accessor in node.accessors {
-              switch accessor.accessorKind.tokenKind {
-                case .keyword(.willSet), .keyword(.didSet) :
-                  break
-                default :
-                  return nil
-              }
-            }
-          case .getter :
-            return nil
-          @unknown default:
-            return nil
-        }
-
-        return (name, type, binding.initializer?.value)
-      }
-  }
-
-
 extension TypeSyntaxProtocol
   {
     /// Return the type name with verbose spelling if necessary to ensure "\(longName).self" can be parsed as a type instance.
@@ -142,3 +104,39 @@ extension TypeSyntaxProtocol
   }
 
 
+extension VariableDeclSyntax
+  {
+    /// Return the components of a stored property declaration, if applicable.
+    var storedPropertyInfo : StoredPropertyInfo?
+      {
+        // Ensure the given declaration corresponds to a single variable with a name and a type...
+        guard
+          let binding = bindings.first, bindings.count == 1,
+          let name = binding.pattern.as(IdentifierPatternSyntax.self)?.identifier.text,
+          let type = binding.typeAnnotation?.type.trimmed
+        else {
+          return nil
+        }
+
+        // Ensure the declaration's binding corresponds to a stored property
+        switch binding.accessor {
+          case .none :
+            break
+          case .accessors(let node) :
+            for accessor in node.accessors {
+              switch accessor.accessorKind.tokenKind {
+                case .keyword(.willSet), .keyword(.didSet) :
+                  break
+                default :
+                  return nil
+              }
+            }
+          case .getter :
+            return nil
+          @unknown default:
+            return nil
+        }
+
+        return (name, type, binding.initializer?.value)
+      }
+  }
