@@ -41,7 +41,6 @@ public class DataStore
           else { fatalError("failed to get URL for document directory") }
 
         guard let storeURL = URL(string: "\(name).sqlite", relativeTo: directoryURL) else { fatalError("failed to create relative URL") }
-log("storeURL = \(storeURL.absoluteString)")
 
         self.storeURL = storeURL
         self.saveRequestNotificationName = saveRequestNotificationName
@@ -82,8 +81,6 @@ log("storeURL = \(storeURL.absoluteString)")
     public func openWith(model: NSManagedObjectModel) throws
       {
         precondition(state == nil, "already open")
-
-//log("model is \n\(model)")
 
         // Create the persistent store coordinator and managed object context.
         let coordinator = NSPersistentStoreCoordinator(managedObjectModel: model)
