@@ -2,7 +2,6 @@
 
   Created by David Spooner
 
-*/
 
 import Foundation
 
@@ -51,3 +50,4 @@ extension JSONSerialization
         return value
       }
   }
+*/

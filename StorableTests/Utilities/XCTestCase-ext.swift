@@ -24,9 +24,9 @@ extension XCTestCase
     func createAndOpenStoreWith(model m: NSManagedObjectModel) throws -> DataStore
       { try createStore { try $0.openWith(model: m) } }
 
-    /// Create and open a store for the given schema and migrations..
-    func createAndOpenStoreWith(schema s: Schema, migrations ms: [Migration] = []) throws -> DataStore
-      { try createStore{ try $0.openWith(schema: s, migrations: ms) } }
+    /// Create and open a store for the given schema.
+    func createAndOpenStoreWith(schema s: Schema) throws -> DataStore
+      { try createStore{ try $0.openWith(schema: s) } }
 
     /// Create a store with the underlying file named by the receiver's class, adding a teardown block to close and reset its content.
     /// Ensure that each store instance is used by at most one test case.
@@ -55,19 +55,5 @@ extension XCTestCase
         try store.reset()
         try configure(store)
         return store
-      }
-
-
-    /// Given two schemas, ensure that the version hashes of the implied object models have the expected relationship.
-    func checkObjectModelHashes(match expectedMatch: Bool, _ original: Schema, _ modified: Schema) throws
-      {
-        let versionId = "*"
-        let originalModel = try original.createRuntimeInfo(withVersionId: versionId).managedObjectModel
-        let modifiedModel = try modified.createRuntimeInfo(withVersionId: versionId).managedObjectModel
-
-        let actualMatch = originalModel.entityVersionHashesByName == modifiedModel.entityVersionHashesByName
-        if actualMatch != expectedMatch {
-          XCTFail("model hash values are expected to " + (expectedMatch ? "match" : "differ"))
-        }
       }
   }

@@ -2,7 +2,6 @@
 
   Created by David Spooner
 
-*/
 
 
 /// Methods added to Dictionary to simplify ingestion of object property values from JSON.
@@ -56,3 +55,4 @@ extension Dictionary where Key == String, Value == Any
         return vs
       }
   }
+*/
