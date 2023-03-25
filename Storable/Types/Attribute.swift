@@ -32,12 +32,9 @@ public struct Attribute
     /// The name of the attribute in the previous entity version, if necessary.
     public var renamingIdentifier : String?
 
-    /// If non-nil, determines how json values are extracted from object ingest data and transformed to stored values.
-    public var ingest : (key: IngestKey, method: (Any) throws -> any Storable)?
-
 
     /// Initialize a new instance.
-    private init<Value: Storable>(name: String, type: Value.Type, isOptional: Bool, defaultValue: Value?, renamingIdentifier: String?, ingest: (key: IngestKey, method: (Any) throws -> any Storable)? = nil)
+    private init<Value: Storable>(name: String, type: Value.Type, isOptional: Bool, defaultValue: Value?, renamingIdentifier: String?)
       {
         self.name = name
         self.type = type
@@ -46,7 +43,6 @@ public struct Attribute
         self.defaultValue = defaultValue
         self.isOptional = isOptional
         self.renamingIdentifier = renamingIdentifier
-        self.ingest = ingest
       }
 
 
@@ -54,42 +50,10 @@ public struct Attribute
     public init<T: Storable>(name: String, type t: T.Type, defaultValue v: T? = nil, renamingIdentifier id: String? = nil)
       { self.init(name: name, type: t, isOptional: false, defaultValue: v, renamingIdentifier: id) }
 
-    /// Declare a non-optional attribute which is ingestible.
-    public init<T: Storable&Ingestible>(name: String, type t: T.Type, defaultValue v: T? = nil, renamingIdentifier id: String? = nil)
-      { self.init(name: name, type: t, isOptional: false, defaultValue: v, renamingIdentifier: id, ingest: (.element(name), T.ingest)) }
-
-    /// Declare a non-optional attribute which is ingestible using the specified key.
-    public init<T: Storable&Ingestible>(name: String, type t: T.Type, defaultValue v: T? = nil, renamingIdentifier id: String? = nil, ingestKey k: IngestKey)
-      { self.init(name: name, type: t, isOptional: false, defaultValue: v, renamingIdentifier: id, ingest: (k, T.ingest)) }
-
-    /// Declare an attribute which is transformed from an alternate format on ingestion. If a default value is provided, it must be of the input type of the given transform.
-    public init<T: Storable&Ingestible, Alt>(name: String, type t: T.Type, defaultValue v: Alt? = nil, renamingIdentifier id: String? = nil, ingestKey k: IngestKey? = nil, transform f: @escaping (Alt) throws -> T.Input)
-      {
-        // Transform the given default value.
-        let u = v.map {try! T.ingest($0, withTransform: f)}
-        self.init(name: name, type: t, isOptional: false, defaultValue: u, renamingIdentifier: id, ingest: (k ?? .element(name), {try T.ingest($0, withTransform: f)}))
-      }
-
 
     /// Declare an optional attribute.
     public init<T: Nullable>(name: String, type t: T.Type, defaultValue v: T.Wrapped? = nil, renamingIdentifier id: String? = nil) where T.Wrapped : Storable
       { self.init(name: name, type: T.Wrapped.self, isOptional: true, defaultValue: v, renamingIdentifier: id) }
-
-    /// Declare an optional attribute which is ingestible.
-    public init<T: Nullable>(name: String, type t: T.Type, defaultValue v: T.Wrapped? = nil, renamingIdentifier id: String? = nil) where T.Wrapped : Storable&Ingestible
-      { self.init(name: name, type: T.Wrapped.self, isOptional: true, defaultValue: v, renamingIdentifier: id, ingest: (.element(name), T.Wrapped.ingest)) }
-
-    /// Declare an optional attribute which is ingestible using the specified key.
-    public init<T: Nullable>(name: String, type t: T.Type, defaultValue v: T.Wrapped? = nil, renamingIdentifier id: String? = nil, ingestKey k: IngestKey) where T.Wrapped : Storable&Ingestible
-      { self.init(name: name, type: T.Wrapped.self, isOptional: true, defaultValue: v, renamingIdentifier: id, ingest: (k, T.Wrapped.ingest)) }
-
-    /// Declare an optional attribute which is transformed from an alternate format on ingestion.
-    public init<T: Nullable, Alt>(name: String, type t: T.Type, defaultValue v: Alt? = nil, renamingIdentifier id: String? = nil, ingestKey k: IngestKey? = nil, transform f: @escaping (Alt) throws -> T.Wrapped.Input) where T.Wrapped : Storable&Ingestible
-      {
-        // Transform the given default value.
-        let u = v.map {try! T.Wrapped.ingest($0, withTransform: f)}
-        self.init(name: name, type: T.Wrapped.self, isOptional: true, defaultValue: u, renamingIdentifier: id, ingest: (k ?? .element(name), {try T.Wrapped.ingest($0, withTransform: f)}))
-      }
 
 
     /// Return a copy of the receiver with changes made by the given code block.
@@ -111,26 +75,6 @@ public struct Attribute
 public macro Attribute() = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
 @attached(accessor)
 public macro Attribute(renamingIdentifier: String) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
-@attached(accessor)
-public macro Attribute(ingestKey: IngestKey) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
-@attached(accessor)
-public macro Attribute(renamingIdentifier: String, ingestKey: IngestKey) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
-@attached(accessor)
-public macro Attribute<V>(transform t: @escaping (V) throws -> Any) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
-@attached(accessor)
-public macro Attribute<V>(defaultValue: V, transform t: @escaping (V) throws -> Any) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
-@attached(accessor)
-public macro Attribute<V>(ingestKey: IngestKey, transform t: @escaping (V) throws -> Any) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
-@attached(accessor)
-public macro Attribute<V>(defaultValue: V, ingestKey: IngestKey, transform t: @escaping (V) throws -> Any) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
-@attached(accessor)
-public macro Attribute<V>(renamingIdentifier: String, transform t: @escaping (V) throws -> Any) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
-@attached(accessor)
-public macro Attribute<V>(defaultValue: V, renamingIdentifier: String, transform t: @escaping (V) throws -> Any) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
-@attached(accessor)
-public macro Attribute<V>(renamingIdentifier: String, ingestKey: IngestKey, transform t: @escaping (V) throws -> Any) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
-@attached(accessor)
-public macro Attribute<V>(defaultValue: V, renamingIdentifier: String, ingestKey: IngestKey, transform t: @escaping (V) throws -> Any) = #externalMacro(module: "StorableMacros", type: "AttributeMacro")
 
 
 // MARK: --

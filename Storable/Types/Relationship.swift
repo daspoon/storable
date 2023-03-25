@@ -22,15 +22,6 @@ public struct Relationship
         var detail : (range: ClosedRange<Int>, deleteRule: DeleteRule, renamingIdentifier: String?)?
       }
 
-    /// Determines how related objects are obtained from object ingest data.
-    public enum IngestMode
-      {
-        /// Ingested values are the names of existing objects.
-        case reference
-        /// Ingested values are the data required to construct related objects.
-        case create(IngestFormat = .dictionary)
-      }
-
     /// The name of the corresponding property of the source entity.
     public var name : String
 
@@ -49,12 +40,9 @@ public struct Relationship
     /// The name of the relationship in the previous entity version, if necessary.
     public var renamingIdentifier : String?
 
-    /// Indicates how values are established on object ingestion.
-    public var ingest : (key: IngestKey, mode: IngestMode)?
-
 
     /// Initialize a new instance.
-    public init(name: String, range: ClosedRange<Int>, relatedEntityName: String, inverse: InverseSpec, deleteRule: DeleteRule, renamingIdentifier: String? = nil, ingest: (key: IngestKey, mode: IngestMode)? = nil)
+    public init(name: String, range: ClosedRange<Int>, relatedEntityName: String, inverse: InverseSpec, deleteRule: DeleteRule, renamingIdentifier: String? = nil)
       {
         precondition(range.lowerBound >= 0 && range.upperBound >= 1)
 
@@ -64,7 +52,6 @@ public struct Relationship
         self.inverse = inverse
         self.deleteRule = deleteRule
         self.renamingIdentifier = renamingIdentifier
-        self.ingest = ingest
       }
 
 
@@ -79,19 +66,6 @@ public struct Relationship
     /// Declare a to-many relationship.
     public init<T: SetAlgebra>(name: String, type: T.Type, inverse inv: Relationship.InverseSpec, deleteRule r: Relationship.DeleteRule, renamingIdentifier oldName: String? = nil) where T.Element : ManagedObject
       { self.init(name: name, range: 0 ... .max, relatedEntityName: T.Element.entityName, inverse: inv, deleteRule: r, renamingIdentifier: oldName) }
-
-
-    /// Declare a to-optional relationship which is ingestible.
-    public init<T: ManagedObject>(name: String, type: T.Type, inverse inv: Relationship.InverseSpec, deleteRule r: Relationship.DeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: Relationship.IngestMode, ingestKey k: IngestKey? = nil)
-      { self.init(name: name, range: 1 ... 1, relatedEntityName: T.entityName, inverse: inv, deleteRule: r, renamingIdentifier: oldName, ingest: (key: k ?? .element(name), mode: m)) }
-
-    /// Declare a to-optional relationship which is ingestible.
-    public init<T: Nullable>(name: String, type: T.Type, inverse inv: Relationship.InverseSpec, deleteRule r: Relationship.DeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: Relationship.IngestMode, ingestKey k: IngestKey? = nil) where T.Wrapped : ManagedObject
-      { self.init(name: name, range:  0 ... 1, relatedEntityName: T.Wrapped.entityName, inverse: inv, deleteRule: r, renamingIdentifier: oldName, ingest: (key: k ?? .element(name), mode: m)) }
-
-    /// Declare a to-many relationship which is ingestible.
-    public init<T: SetAlgebra>(name: String, type: T.Type, inverse inv: Relationship.InverseSpec, deleteRule r: Relationship.DeleteRule, renamingIdentifier oldName: String? = nil, ingestMode m: Relationship.IngestMode, ingestKey k: IngestKey? = nil) where T.Element : ManagedObject
-      { self.init(name: name, range: 0 ... .max, relatedEntityName: T.Element.entityName, inverse: inv, deleteRule: r, renamingIdentifier: oldName, ingest: (key: k ?? .element(name), mode: m)) }
 
 
     /// Return a descriptor for the inverse relationship if possible.
@@ -112,14 +86,6 @@ public struct Relationship
 public macro Relationship(inverse: Relationship.InverseSpec, deleteRule: Relationship.DeleteRule) = #externalMacro(module: "StorableMacros", type: "RelationshipMacro")
 @attached(accessor)
 public macro Relationship(inverse: Relationship.InverseSpec, deleteRule: Relationship.DeleteRule, renamingIdentifier: String) = #externalMacro(module: "StorableMacros", type: "RelationshipMacro")
-@attached(accessor)
-public macro Relationship(inverse: Relationship.InverseSpec, deleteRule: Relationship.DeleteRule, ingestMode: Relationship.IngestMode) = #externalMacro(module: "StorableMacros", type: "RelationshipMacro")
-@attached(accessor)
-public macro Relationship(inverse: Relationship.InverseSpec, deleteRule: Relationship.DeleteRule, ingestMode: Relationship.IngestMode, ingestKey: IngestKey) = #externalMacro(module: "StorableMacros", type: "RelationshipMacro")
-@attached(accessor)
-public macro Relationship(inverse: Relationship.InverseSpec, deleteRule: Relationship.DeleteRule, renamingIdentifier: String, ingestMode: Relationship.IngestMode) = #externalMacro(module: "StorableMacros", type: "RelationshipMacro")
-@attached(accessor)
-public macro Relationship(inverse: Relationship.InverseSpec, deleteRule: Relationship.DeleteRule, renamingIdentifier: String, ingestMode: Relationship.IngestMode, ingestKey: IngestKey) = #externalMacro(module: "StorableMacros", type: "RelationshipMacro")
 
 
 // MARK: --
