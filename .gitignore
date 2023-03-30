@@ -4,9 +4,8 @@ xcuserdata
 *.xccheckout
 
 # Generated files by hugo
-website/public/
-website/resources/_gen/
-website/assets/jsconfig.json
+public/
+resources/_gen/
+assets/jsconfig.json
 hugo_stats.json
-# Temporary lock file while building
 .hugo_build.lock

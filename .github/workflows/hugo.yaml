@@ -56,7 +56,6 @@ jobs:
           HUGO_ENV: production
         run: |
           hugo \
-            --source "/home/runner/work/storable/storable/website/" \
             --gc \
             --minify \
             --baseURL "${{ steps.pages.outputs.base_url }}/"
