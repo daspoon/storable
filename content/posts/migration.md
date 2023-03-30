@@ -1,7 +1,7 @@
 ---
 title: "Swift macros for CoreData migration"
 author: "David Spooner"
-date: 2023-03-31T00:00:00-06:00
+date: 2023-03-30T00:00:00-06:00
 ---
 
 Applications for Apple platforms typically use the CoreData framework to maintain their persistent data.

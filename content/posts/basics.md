@@ -1,7 +1,7 @@
 ---
 title: "Swift macros for CoreData object models"
 author: "David Spooner"
-date: 2023-03-31T00:00:00-06:00
+date: 2023-03-30T00:00:00-06:00
 ---
 
 Swift macros are a feature currently in development by the Swift open source project, and CoreData is Apple's object persistence framework.
