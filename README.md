@@ -31,3 +31,11 @@ The [Entity](https://github.com/daspoon/storable/blob/main/Storable/Types/Entity
 [Schema](https://github.com/daspoon/storable/blob/main/Storable/Types/Schema.swift) is a structure which represents a complete object model and which generates an *NSManagedObjectModel*.
 
 [DataStore](https://github.com/daspoon/storable/blob/main/Storable/Types/DataStore.swift) is a convenience class which manages a persistent store and provides an *NSManagedObjectContext* for a given *Schema*.
+
+
+## Documentation
+
+An [introductory article](https://lambdasoftware.xyz/posts/001-storable-basics/) describes the core mechanics of the system.
+
+A [secondary article](https://lambdasoftware.xyz/posts/002-storable-migration/) describes the impact on persistent store migration.
+
