@@ -65,10 +65,6 @@
 		55337B9629C3A38900ECC356 /* ManagedPropertyMacro.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55337B9529C3A38900ECC356 /* ManagedPropertyMacro.swift */; };
 		554B987829D1EA2400F32CFE /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 554B987729D1EA2400F32CFE /* README.md */; };
 		555D8B3A29C4C1C3000DDB06 /* IngestionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5531F97029C0F5CF004B1204 /* IngestionTests.swift */; };
-		5599824929D611F50082D8AB /* content in Resources */ = {isa = PBXBuildFile; fileRef = 5599824529D611F50082D8AB /* content */; };
-		5599824A29D611F50082D8AB /* hugo.toml in Resources */ = {isa = PBXBuildFile; fileRef = 5599824629D611F50082D8AB /* hugo.toml */; };
-		5599824B29D611F50082D8AB /* archetypes in Resources */ = {isa = PBXBuildFile; fileRef = 5599824729D611F50082D8AB /* archetypes */; };
-		5599824C29D611F50082D8AB /* themes in Resources */ = {isa = PBXBuildFile; fileRef = 5599824829D611F50082D8AB /* themes */; };
 		55C14B3B29C235AB00686C5D /* ProcessInfo-ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55C14B3A29C235AB00686C5D /* ProcessInfo-ext.swift */; };
 		55C14B3D29C236C500686C5D /* AttributeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5531F96929C0F5CF004B1204 /* AttributeTests.swift */; };
 		55DF58AB29C0DD5B005AB19D /* Storable.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55DF58A029C0DD5B005AB19D /* Storable.framework */; };
@@ -177,10 +173,6 @@
 		55337B9329C378F900ECC356 /* Exception.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Exception.swift; sourceTree = "<group>"; };
 		55337B9529C3A38900ECC356 /* ManagedPropertyMacro.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManagedPropertyMacro.swift; sourceTree = "<group>"; };
 		554B987729D1EA2400F32CFE /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		5599824529D611F50082D8AB /* content */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = content; sourceTree = SOURCE_ROOT; };
-		5599824629D611F50082D8AB /* hugo.toml */ = {isa = PBXFileReference; lastKnownFileType = file; path = hugo.toml; sourceTree = SOURCE_ROOT; };
-		5599824729D611F50082D8AB /* archetypes */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = archetypes; sourceTree = SOURCE_ROOT; };
-		5599824829D611F50082D8AB /* themes */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = themes; sourceTree = SOURCE_ROOT; };
 		55C14B3A29C235AB00686C5D /* ProcessInfo-ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ProcessInfo-ext.swift"; sourceTree = "<group>"; };
 		55DF58A029C0DD5B005AB19D /* Storable.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Storable.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		55DF58AA29C0DD5B005AB19D /* StorableTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = StorableTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -269,17 +261,6 @@
 			path = Utilities;
 			sourceTree = "<group>";
 		};
-		55D9A97329D4E26B00657295 /* website */ = {
-			isa = PBXGroup;
-			children = (
-				5599824629D611F50082D8AB /* hugo.toml */,
-				5599824729D611F50082D8AB /* archetypes */,
-				5599824529D611F50082D8AB /* content */,
-				5599824829D611F50082D8AB /* themes */,
-			);
-			path = website;
-			sourceTree = "<group>";
-		};
 		55DF589629C0DD5B005AB19D = {
 			isa = PBXGroup;
 			children = (
@@ -287,7 +268,6 @@
 				55DF58A229C0DD5B005AB19D /* Storable */,
 				55DF58CC29C0DFE3005AB19D /* StorableMacros */,
 				55DF58AE29C0DD5B005AB19D /* StorableTests */,
-				55D9A97329D4E26B00657295 /* website */,
 				55DF58A129C0DD5B005AB19D /* Products */,
 				55F42F7029C0E29B00AB5EBC /* Frameworks */,
 			);
@@ -498,11 +478,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5599824929D611F50082D8AB /* content in Resources */,
 				554B987829D1EA2400F32CFE /* README.md in Resources */,
-				5599824C29D611F50082D8AB /* themes in Resources */,
-				5599824B29D611F50082D8AB /* archetypes in Resources */,
-				5599824A29D611F50082D8AB /* hugo.toml in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

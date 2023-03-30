@@ -1,6 +1,0 @@
-title = 'Storable'
-theme = 'hugo-coder'
-languageCode = 'en-us'
-
-[params]
-colorScheme = "auto"
