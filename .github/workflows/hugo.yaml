@@ -56,7 +56,7 @@ jobs:
           HUGO_ENV: production
         run: |
           hugo \
-            --source "${{ GITHUB_WORKSPACE }}/website/" \
+            --source "${{ vars.GITHUB_WORKSPACE }}/website/" \
             --gc \
             --minify \
             --baseURL "${{ steps.pages.outputs.base_url }}/"
