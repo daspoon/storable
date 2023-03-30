@@ -1,3 +1,4 @@
+baseURL = 'https://github.com/daspoon/storable/website'
 title = 'Storable'
 theme = 'hugo-coder'
 languageCode = 'en-us'
