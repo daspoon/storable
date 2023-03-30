@@ -8,4 +8,4 @@ It aims to provide an alternative to Xcode's object model editor which:
 
 This project is a work in progress and, as Swift macros are an experimental feature, cannot be used directly to build applications for distribution on the App Store.
 
-For more information, see the [website]().
+For more information, see the [website](https://daspoon.github.io/storable/).
