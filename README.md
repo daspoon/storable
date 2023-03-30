@@ -1,12 +1,11 @@
-# Storable
 
-This package provides a means to generate CoreData object models from Swift class definitions using property wrappers to declare managed properties. The property wrappers enable convenient support for attributes of Swift value types such as Codable and RawRepresentable.
+This project explores the potential of creating CoreData object models from Swift code by applying macros to class and property declarations.
+It aims to provide an alternative to Xcode's object model editor which:
+  - unifies specification of object model and custom logic as Swift code;
+  - enables composition of object models;
+  - makes property metadata available for tasks such as data import and export;
+  - simplifies support for non-standard attribute types.
 
+This project is a work in progress and, as Swift macros are an experimental feature, cannot be used directly to build applications for distribution on the App Store.
 
-Primary types:
-  - Entity is a subclass of NSManagedObject which serves as the abstract base class for entity definitions
-  - Schema is a structure which references a set of Entity subclasses and which derives an NSManagedObjectModel
-  - DataStore is a convenience class for managing a persistent store and providing a managed object context for a given Schema
-  - Attribute, OptionalAttribute, Relationship and FetchedProperty are property wrapper types used to declare managed properties on Entity subclasses
-  - Storable is the protocol specifying the requirements of attribute types
-
+For more information, see the [website]().
