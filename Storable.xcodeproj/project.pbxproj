@@ -65,6 +65,7 @@
 		55337B9629C3A38900ECC356 /* ManagedPropertyMacro.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55337B9529C3A38900ECC356 /* ManagedPropertyMacro.swift */; };
 		554B987829D1EA2400F32CFE /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 554B987729D1EA2400F32CFE /* README.md */; };
 		555D8B3A29C4C1C3000DDB06 /* IngestionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5531F97029C0F5CF004B1204 /* IngestionTests.swift */; };
+		5599824E29D8911B0082D8AB /* LICENSE.md in Resources */ = {isa = PBXBuildFile; fileRef = 5599824D29D8911B0082D8AB /* LICENSE.md */; };
 		55C14B3B29C235AB00686C5D /* ProcessInfo-ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55C14B3A29C235AB00686C5D /* ProcessInfo-ext.swift */; };
 		55C14B3D29C236C500686C5D /* AttributeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5531F96929C0F5CF004B1204 /* AttributeTests.swift */; };
 		55DF58AB29C0DD5B005AB19D /* Storable.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55DF58A029C0DD5B005AB19D /* Storable.framework */; };
@@ -173,6 +174,7 @@
 		55337B9329C378F900ECC356 /* Exception.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Exception.swift; sourceTree = "<group>"; };
 		55337B9529C3A38900ECC356 /* ManagedPropertyMacro.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManagedPropertyMacro.swift; sourceTree = "<group>"; };
 		554B987729D1EA2400F32CFE /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		5599824D29D8911B0082D8AB /* LICENSE.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = LICENSE.md; sourceTree = "<group>"; };
 		55C14B3A29C235AB00686C5D /* ProcessInfo-ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ProcessInfo-ext.swift"; sourceTree = "<group>"; };
 		55DF58A029C0DD5B005AB19D /* Storable.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Storable.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		55DF58AA29C0DD5B005AB19D /* StorableTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = StorableTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -264,6 +266,7 @@
 		55DF589629C0DD5B005AB19D = {
 			isa = PBXGroup;
 			children = (
+				5599824D29D8911B0082D8AB /* LICENSE.md */,
 				554B987729D1EA2400F32CFE /* README.md */,
 				55DF58A229C0DD5B005AB19D /* Storable */,
 				55DF58CC29C0DFE3005AB19D /* StorableMacros */,
@@ -478,6 +481,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5599824E29D8911B0082D8AB /* LICENSE.md in Resources */,
 				554B987829D1EA2400F32CFE /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
