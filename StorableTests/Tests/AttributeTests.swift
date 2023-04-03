@@ -6,6 +6,8 @@
 
 */
 
+#if swift(>=5.9)
+
 import XCTest
 import Storable
 
@@ -234,3 +236,5 @@ final class AttributeTests : XCTestCase
         try store.save()
       }
   }
+
+#endif

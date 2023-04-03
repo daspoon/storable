@@ -6,6 +6,8 @@
 
 */
 
+#if swift(>=5.9)
+
 import XCTest
 import CoreData
 import Storable
@@ -70,3 +72,5 @@ final class FetchedTests : XCTestCase
         if flintstone.numberOfOccupants != 3 { XCTFail("flintstone.numberOfOccupants") }
       }
   }
+
+#endif

@@ -4,9 +4,11 @@
 
 */
 
+#if swift(>=5.9)
+
 import XCTest
 import CoreData
-@testable import Storable
+import Storable
 
 
 final class ModelIdentityTests : XCTestCase
@@ -123,3 +125,5 @@ extension ModelIdentityTests
         try checkObjectModelHashes(match: true, original, modified);
       }
   }
+
+#endif

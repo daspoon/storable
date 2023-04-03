@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "5535341329DB5C84009A5819"
-               BuildableName = "Storable.framework"
-               BlueprintName = "Storable"
+               BlueprintIdentifier = "55DF589F29C0DD5B005AB19D"
+               BuildableName = "StorableBase.framework"
+               BlueprintName = "StorableBase"
                ReferencedContainer = "container:Storable.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -28,6 +28,17 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "55DF58A929C0DD5B005AB19D"
+               BuildableName = "StorableTests.xctest"
+               BlueprintName = "StorableTests"
+               ReferencedContainer = "container:Storable.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction
@@ -50,9 +61,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "5535341329DB5C84009A5819"
-            BuildableName = "Storable.framework"
-            BlueprintName = "Storable"
+            BlueprintIdentifier = "55DF589F29C0DD5B005AB19D"
+            BuildableName = "StorableBase.framework"
+            BlueprintName = "StorableBase"
             ReferencedContainer = "container:Storable.xcodeproj">
          </BuildableReference>
       </MacroExpansion>

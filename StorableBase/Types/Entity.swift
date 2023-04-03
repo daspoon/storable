@@ -111,11 +111,3 @@ extension Entity : Diffable
         )
       }
   }
-
-
-// MARK: --
-
-/// The ManagedObject macro, when applied to definitions of ManagedObject subclasses, generates instances of the ManagedObject struct.
-
-@attached(member, names: named(declaredPropertiesByName))
-public macro ManagedObject() = #externalMacro(module: "StorableMacros", type: "EntityMacro")

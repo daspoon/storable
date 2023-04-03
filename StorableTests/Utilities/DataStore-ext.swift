@@ -18,11 +18,11 @@ extension DataStore
 
     /// Fetch an array of objects matching the given predicate and sorted by the given descriptors.
     func fetchObjects<T: ManagedObject>(of type: T.Type = T.self, satisfying predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor] = []) throws -> [T]
-      { try managedObjectContext.fetchObjects(makeFetchRequest(for: type, predicate: predicate, sortDescriptors: sortDescriptors)) }
+      { try managedObjectContext.fetchObjects(fetchRequest(for: type, predicate: predicate, sortDescriptors: sortDescriptors)) }
 
     /// Fetch the unique object satisfying the given predicate.
     func fetchObject<T: ManagedObject>(of type: T.Type = T.self, satisfying predicate: NSPredicate) throws -> T
-      { try managedObjectContext.fetchObject(makeFetchRequest(for: type, predicate: predicate)) }
+      { try managedObjectContext.fetchObject(fetchRequest(for: type, predicate: predicate)) }
 
     /// Migrate the store from a model consisting only of the given source entity to a model consisting only of the given target entity.
     func migrate(from sourceEntity: NSEntityDescription, to targetEntity: NSEntityDescription) throws

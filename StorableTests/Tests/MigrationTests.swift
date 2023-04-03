@@ -4,6 +4,8 @@
 
 */
 
+#if swift(>=5.9)
+
 import XCTest
 import Storable
 import CoreData
@@ -106,7 +108,7 @@ extension MigrationTests
             }
           },
         ])
-        let objects = try store.managedObjectContext.fetch(makeFetchRequest(for: Attributed_v2.self))
+        let objects = try store.managedObjectContext.fetch(store.fetchRequest(for: Attributed_v2.self))
         for object in objects {
           if object.value(forKey: "a") as? String == nil { XCTFail("expecting string value") }
         }
@@ -280,3 +282,5 @@ extension MigrationTests
         if things.count != thingCount { XCTFail("") }
       }
   }
+
+#endif

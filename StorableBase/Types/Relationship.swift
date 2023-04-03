@@ -105,25 +105,6 @@ public struct Relationship
 
 // MARK: --
 
-/// The Relationship macro, when applied to member variables of an ManagedObject subclass, generates instances of the Relationship struct.
-/// Note that a separate macro definition is required for each combination of optional parameter to corresponding init method of struct Relationship.
-
-@attached(accessor)
-public macro Relationship(inverse: Relationship.InverseSpec, deleteRule: Relationship.DeleteRule) = #externalMacro(module: "StorableMacros", type: "RelationshipMacro")
-@attached(accessor)
-public macro Relationship(inverse: Relationship.InverseSpec, deleteRule: Relationship.DeleteRule, renamingIdentifier: String) = #externalMacro(module: "StorableMacros", type: "RelationshipMacro")
-@attached(accessor)
-public macro Relationship(inverse: Relationship.InverseSpec, deleteRule: Relationship.DeleteRule, ingestMode: Relationship.IngestMode) = #externalMacro(module: "StorableMacros", type: "RelationshipMacro")
-@attached(accessor)
-public macro Relationship(inverse: Relationship.InverseSpec, deleteRule: Relationship.DeleteRule, ingestMode: Relationship.IngestMode, ingestKey: IngestKey) = #externalMacro(module: "StorableMacros", type: "RelationshipMacro")
-@attached(accessor)
-public macro Relationship(inverse: Relationship.InverseSpec, deleteRule: Relationship.DeleteRule, renamingIdentifier: String, ingestMode: Relationship.IngestMode) = #externalMacro(module: "StorableMacros", type: "RelationshipMacro")
-@attached(accessor)
-public macro Relationship(inverse: Relationship.InverseSpec, deleteRule: Relationship.DeleteRule, renamingIdentifier: String, ingestMode: Relationship.IngestMode, ingestKey: IngestKey) = #externalMacro(module: "StorableMacros", type: "RelationshipMacro")
-
-
-// MARK: --
-
 extension Relationship.InverseSpec : ExpressibleByStringLiteral
   {
     /// Used to indicate the inverse relationship is explicitly declared by the related entity. In this case only the inverse name is required.

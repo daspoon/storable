@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "5535341329DB5C84009A5819"
-               BuildableName = "Storable.framework"
-               BlueprintName = "Storable"
+               BlueprintIdentifier = "55DF58CA29C0DFE3005AB19D"
+               BuildableName = "libStorableMacros.dylib"
+               BlueprintName = "StorableMacros"
                ReferencedContainer = "container:Storable.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -50,9 +50,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "5535341329DB5C84009A5819"
-            BuildableName = "Storable.framework"
-            BlueprintName = "Storable"
+            BlueprintIdentifier = "55DF58CA29C0DFE3005AB19D"
+            BuildableName = "libStorableMacros.dylib"
+            BlueprintName = "StorableMacros"
             ReferencedContainer = "container:Storable.xcodeproj">
          </BuildableReference>
       </MacroExpansion>

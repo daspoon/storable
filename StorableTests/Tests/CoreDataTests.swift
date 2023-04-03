@@ -8,7 +8,7 @@
 
 import XCTest
 import CoreData
-@testable import Storable
+import Storable
 
 
 final class CoreDataTests : XCTestCase

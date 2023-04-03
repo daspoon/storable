@@ -171,9 +171,31 @@ public class DataStore
       }
 
 
+    /// Convenience method for creating NSFetchRequests.
+    public func fetchRequest<T: ManagedObject>(
+        for type: T.Type = T.self,
+        predicate: NSPredicate? = nil,
+        sortDescriptors: [NSSortDescriptor] = [],
+        propertiesToFetch: [String]? = nil,
+        includesPendingChanges: Bool = true,
+        includesPropertyValues: Bool = true,
+        includesSubentities: Bool = true
+      ) -> NSFetchRequest<T>
+      {
+        let request = NSFetchRequest<T>(entityName: type.entityName)
+        request.predicate = predicate
+        request.sortDescriptors = sortDescriptors
+        request.propertiesToFetch = propertiesToFetch
+        request.includesPendingChanges = includesPendingChanges
+        request.includesPropertyValues = includesPropertyValues
+        request.includesSubentities = includesSubentities
+        return request
+      }
+
+
     public func fetchObject<T: ManagedObject>(id name: String, of type: T.Type = T.self) throws -> T
       {
-        try managedObjectContext.fetchObject(makeFetchRequest(for: type, predicate: .init(format: "name = %@", name)))
+        try managedObjectContext.fetchObject(fetchRequest(for: type, predicate: .init(format: "name = %@", name)))
       }
 
 
@@ -259,7 +281,7 @@ public class DataStore
           case .script(let script, let idempotent) :
             try update(as: storeModel) { context in
               // If an instance of ScriptMarker doesn't exist, run the script, add a marker instance, and save the context.
-              if try context.tryFetchObject(makeFetchRequest(for: Migration.ScriptMarker.self)) == nil || idempotent {
+              if try context.tryFetchObject(fetchRequest(for: Migration.ScriptMarker.self)) == nil || idempotent {
                 try script(context)
                 try context.create(Migration.ScriptMarker.self) { _ in }
                 try context.save()
