@@ -37,10 +37,10 @@ extension Dictionary where Key == String, Value == Any
       }
 
 
-    public func optionalValue<U,V>(of type: V.Type = V.self, for key: String, in context: @autoclosure () -> String? = {nil}()) throws -> V? where V : Ingestible, U == V.Input
+    public func optionalValue<V>(of type: V.Type = V.self, for key: String, in context: @autoclosure () -> String? = {nil}()) throws -> V? where V : Ingestible
       { try optionalValue(of: type, for: key, in: context(), transformedBy: { try V(json: $0)}) }
 
-    public func requiredValue<U,V>(of type: V.Type = V.self, for key: String, in context: @autoclosure () -> String? = {nil}()) throws -> V where V : Ingestible, U == V.Input
+    public func requiredValue<V>(of type: V.Type = V.self, for key: String, in context: @autoclosure () -> String? = {nil}()) throws -> V where V : Ingestible
       { try requiredValue(of: type, for: key, in: context(), transformedBy: { try V(json: $0)}) }
 
 
@@ -54,5 +54,18 @@ extension Dictionary where Key == String, Value == Any
       {
         guard let vs = try optionalArrayValue(of: type, for: key, in: context()) else { throw Exception.missingValue(key: key, in: context()) }
         return vs
+      }
+
+
+    public func optionalDictionaryValue<U,V>(of type: V.Type, for key: String, in context: @autoclosure () -> String? = {nil}()) throws -> [String: V]? where V : Ingestible, U == V.Input
+      {
+        guard let kus : [String: U] = try optionalValue(for: key, in: context()) else { return nil }
+        return try kus.mapValues { try V(json: $0) }
+      }
+
+    public func requiredDictionaryValue<U,V>(of type: V.Type, for key: String, in context: @autoclosure () -> String? = {nil}()) throws -> [String: V] where V : Ingestible, U == V.Input
+      {
+        guard let kvs = try optionalDictionaryValue(of: type, for: key, in: context()) else { throw Exception.missingValue(key: key, in: context()) }
+        return kvs
       }
   }
