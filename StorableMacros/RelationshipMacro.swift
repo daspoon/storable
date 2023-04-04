@@ -23,20 +23,9 @@ public struct RelationshipMacro : ManagedPropertyMacro
       where Ctx: MacroExpansionContext, Dcl: DeclSyntaxProtocol
       {
         let info = try getStoredPropertyInfo(from: dcl)
-
         return [
-          """
-          get {
-            let storedValue = self.value(forKey: "\(raw: info.name)")
-            guard let value = storedValue as? \(raw: info.type) else { fatalError("\(raw: info.name) is not of expected type ...") }
-            return value
-          }
-          """,
-          """
-          set {
-            setValue(newValue, forKey: "\(raw: info.name)")
-          }
-          """,
+          "get { value(forKey: \"\(raw: info.name)\") as! \(raw: info.type) }",
+          "set { setValue(newValue, forKey: \"\(raw: info.name)\") }",
         ]
       }
 

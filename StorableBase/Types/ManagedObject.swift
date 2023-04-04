@@ -139,4 +139,41 @@ open class ManagedObject : NSManagedObject
           }
         }
       }
+
+
+    // The following are used to implement accessors for managed attributes.
+
+    /// Retrieve the value of a non-optional attribute.
+    public func attributeValue<Value: Storable>(forKey key: String) -> Value
+      {
+        switch self.value(forKey: key) {
+          case .some(let objectValue) :
+            guard let encodedValue = objectValue as? Value.EncodingType
+              else { fatalError("\(key) is not of expected type \(Value.EncodingType.self)") }
+            return Value.decodeStoredValue(encodedValue)
+          case .none :
+            fatalError("\(key) is not initialized")
+        }
+      }
+
+    /// Retrieve the value of an optional attribute.
+    public func attributeValue<Value: Nullable>(forKey key: String) -> Value where Value.Wrapped : Storable
+      {
+        switch value(forKey: key) {
+          case .some(let objectValue) :
+            guard let encodedValue = objectValue as? Value.Wrapped.EncodingType
+              else { fatalError("\(key) is not of expected type \(Value.Wrapped.EncodingType.self)") }
+            return Value.inject(Value.Wrapped.decodeStoredValue(encodedValue))
+          case .none :
+            return nil
+        }
+      }
+
+    /// Set the value of a non-optional attribute.
+    public func setAttributeValue<Value: Storable>(_ value: Value, forKey key: String)
+      { setValue(value.storedValue(), forKey: key) }
+
+    /// Set the value of an optional attribute.
+    public func setAttributeValue<Value: Nullable>(_ value: Value, forKey key: String) where Value.Wrapped : Storable
+      { setValue(Value.project(value)?.storedValue(), forKey: key) }
   }
