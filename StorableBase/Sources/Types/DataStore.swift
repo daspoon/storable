@@ -69,12 +69,14 @@ public class DataStore
       { try NSPersistentStoreCoordinator.metadataForPersistentStore(type: storeType, at: storeURL) }
 
 
+    /// Return the managed object model, or nil if the persistent store is not open.
+    public var managedObjectModel : NSManagedObjectModel!
+      { state?.managedObjectModel }
+
+
     /// Return the managed object context, or nil if the persistent store is not open.
     public var managedObjectContext : NSManagedObjectContext!
-      {
-        guard let state else { return nil }
-        return state.managedObjectContext
-      }
+      { state?.managedObjectContext }
 
 
     /// Open the persistent store for the given object model, which must be compatible; any necessary migration must be performed prior to invoking this method.
