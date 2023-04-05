@@ -54,7 +54,7 @@ public struct Relationship
 
 
     /// Initialize a new instance.
-    public init(name: String, range: ClosedRange<Int>, relatedEntityName: String, inverse: InverseSpec, deleteRule: DeleteRule, renamingIdentifier: String? = nil, ingest: (key: IngestKey, mode: IngestMode)? = nil)
+    private init(name: String, range: ClosedRange<Int>, relatedEntityName: String, inverse: InverseSpec, deleteRule: DeleteRule, renamingIdentifier: String? = nil, ingest: (key: IngestKey, mode: IngestMode)? = nil)
       {
         precondition(range.lowerBound >= 0 && range.upperBound >= 1)
 
