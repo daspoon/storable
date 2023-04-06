@@ -173,6 +173,14 @@ public class DataStore
       }
 
 
+    public func createObject<Object: ManagedObject>(of type: Object.Type = Object.self) -> Object
+      {
+        guard let state else { preconditionFailure("store is not open") }
+        guard let info = classInfoByName[Object.entityName] else { preconditionFailure("unknown object class '\(Object.self)") }
+        return type.init(entity: info.entityDescription, insertInto: state.managedObjectContext)
+      }
+
+
     /// Convenience method for creating NSFetchRequests.
     public func fetchRequest<T: ManagedObject>(
         for type: T.Type = T.self,
@@ -204,6 +212,7 @@ public class DataStore
     /// Save the managed object context's changes to the persistent store.
     public func save() throws
       {
+log("")
         guard let state else { throw Exception("store is not open: \(storeURL)") }
 
         try state.managedObjectContext.save()
