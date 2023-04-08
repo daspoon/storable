@@ -19,6 +19,8 @@
 		5513A96E29C4050100A1AEA9 /* ModelIdentityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5531F97129C0F5CF004B1204 /* ModelIdentityTests.swift */; };
 		5518181029C29CBD00F8F74C /* SwiftSyntax-ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5518180F29C29CBD00F8F74C /* SwiftSyntax-ext.swift */; };
 		5518181529C2AB2800F8F74C /* FetchedMacro.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5518181429C2AB2800F8F74C /* FetchedMacro.swift */; };
+		552151FA29DDDECA007E6F5F /* Storable.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5535341429DB5C84009A5819 /* Storable.framework */; };
+		552151FB29DDDECA007E6F5F /* Storable.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5535341429DB5C84009A5819 /* Storable.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		5529B97229C119BE00AB8904 /* RelationshipMacro.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5529B97129C119BE00AB8904 /* RelationshipMacro.swift */; };
 		5531F98A29C105CC004B1204 /* DataStore-ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5531F98729C105CC004B1204 /* DataStore-ext.swift */; };
 		5531F98C29C105CC004B1204 /* XCTestCase-ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5531F98929C105CC004B1204 /* XCTestCase-ext.swift */; };
@@ -41,6 +43,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		552151FC29DDDECA007E6F5F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 55DF589729C0DD5B005AB19D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5535341329DB5C84009A5819;
+			remoteInfo = Storable;
+		};
 		5535342229DB5E70009A5819 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 55DF589729C0DD5B005AB19D /* Project object */;
@@ -73,6 +82,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				552151FB29DDDECA007E6F5F /* Storable.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -132,6 +142,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				552151FA29DDDECA007E6F5F /* Storable.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -321,8 +332,11 @@
 			buildRules = (
 			);
 			dependencies = (
+				552151FD29DDDECA007E6F5F /* PBXTargetDependency */,
 			);
 			name = mkentity;
+			packageProductDependencies = (
+			);
 			productName = mkentity;
 			productReference = 556D564F29DB8D9900D19C6E /* mkentity */;
 			productType = "com.apple.product-type.tool";
@@ -487,6 +501,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		552151FD29DDDECA007E6F5F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5535341329DB5C84009A5819 /* Storable */;
+			targetProxy = 552151FC29DDDECA007E6F5F /* PBXContainerItemProxy */;
+		};
 		5535342329DB5E70009A5819 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 5535341329DB5C84009A5819 /* Storable */;
