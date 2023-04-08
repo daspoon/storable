@@ -86,7 +86,7 @@ public struct Schema
             attributeDescription.type = attribute.attributeType
             attributeDescription.isOptional = attribute.isOptional
             attributeDescription.valueTransformerName = attribute.valueTransformerName?.rawValue
-            attributeDescription.defaultValue = attribute.defaultValue?.storedValue()
+            attributeDescription.defaultValue = attribute.defaultValue
             attributeDescription.renamingIdentifier = attribute.renamingIdentifier
             classInfo.entityDescription.properties.append(attributeDescription)
           }

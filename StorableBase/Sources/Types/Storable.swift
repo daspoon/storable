@@ -31,31 +31,6 @@ extension Storable
   }
 
 
-// All attribute types are trivially Storable, although conformance must be declared explicitly.
-
-extension StorageType
-  {
-    public func storedValue() -> Self
-      { self }
-
-    public static func decodeStoredValue(_ value: Self) -> Self
-      { value }
-  }
-
-extension Bool : Storable {}
-extension Data : Storable {}
-extension Date : Storable {}
-extension Double : Storable {}
-extension Float : Storable {}
-extension Int : Storable {}
-extension Int16 : Storable {}
-extension Int32 : Storable {}
-extension Int64 : Storable {}
-extension String : Storable {}
-extension URL : Storable {}
-extension UUID : Storable {}
-
-
 // A RawRepresentable is Storable when its RawValue is an attribute type, although conformance must be declared explicitly on concrete types.
 
 extension RawRepresentable where RawValue : StorageType

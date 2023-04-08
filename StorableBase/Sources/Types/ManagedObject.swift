@@ -89,7 +89,7 @@ open class ManagedObject : NSManagedObject
             guard let ingest = attribute.ingest else { continue }
             if let jsonValue = ingestData[ingest.key] {
               let storableValue = try ingest.method(jsonValue)
-              setValue(storableValue.storedValue(), forKey: attribute.name)
+              setValue(storableValue, forKey: attribute.name)
             }
             else {
               guard attribute.defaultValue != nil || attribute.isOptional else { throw Exception("a value is required") }
@@ -141,9 +141,20 @@ open class ManagedObject : NSManagedObject
       }
 
 
-    // The following are used to implement accessors for managed attributes.
+    // Retrieve the value of a non-optional attribute.
 
-    /// Retrieve the value of a non-optional attribute.
+    public func attributeValue<Value: StorageType>(forKey key: String) -> Value
+      {
+        switch self.value(forKey: key) {
+          case .some(let objectValue) :
+            guard let value = objectValue as? Value
+              else { fatalError("\(key) is not of expected type \(Value.self)") }
+            return value
+          case .none :
+            fatalError("\(key) is not initialized")
+        }
+      }
+
     public func attributeValue<Value: Storable>(forKey key: String) -> Value
       {
         switch self.value(forKey: key) {
@@ -156,7 +167,21 @@ open class ManagedObject : NSManagedObject
         }
       }
 
-    /// Retrieve the value of an optional attribute.
+
+    // Retrieve the value of an optional attribute.
+
+    public func attributeValue<Value: Nullable>(forKey key: String) -> Value where Value.Wrapped : StorageType
+      {
+        switch value(forKey: key) {
+          case .some(let objectValue) :
+            guard let value = objectValue as? Value.Wrapped
+              else { fatalError("\(key) is not of expected type \(Value.Wrapped.self)") }
+            return Value.inject(value)
+          case .none :
+            return nil
+        }
+      }
+
     public func attributeValue<Value: Nullable>(forKey key: String) -> Value where Value.Wrapped : Storable
       {
         switch value(forKey: key) {
@@ -169,11 +194,21 @@ open class ManagedObject : NSManagedObject
         }
       }
 
-    /// Set the value of a non-optional attribute.
+
+    // Set the value of a non-optional attribute.
+
+    public func setAttributeValue<Value: StorageType>(_ value: Value, forKey key: String)
+      { setValue(value, forKey: key) }
+
     public func setAttributeValue<Value: Storable>(_ value: Value, forKey key: String)
       { setValue(value.storedValue(), forKey: key) }
 
-    /// Set the value of an optional attribute.
+
+    // Set the value of an optional attribute.
+
+    public func setAttributeValue<Value: Nullable>(_ value: Value, forKey key: String) where Value.Wrapped : StorageType
+      { setValue(Value.project(value), forKey: key) }
+
     public func setAttributeValue<Value: Nullable>(_ value: Value, forKey key: String) where Value.Wrapped : Storable
       { setValue(Value.project(value)?.storedValue(), forKey: key) }
   }
