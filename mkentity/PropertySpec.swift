@@ -8,7 +8,7 @@ import StorableBase
 
 enum PropertySpec : Ingestible
   {
-    case attribute(type: String, defaultValue: String?)
+    case attribute(type: String, defaultValue: String?, ingestKey: IngestKey?)
     case relationship(type: String, inverse: String, deleteRule: String)
 
     init(json: [String: Any]) throws
@@ -16,8 +16,9 @@ enum PropertySpec : Ingestible
         switch try json.requiredValue(of: String.self, for: "kind") {
           case "attribute" :
             self = .attribute(
-              type: try json.requiredValue(of: String.self, for: "type"),
-              defaultValue: try json.optionalValue(of: String.self, for: "defaultValue")
+              type: try json.requiredValue(for: "type"),
+              defaultValue: try json.optionalValue(for: "defaultValue"),
+              ingestKey: try json.optionalValue(for: "ingestKey")
             )
           case "relationship" :
             self = .relationship(
@@ -33,8 +34,8 @@ enum PropertySpec : Ingestible
     func textForDescriptor(with name: String) -> String
       {
         switch self {
-          case .attribute(let type, let defaultValue) :
-            return ".attribute(.init(name: \"\(name)\", type: \(type).self, defaultValue: \(defaultValue ?? "nil")))"
+          case .attribute(let type, let defaultValue, let ingestKey) :
+            return ".attribute(.init(name: \"\(name)\", type: \(type).self, defaultValue: \(defaultValue ?? "nil")\(ingestKey.map {", " + $0.swiftText} ?? ""))"
           case .relationship(let type, let inverse, let deleteRule) :
             return ".relationship(.init(name: \"\(name)\", type: \(type).self, inverse: \"\(inverse)\", deleteRule: .\(deleteRule)))"
         }
@@ -43,7 +44,7 @@ enum PropertySpec : Ingestible
     func textArrayForDeclaration(with name: String) -> [String]
       {
         switch self {
-          case .attribute(let type, _) :
+          case .attribute(let type, _, _) :
             return [
               "public var \(name) : \(type) {",
               "  get { attributeValue(forKey: \"\(name)\") }",
