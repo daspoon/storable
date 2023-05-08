@@ -36,7 +36,7 @@ open class ManagedObject : NSManagedObject
 
     /// Return the pairing of defined entity name and version number by applying the regular expression (\w+)_v(\d+) to the receiver's name.
     /// If no there is no unique match then the entity name is taken to be the receiver's name and the version is taken to be zero.
-    class var entityNameAndVersion : (entityName: String, version: Int)
+    open class var entityNameAndVersion : (entityName: String, version: Int)
       {
         let objcName = "\(Self.self)" as NSString
         let objcNameRange = NSMakeRange(0, objcName.length)
