@@ -206,10 +206,33 @@ public class DataStore
       }
 
 
-    public func fetchObject<T: ManagedObject>(id name: String, of type: T.Type = T.self) throws -> T
+    /// Return the result of executing the given fetch request.
+    public func fetchObjects<T: ManagedObject>(_ request: NSFetchRequest<T>) throws -> [T]
       {
-        try managedObjectContext.fetchObject(fetchRequest(for: type, predicate: .init(format: "name = %@", name)))
+        guard let managedObjectContext else { throw Exception("store is not open") }
+        return try managedObjectContext.fetchObjects(request)
       }
+
+
+    /// Return the single object satisfying the given fetch request, or nil if none exist. Throw if multiple matching objects exist.
+    public func tryFetchObject<T: ManagedObject>(_ request: NSFetchRequest<T>) throws -> T?
+      {
+        guard let managedObjectContext else { throw Exception("store is not open") }
+        return try managedObjectContext.tryFetchObject(request)
+      }
+
+
+    /// Return the single match for the given fetch request, throwing if there is not exactly one.
+    public func fetchObject<T: ManagedObject>(_ request: NSFetchRequest<T>) throws -> T
+      {
+        guard let managedObjectContext else { throw Exception("store is not open") }
+        return try managedObjectContext.fetchObject(request)
+      }
+
+
+    /// Fetch the single object of the given type and name.
+    public func fetchObject<T: ManagedObject>(id name: String, of type: T.Type = T.self) throws -> T
+      { try fetchObject(fetchRequest(for: type, predicate: .init(format: "name = %@", name))) }
 
 
     /// Save the managed object context's changes to the persistent store.
