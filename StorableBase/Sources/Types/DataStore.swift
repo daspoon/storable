@@ -235,6 +235,14 @@ public class DataStore
       { try fetchObject(fetchRequest(for: type, predicate: .init(format: "name = %@", name))) }
 
 
+    /// Discard changes to the managed object context.
+    public func rollback() throws
+      {
+        guard let managedObjectContext else { throw Exception("store is not open") }
+        managedObjectContext.rollback()
+      }
+
+
     /// Save the managed object context's changes to the persistent store.
     public func save() throws
       {
