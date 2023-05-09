@@ -173,11 +173,14 @@ public class DataStore
       }
 
 
-    public func createObject<Object: ManagedObject>(of type: Object.Type = Object.self) -> Object
+    @discardableResult
+    public func createObject<Object: ManagedObject>(of type: Object.Type = Object.self, initializer: (Object) -> Void = {_ in }) throws -> Object
       {
-        guard let state else { preconditionFailure("store is not open") }
-        guard let info = classInfoByName[Object.entityName] else { preconditionFailure("unknown object class '\(Object.self)") }
-        return type.init(entity: info.entityDescription, insertInto: state.managedObjectContext)
+        guard let state else { throw Exception("store is not open") }
+        guard let info = classInfoByName[Object.entityName] else { throw Exception("unknown object class '\(Object.self)") }
+        let object = type.init(entity: info.entityDescription, insertInto: state.managedObjectContext)
+        initializer(object)
+        return object
       }
 
 
