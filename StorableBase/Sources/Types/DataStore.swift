@@ -93,7 +93,10 @@ public class DataStore
         let store = try coordinator.addPersistentStore(type: storeType, at: storeURL)
 
         // Observe the optional notification to request saving the main context.
-        let saveRequestObservation = saveRequestNotificationName.map { name in NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { _ in self.save() }
+        let saveRequestObservation = saveRequestNotificationName.map { name in
+          NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { _ in
+            self.save()
+          }
         }
 
         // Retain the required state.
