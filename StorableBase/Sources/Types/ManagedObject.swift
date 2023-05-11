@@ -120,14 +120,14 @@ open class ManagedObject : NSManagedObject
                 // A to-many reference requires an array string instance identifiers. Evaluation is delayed until all entity instances have been created.
                 guard let instanceIds = jsonValue as? [String] else { throw Exception("an array of object identifiers is required") }
                 delay {
-                  let relatedObjects = try instanceIds.map { try store.fetchObject(id: $0, of: relatedClass) }
+                  let relatedObjects = try instanceIds.map { try store.managedObjectContext.fetchObject(id: $0, of: relatedClass) }
                   self.setValue(Set(relatedObjects), forKey: relationship.name)
                 }
               case (.some(let jsonValue), .reference, _) :
                 // A to-one reference requires a string instance identifier. Evaluation is delayed until all entity instances have been created.
                 guard let instanceId = jsonValue as? String else { throw Exception("an object identifier is required") }
                 delay {
-                  let relatedObject = try store.fetchObject(id: instanceId, of: relatedClass)
+                  let relatedObject = try store.managedObjectContext.fetchObject(id: instanceId, of: relatedClass)
                   self.setValue(relatedObject, forKey: relationship.name)
                 }
               case (.none, _, let range) :

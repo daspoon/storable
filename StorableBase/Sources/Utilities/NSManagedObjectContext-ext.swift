@@ -53,4 +53,10 @@ extension NSManagedObjectContext
 
         return object
       }
+
+
+    /// Fetch the single object of the given type and name.
+    public func fetchObject<T: ManagedObject>(id name: String, of type: T.Type = T.self) throws -> T
+      { try fetchObject(fetchRequest(for: type, predicate: .init(format: "name = %@", name))) }
+
   }

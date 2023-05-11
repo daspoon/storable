@@ -92,13 +92,16 @@ public class DataStore
         // Open the persistent store, which must be compatible with the given object model.
         let store = try coordinator.addPersistentStore(type: storeType, at: storeURL)
 
-        // Retain the
+        // Observe the optional notification to request saving the main context.
+        let saveRequestObservation = saveRequestNotificationName.map { name in NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { _ in self.save() }
+        }
+
+        // Retain the required state.
         state = .init(
           managedObjectModel: model,
           managedObjectContext: context,
           persistentStore: store,
-          saveRequestObservation: saveRequestNotificationName.map { name in NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { self.performSave($0) }
-          }
+          saveRequestObservation: saveRequestObservation
         )
       }
 
@@ -173,105 +176,29 @@ public class DataStore
       }
 
 
-    @discardableResult
-    public func createObject<Object: ManagedObject>(of type: Object.Type = Object.self, initializer: (Object) -> Void = {_ in }) throws -> Object
-      {
-        guard let state else { throw Exception("store is not open") }
-        guard let info = classInfoByName[Object.entityName] else { throw Exception("unknown object class '\(Object.self)") }
-        let object = type.init(entity: info.entityDescription, insertInto: state.managedObjectContext)
-        initializer(object)
-        return object
-      }
-
-
-    /// Convenience method for creating NSFetchRequests.
-    public func fetchRequest<T: ManagedObject>(
-        for type: T.Type = T.self,
-        predicate: NSPredicate? = nil,
-        sortDescriptors: [NSSortDescriptor] = [],
-        propertiesToFetch: [String]? = nil,
-        includesPendingChanges: Bool = true,
-        includesPropertyValues: Bool = true,
-        includesSubentities: Bool = true
-      ) -> NSFetchRequest<T>
-      {
-        let request = NSFetchRequest<T>(entityName: type.entityName)
-        request.predicate = predicate
-        request.sortDescriptors = sortDescriptors
-        request.propertiesToFetch = propertiesToFetch
-        request.includesPendingChanges = includesPendingChanges
-        request.includesPropertyValues = includesPropertyValues
-        request.includesSubentities = includesSubentities
-        return request
-      }
-
-
-    /// Return the result of executing the given fetch request.
-    public func fetchObjects<T: ManagedObject>(_ request: NSFetchRequest<T>) throws -> [T]
-      {
-        guard let managedObjectContext else { throw Exception("store is not open") }
-        return try managedObjectContext.fetchObjects(request)
-      }
-
-
-    /// Return the single object satisfying the given fetch request, or nil if none exist. Throw if multiple matching objects exist.
-    public func tryFetchObject<T: ManagedObject>(_ request: NSFetchRequest<T>) throws -> T?
-      {
-        guard let managedObjectContext else { throw Exception("store is not open") }
-        return try managedObjectContext.tryFetchObject(request)
-      }
-
-
-    /// Return the single match for the given fetch request, throwing if there is not exactly one.
-    public func fetchObject<T: ManagedObject>(_ request: NSFetchRequest<T>) throws -> T
-      {
-        guard let managedObjectContext else { throw Exception("store is not open") }
-        return try managedObjectContext.fetchObject(request)
-      }
-
-
-    /// Fetch the single object of the given type and name.
-    public func fetchObject<T: ManagedObject>(id name: String, of type: T.Type = T.self) throws -> T
-      { try fetchObject(fetchRequest(for: type, predicate: .init(format: "name = %@", name))) }
-
-
-    /// Discard changes to the managed object context.
-    public func rollback() throws
-      {
-        guard let managedObjectContext else { throw Exception("store is not open") }
-        managedObjectContext.rollback()
-      }
-
-
-    /// Save the managed object context's changes to the persistent store.
-    public func save() throws
-      {
-log("")
-        guard let state else { throw Exception("store is not open: \(storeURL)") }
-
-        try state.managedObjectContext.save()
-      }
-
-
-    /// Save the managed object context's changes to the persistent store.
-    @objc public func performSave(_ sender: Any? = nil)
-      {
-        do { try save() }
-        catch let error as NSError {
-          log("failed to save: \(error)")
-        }
-      }
-
-
-    /// Override super's close method to reset the mapping of entity names to ClassInfo instances.
-    /// Close the persistent store, either saving or discarding the changes to the managed object context; the default is to save changes.
-    public func close(savingChanges: Bool = true) throws
+    /// Save the managed object context's changes to the persistent store. Invoke the given block, if any, on the main queue upon completion.
+    public func save(onCompletion: ((Error?) -> Void)? = nil)
       {
         guard let state else { preconditionFailure("not open") }
 
-        if state.managedObjectContext.hasChanges, savingChanges {
+        do {
           try state.managedObjectContext.save()
+          onCompletion?(nil)
         }
+        catch {
+          log("save failed: \(error)")
+          NotificationCenter.default.post(name: .dataStoreSaveDidFail, object: self, userInfo: [
+            "error": error as NSError,
+          ])
+          onCompletion?(error)
+        }
+      }
+
+
+    /// Close the persistent store, discarding any outstanding changes.
+    public func close() throws
+      {
+        guard let state else { preconditionFailure("not open") }
 
         try state.persistentStore.persistentStoreCoordinator?.remove(state.persistentStore)
 
