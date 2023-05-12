@@ -9,7 +9,7 @@ import Foundation
 
 extension Notification.Name
   {
-    /// Posted by DataStore when a requested save operation fails. The notification object is the posting DataStore instance, and the userInfo dictionary associates the generated NSError to the key *"error"*.
+    /// Posted in response to an exception raised within *NSMangedObject*'s extension method *performSave(completion:)*. The notification's *object* is the *NSManagedObjectContext* instance whose *save* method failed, and its *userInfo* associates the raised *NSError* to the key *"error"*.
     public static var dataStoreSaveDidFail : Self
       { .init("xyz.lambdasoftware.storable.dataStoreSaveDidFail") }
   }

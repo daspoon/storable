@@ -58,5 +58,91 @@ extension NSManagedObjectContext
     /// Fetch the single object of the given type and name.
     public func fetchObject<T: ManagedObject>(id name: String, of type: T.Type = T.self) throws -> T
       { try fetchObject(fetchRequest(for: type, predicate: .init(format: "name = %@", name))) }
+  }
 
+
+// MARK: -
+
+fileprivate var editingContextKey : Int = 0
+
+extension NSManagedObjectContext
+  {
+    /// Return the associated editing context, if any.
+    public var editingContext : EditingContext?
+      {
+        get { objc_getAssociatedObject(self, &editingContextKey) as? EditingContext }
+        set { objc_setAssociatedObject(self, &editingContextKey, newValue, objc_AssociationPolicy.OBJC_ASSOCIATION_ASSIGN) }
+      }
+
+
+    /// Save the given context and each of its ancestors, invoking the given completion block, if any, on the main queue.
+    public func performSave(completion: ((Error?) -> Void)? = nil)
+      {
+        do {
+          log("saving " + (name.map {$0 + " "} ?? "") +  "context")
+          try save()
+
+          switch parent {
+            case .some(let parent) :
+              parent.perform { parent.performSave(completion: completion) }
+            case .none :
+              performSaveDidComplete(with: nil, callback: completion)
+          }
+        }
+        catch {
+          performSaveDidComplete(with: error, callback: completion)
+        }
+      }
+
+
+    /// Called upon completing a requested save operation. Log and broadcast the the generated error, if any, and invoke the requested completion callback.
+    private func performSaveDidComplete(with error: Error?, callback: ((Error?) -> Void)?)
+      {
+        if let error {
+          log("\(error)")
+          NotificationCenter.default.post(name: .dataStoreSaveDidFail, object: self, userInfo: [
+            "error": error as NSError,
+          ])
+        }
+
+        callback.map { f in DispatchQueue.main.async { f(error) } }
+      }
+
+
+    /// Return the error which would be thrown if on saving.
+    public var validationError : NSError?
+      {
+        var errors : [NSError] = []
+        // Accumulate validation errors for inserted objects
+        for object in insertedObjects {
+          do { try object.validateForInsert() }
+          catch {
+            errors.append(error as NSError)
+          }
+        }
+        // Accumulate validation errors for inserted objects
+        for object in updatedObjects {
+          do { try object.validateForUpdate() }
+          catch {
+            errors.append(error as NSError)
+          }
+        }
+        // Accumulate validation errors for inserted objects
+        for object in deletedObjects {
+          do { try object.validateForDelete() }
+          catch {
+            errors.append(error as NSError)
+          }
+        }
+        // Return an appropriate error, mimicing CoreData's aggregate error if necessary.
+        switch errors.count {
+          case 0 : return nil
+          case 1 : return errors[0]
+          default :
+            return NSError(domain: "NSCocoaErrorDomain", code: 1560, userInfo: [
+              NSLocalizedDescriptionKey : "Multiple validation errors occurred.",
+              NSDetailedErrorsKey : errors,
+            ])
+        }
+      }
   }

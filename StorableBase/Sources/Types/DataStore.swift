@@ -17,17 +17,14 @@ public class DataStore
     /// The persistent store type, currently fixed as sqlite.
     public let storeType : NSPersistentStore.StoreType = .sqlite
 
-    /// The optional notification name observed to trigger implicit saving while open.
-    public let saveRequestNotificationName : Notification.Name?
-
     /// The state maintained while the persistent store is open.
     private var state : State?
     struct State
       {
         let managedObjectModel : NSManagedObjectModel
-        let managedObjectContext : NSManagedObjectContext
+        let rootContext : NSManagedObjectContext
+        let mainContext : NSManagedObjectContext
         let persistentStore : NSPersistentStore
-        let saveRequestObservation : NSObjectProtocol?
       }
 
     /// The mapping of entity names to ClassInfo structures which maintain their metadata.
@@ -35,7 +32,7 @@ public class DataStore
 
 
     /// Create an instance with the given name in the given directory, which defaults to the application's document directory.
-    public required init(name: String = "store", directoryURL specifiedURL: URL? = nil, saveRequestNotificationName: Notification.Name? = nil)
+    public required init(name: String = "store", directoryURL specifiedURL: URL? = nil)
       {
         guard let directoryURL = specifiedURL ?? FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).last
           else { fatalError("failed to get URL for document directory") }
@@ -43,7 +40,6 @@ public class DataStore
         guard let storeURL = URL(string: "\(name).sqlite", relativeTo: directoryURL) else { fatalError("failed to create relative URL") }
 
         self.storeURL = storeURL
-        self.saveRequestNotificationName = saveRequestNotificationName
       }
 
 
@@ -76,7 +72,7 @@ public class DataStore
 
     /// Return the managed object context, or nil if the persistent store is not open.
     public var managedObjectContext : NSManagedObjectContext!
-      { state?.managedObjectContext }
+      { state?.mainContext }
 
 
     /// Open the persistent store for the given object model, which must be compatible; any necessary migration must be performed prior to invoking this method.
@@ -84,27 +80,29 @@ public class DataStore
       {
         precondition(state == nil, "already open")
 
-        // Create the persistent store coordinator and managed object context.
+        // Create the persistent store coordinator for the associated object model.
         let coordinator = NSPersistentStoreCoordinator(managedObjectModel: model)
-        let context = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
-        context.persistentStoreCoordinator = coordinator
+
+        // Create the root context which manages writes to the persistent store.
+        let rootContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
+        rootContext.name = "root"
+        rootContext.persistentStoreCoordinator = coordinator
+
+        // Create the main context, which serves the UI, as a child of the root context.
+        let mainContext = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
+        mainContext.name = "main"
+        mainContext.parent = rootContext
+        mainContext.automaticallyMergesChangesFromParent = false
 
         // Open the persistent store, which must be compatible with the given object model.
         let store = try coordinator.addPersistentStore(type: storeType, at: storeURL)
 
-        // Observe the optional notification to request saving the main context.
-        let saveRequestObservation = saveRequestNotificationName.map { name in
-          NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { _ in
-            self.save()
-          }
-        }
-
         // Retain the required state.
         state = .init(
           managedObjectModel: model,
-          managedObjectContext: context,
-          persistentStore: store,
-          saveRequestObservation: saveRequestObservation
+          rootContext: rootContext,
+          mainContext: mainContext,
+          persistentStore: store
         )
       }
 
@@ -184,17 +182,7 @@ public class DataStore
       {
         guard let state else { preconditionFailure("not open") }
 
-        do {
-          try state.managedObjectContext.save()
-          onCompletion?(nil)
-        }
-        catch {
-          log("save failed: \(error)")
-          NotificationCenter.default.post(name: .dataStoreSaveDidFail, object: self, userInfo: [
-            "error": error as NSError,
-          ])
-          onCompletion?(error)
-        }
+        state.mainContext.performSave(completion: onCompletion)
       }
 
 
