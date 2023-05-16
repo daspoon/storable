@@ -12,7 +12,7 @@ import CoreData
 open class ManagedObject : NSManagedObject
   {
     /// The notion of instance identity (within class).
-    public enum Identity : String, Ingestible
+    public enum Identity : String
       {
         /// There is no inherent identity.
         case anonymous
