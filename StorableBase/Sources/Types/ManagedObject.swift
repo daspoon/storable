@@ -77,6 +77,85 @@ open class ManagedObject : NSManagedObject
       { super.init(entity: entity, insertInto: context) }
 
 
+    // State restoration
+
+    /// Encode the values of the specified properties to the given container.
+    func encodeProperties(_ properties: [String: Property], to container: inout KeyedEncodingContainer<NameCodingKey>) throws
+      {
+        let changes = changedValues()
+        log("saving \(changes.count) changes for \(objectID.uriRepresentation())")
+
+        for (name, value) in changes {
+          // TODO: account for NSNull used to represent nil
+          switch properties[name] {
+            // Attribute values are encoded w.r.t. their types, which are known only to the given Attribute instance.
+            case .attribute(let attribute) :
+              log("  \(name) -> \(value)")
+              try attribute.encodeValue(value, to: &container)
+
+            // Relationship values are decoded as lists of related object URIs.
+            case .relationship(let relationship) :
+              let urls : [URL]
+              switch relationship.range {
+                case .toOptional, .toOne :
+                  guard let object = value as? ManagedObject else { throw Exception("unexpected value type for \(type(of: self)).\(name): \(type(of: value))") }
+                  urls = [object.objectID.uriRepresentation()]
+                default :
+                  guard let objects = value as? Set<ManagedObject> else { throw Exception("unexpected value type for \(type(of: self)).\(name): \(type(of: value))") }
+                  urls = objects.map { $0.objectID.uriRepresentation() }
+              }
+              log("  \(name) -> \(urls)")
+              try container.encode(urls, forKey: .init(name: name))
+
+            // Fetched properties are not encoded.
+            case .fetched(_) :
+              break
+
+            default :
+              throw Exception("unexpected property: \(name)")
+          }
+        }
+      }
+
+    /// Decode the values of the specified properties from the given container.
+    func decodeProperties(_ properties: [String: Property], from container: inout KeyedDecodingContainer<NameCodingKey>, objectByURL: (URL) throws -> ManagedObject) throws
+      {
+        log("restoring \(container.allKeys.count) changes for \(objectID.uriRepresentation())")
+
+        for key in container.allKeys {
+          switch properties[key.name] {
+            // Attribute values are decoded w.r.t. their types, which are known only to the given Attribute instance.
+            case .attribute(let attribute) :
+              let value = try attribute.decodeValue(from: &container)
+              log("  \(key.name) <- \(value ?? "nil")")
+              setValue(value, forKey: key.name)
+
+            // Relationship values are decoded as lists of object URIs, which must be mapped to object instances by the given context.
+            case .relationship(let relationship) :
+              let urls = try container.decode([URL].self, forKey: .init(name: key.name))
+              log("  \(key.name) <- \(urls)")
+              let objects = try urls.map { try objectByURL($0) }
+              switch relationship.range {
+                case .toOptional, .toOne :
+                  guard objects.count <= 1 else { throw Exception("invalid related object count for \(type(of: self)).\(key.name): \(objects.count)") }
+                  setValue(objects.first, forKey: key.name)
+                default :
+                  setValue(Set(objects), forKey: key.name)
+              }
+
+            // Fetched properties are not encoded.
+            case .fetched(_) :
+              break
+
+            default :
+              throw Exception("unexpected property: \(key.name)")
+          }
+        }
+      }
+
+
+#if false
+// TODO: recast as custom implementation of Decoder, leveraging decodeProperties(_:from:in:)
     /// Initialize a new instance, taking property values from the given ingest data. This method is not intended to be overidden.
     public required init(_ info: ClassInfo, with ingestData: IngestObject, in store: DataStore, delay: (@escaping () throws -> Void) -> Void) throws
       {
@@ -139,6 +218,7 @@ open class ManagedObject : NSManagedObject
           }
         }
       }
+#endif
 
 
     // Retrieve the value of a non-optional attribute.

@@ -9,19 +9,3 @@ public typealias OSImage = NSImage
 import UIKit
 public typealias OSImage = UIImage
 #endif
-
-import CoreData
-
-
-#if os(macOS) || os(iOS)
-
-extension OSImage : StorageType
-  {
-    public static var typeId : NSAttributeDescription.AttributeType
-      { .transformable }
-
-    public static var valueTransformerName : NSValueTransformerName?
-      { .imageValueTransformerName() }
-  }
-
-#endif

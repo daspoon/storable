@@ -14,12 +14,20 @@ public struct ClassInfo
   {
     public let entityInfo : Entity
     public let entityDescription : NSEntityDescription
+    public let allPropertiesByName : [String: Property]
 
 
     public init(_ entityInfo: Entity, _ entityDescription: NSEntityDescription)
       {
         self.entityInfo = entityInfo
         self.entityDescription = entityDescription
+
+        // TODO: this needs to include the properties of all super-entities
+        allPropertiesByName = Dictionary(uniqueKeysWithValues:
+          entityInfo.attributes.map { ($0, .attribute($1)) } +
+          entityInfo.relationships.map { ($0, .relationship($1)) } +
+          entityInfo.fetchedProperties.map { ($0, .fetched($1)) }
+        )
       }
 
 
@@ -29,6 +37,8 @@ public struct ClassInfo
   }
 
 
+#if false
+// TODO: recast as custom implementation of Decoder
 extension ClassInfo
   {
     /// Called on ingestion to create an instance of the represented entity from a given JSON value.
@@ -64,3 +74,4 @@ extension ClassInfo
         return objects
       }
   }
+#endif

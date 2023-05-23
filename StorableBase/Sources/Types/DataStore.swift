@@ -75,6 +75,10 @@ public class DataStore
       { state?.mainContext }
 
 
+    public var persistentStoreCoordinator : NSPersistentStoreCoordinator!
+      { state?.rootContext.persistentStoreCoordinator }
+
+
     /// Open the persistent store for the given object model, which must be compatible; any necessary migration must be performed prior to invoking this method.
     public func openWith(model: NSManagedObjectModel) throws
       {
@@ -174,6 +178,13 @@ public class DataStore
       {
         guard let info = classInfoByName[entityName] else { throw Exception("unknown entity name '\(entityName)'") }
         return info
+      }
+
+
+    public func classInfo(for object: ManagedObject) throws -> ClassInfo
+      {
+        guard let entityName = object.entity.name else { throw Exception("\(type(of: object)) has unnamed entity") }
+        return try classInfo(for: entityName)
       }
 
 

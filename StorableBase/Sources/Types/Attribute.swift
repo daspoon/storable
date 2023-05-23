@@ -32,20 +32,24 @@ public struct Attribute
     /// The name of the attribute in the previous entity version, if necessary.
     public var renamingIdentifier : String?
 
-    /// If non-nil, determines how json values are extracted from object ingest data and transformed to stored values.
-    public var ingest : (key: IngestKey, method: (Any) throws -> Any)?
+    /// Determines how values are extracted from object ingest data.
+    public var ingestKey : IngestKey
+
+    /// Type-aware methods for importing/exporting attribute values.
+    private let decodeMethod : (inout KeyedDecodingContainer<NameCodingKey>) throws -> Any?
+    private let encodeMethod : (Any, inout KeyedEncodingContainer<NameCodingKey>) throws -> Void
 
 
     /// Initialize a new instance.
-    private init(
+    private init<T: Codable>(
         name: String,
-        type: Any.Type,
+        type: T.Type,
         attributeType: NSAttributeDescription.AttributeType,
         isOptional: Bool = false,
         valueTransformerName: NSValueTransformerName? = nil,
         defaultValue: Any? = nil,
         renamingIdentifier: String? = nil,
-        ingest: (key: IngestKey, method: (Any) throws -> Any)? = nil
+        ingestKey: IngestKey? = nil
       )
       {
         self.name = name
@@ -55,76 +59,31 @@ public struct Attribute
         self.defaultValue = defaultValue
         self.isOptional = isOptional
         self.renamingIdentifier = renamingIdentifier
-        self.ingest = ingest
+        self.ingestKey = ingestKey ?? .element(name)
+
+        decodeMethod = { container in try container.decodeIfPresent(T.self, forKey: .init(name: name)) }
+        encodeMethod = { value, container in try container.encode(value as! T, forKey: .init(name: name)) }
       }
 
 
     /// Declare a non-optional standard attribute.
-    public init<T: StorageType>(name: String, type t: T.Type, defaultValue v: T? = nil, renamingIdentifier id: String? = nil)
-      { self.init(name: name, type: t, attributeType: T.typeId, valueTransformerName: T.valueTransformerName, defaultValue: v, renamingIdentifier: id) }
-
-    /// Declare a non-optional standard attribute which is ingestible.
-    public init<T: StorageType&Ingestible>(name: String, type t: T.Type, defaultValue v: T? = nil, renamingIdentifier id: String? = nil)
-      { self.init(name: name, type: t, attributeType: T.typeId, valueTransformerName: T.valueTransformerName, defaultValue: v, renamingIdentifier: id, ingest: (.element(name), T.ingest)) }
-
-    /// Declare a non-optional standard attribute which is ingestible using the specified key.
-    public init<T: StorageType&Ingestible>(name: String, type t: T.Type, defaultValue v: T? = nil, renamingIdentifier id: String? = nil, ingestKey k: IngestKey)
-      { self.init(name: name, type: t, attributeType: T.typeId, valueTransformerName: T.valueTransformerName, defaultValue: v, renamingIdentifier: id, ingest: (k, T.ingest)) }
-
-    /// Declare a non-optional standard attribute transformed from an alternate type on ingestion. Default values must be provided pre-transform.
-    public init<T: StorageType&Ingestible, Alt>(name: String, type t: T.Type, defaultValue v: Alt? = nil, renamingIdentifier id: String? = nil, ingestKey k: IngestKey? = nil, transform f: @escaping (Alt) throws -> T.Input)
-      { self.init(name: name, type: t, attributeType: T.typeId, valueTransformerName: T.valueTransformerName, defaultValue: v.map {try! T.ingest($0, withTransform: f)}, renamingIdentifier: id, ingest: (k ?? .element(name), {try T.ingest($0, withTransform: f)})) }
+    public init<T: StorageType>(name: String, type t: T.Type, defaultValue v: T? = nil, renamingIdentifier id: String? = nil, ingestKey k: IngestKey? = nil)
+      { self.init(name: name, type: t, attributeType: T.typeId, valueTransformerName: T.valueTransformerName, defaultValue: v, renamingIdentifier: id, ingestKey: k) }
 
 
     /// Declare a non-optional storable attribute.
-    public init<T: Storable>(name: String, type t: T.Type, defaultValue v: T? = nil, renamingIdentifier id: String? = nil)
-      { self.init(name: name, type: t, attributeType: T.EncodingType.typeId, valueTransformerName: T.valueTransformerName, defaultValue: v?.storedValue(), renamingIdentifier: id) }
-
-    /// Declare a non-optional storable attribute which is ingestible.
-    public init<T: Storable&Ingestible>(name: String, type t: T.Type, defaultValue v: T? = nil, renamingIdentifier id: String? = nil)
-      { self.init(name: name, type: t, attributeType: T.EncodingType.typeId, valueTransformerName: T.valueTransformerName, defaultValue: v?.storedValue(), renamingIdentifier: id, ingest: (.element(name), T.ingest)) }
-
-    /// Declare a non-optional storable attribute which is ingestible using the specified key.
-    public init<T: Storable&Ingestible>(name: String, type t: T.Type, defaultValue v: T? = nil, renamingIdentifier id: String? = nil, ingestKey k: IngestKey)
-      { self.init(name: name, type: t, attributeType: T.EncodingType.typeId, valueTransformerName: T.valueTransformerName, defaultValue: v?.storedValue(), renamingIdentifier: id, ingest: (k, T.ingest)) }
-
-    /// Declare a non-optional storable attribute transformed from an alternate type on ingestion. Default values must be provided pre-transform.
-    public init<T: Storable&Ingestible, Alt>(name: String, type t: T.Type, defaultValue v: Alt? = nil, renamingIdentifier id: String? = nil, ingestKey k: IngestKey? = nil, transform f: @escaping (Alt) throws -> T.Input)
-      { self.init(name: name, type: t, attributeType: T.EncodingType.typeId, valueTransformerName: T.valueTransformerName, defaultValue: v.map({try! T.ingest($0, withTransform: f)})?.storedValue(), renamingIdentifier: id, ingest: (k ?? .element(name), {try T.ingest($0, withTransform: f)})) }
+    public init<T: Storable>(name: String, type t: T.Type, defaultValue v: T? = nil, renamingIdentifier id: String? = nil, ingestKey k: IngestKey? = nil)
+      { self.init(name: name, type: t, attributeType: T.EncodingType.typeId, valueTransformerName: T.valueTransformerName, defaultValue: v?.storedValue(), renamingIdentifier: id, ingestKey: k) }
 
 
     /// Declare an optional standard attribute.
-    public init<T: Nullable>(name: String, type t: T.Type, defaultValue v: T.Wrapped? = nil, renamingIdentifier id: String? = nil) where T.Wrapped : StorageType
-      { self.init(name: name, type: T.Wrapped.self, attributeType: T.Wrapped.typeId, isOptional: true, valueTransformerName: T.Wrapped.valueTransformerName, defaultValue: v, renamingIdentifier: id) }
-
-    /// Declare an optional standard attribute which is ingestible.
-    public init<T: Nullable>(name: String, type t: T.Type, defaultValue v: T.Wrapped? = nil, renamingIdentifier id: String? = nil) where T.Wrapped : StorageType&Ingestible
-      { self.init(name: name, type: T.Wrapped.self, attributeType: T.Wrapped.typeId, isOptional: true, valueTransformerName: T.Wrapped.valueTransformerName, defaultValue: v, renamingIdentifier: id, ingest: (.element(name), T.Wrapped.ingest)) }
-
-    /// Declare an optional standard attribute which is ingestible using the specified key.
-    public init<T: Nullable>(name: String, type t: T.Type, defaultValue v: T.Wrapped? = nil, renamingIdentifier id: String? = nil, ingestKey k: IngestKey) where T.Wrapped : StorageType&Ingestible
-      { self.init(name: name, type: T.Wrapped.self, attributeType: T.Wrapped.typeId, isOptional: true, valueTransformerName: T.Wrapped.valueTransformerName, defaultValue: v, renamingIdentifier: id, ingest: (k, T.Wrapped.ingest)) }
-
-    /// Declare an optional standard attribute transformed from an alternate type on ingestion. Default values must be provided pre-transform.
-    public init<T: Nullable, Alt>(name: String, type t: T.Type, defaultValue v: Alt? = nil, renamingIdentifier id: String? = nil, ingestKey k: IngestKey? = nil, transform f: @escaping (Alt) throws -> T.Wrapped.Input) where T.Wrapped : StorageType&Ingestible
-      { self.init(name: name, type: T.Wrapped.self, attributeType: T.Wrapped.typeId, isOptional: true, valueTransformerName: T.Wrapped.valueTransformerName, defaultValue: v.map {try! T.Wrapped.ingest($0, withTransform: f)}, renamingIdentifier: id, ingest: (k ?? .element(name), {try T.Wrapped.ingest($0, withTransform: f)})) }
+    public init<T: Nullable>(name: String, type t: T.Type, defaultValue v: T.Wrapped? = nil, renamingIdentifier id: String? = nil, ingestKey k: IngestKey? = nil) where T.Wrapped : StorageType
+      { self.init(name: name, type: T.Wrapped.self, attributeType: T.Wrapped.typeId, isOptional: true, valueTransformerName: T.Wrapped.valueTransformerName, defaultValue: v, renamingIdentifier: id, ingestKey: k) }
 
 
     /// Declare an optional storable attribute.
-    public init<T: Nullable>(name: String, type t: T.Type, defaultValue v: T.Wrapped? = nil, renamingIdentifier id: String? = nil) where T.Wrapped : Storable
-      { self.init(name: name, type: T.Wrapped.self, attributeType: T.Wrapped.EncodingType.typeId, isOptional: true, valueTransformerName: T.Wrapped.valueTransformerName, defaultValue: v?.storedValue(), renamingIdentifier: id) }
-
-    /// Declare an optional storable attribute which is ingestible.
-    public init<T: Nullable>(name: String, type t: T.Type, defaultValue v: T.Wrapped? = nil, renamingIdentifier id: String? = nil) where T.Wrapped : Storable&Ingestible
-      { self.init(name: name, type: T.Wrapped.self, attributeType: T.Wrapped.EncodingType.typeId, isOptional: true, valueTransformerName: T.Wrapped.valueTransformerName, defaultValue: v?.storedValue(), renamingIdentifier: id, ingest: (.element(name), T.Wrapped.ingest)) }
-
-    /// Declare an optional storable attribute which is ingestible using the specified key.
-    public init<T: Nullable>(name: String, type t: T.Type, defaultValue v: T.Wrapped? = nil, renamingIdentifier id: String? = nil, ingestKey k: IngestKey) where T.Wrapped : Storable&Ingestible
-      { self.init(name: name, type: T.Wrapped.self, attributeType: T.Wrapped.EncodingType.typeId, isOptional: true, valueTransformerName: T.Wrapped.valueTransformerName, defaultValue: v?.storedValue(), renamingIdentifier: id, ingest: (k, T.Wrapped.ingest)) }
-
-    /// Declare an optional storable attribute transformed from an alternate type on ingestion. Default values must be provided pre-transform.
-    public init<T: Nullable, Alt>(name: String, type t: T.Type, defaultValue v: Alt? = nil, renamingIdentifier id: String? = nil, ingestKey k: IngestKey? = nil, transform f: @escaping (Alt) throws -> T.Wrapped.Input) where T.Wrapped : Storable&Ingestible
-      { self.init(name: name, type: T.Wrapped.self, attributeType: T.Wrapped.EncodingType.typeId, isOptional: true, valueTransformerName: T.Wrapped.valueTransformerName, defaultValue: v.map {try! T.Wrapped.ingest($0, withTransform: f).storedValue()}, renamingIdentifier: id, ingest: (k ?? .element(name), {try T.Wrapped.ingest($0, withTransform: f)})) }
+    public init<T: Nullable>(name: String, type t: T.Type, defaultValue v: T.Wrapped? = nil, renamingIdentifier id: String? = nil, ingestKey k: IngestKey? = nil) where T.Wrapped : Storable
+      { self.init(name: name, type: T.Wrapped.self, attributeType: T.Wrapped.EncodingType.typeId, isOptional: true, valueTransformerName: T.Wrapped.valueTransformerName, defaultValue: v?.storedValue(), renamingIdentifier: id, ingestKey: k) }
 
 
     /// Return a copy of the receiver with changes made by the given code block.
@@ -134,6 +93,13 @@ public struct Attribute
         method(&copy)
         return copy
       }
+
+
+    func decodeValue(from container: inout KeyedDecodingContainer<NameCodingKey>) throws -> Any?
+      { try decodeMethod(&container) }
+
+    func encodeValue(_ value: Any, to container: inout KeyedEncodingContainer<NameCodingKey>) throws
+      { try encodeMethod(value, &container) }
   }
 
 

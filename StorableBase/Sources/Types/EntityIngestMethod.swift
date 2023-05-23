@@ -5,6 +5,8 @@
 */
 
 
+#if false
+// TODO: recast as custom implementation of Decoder
 /// EntityIngestMethod is used to create a set of instances of an associated ManagedObject subclass from a specified resource.
 
 public struct EntityIngestMethod : IngestMethod
@@ -37,3 +39,4 @@ public struct EntityIngestMethod : IngestMethod
         }
       }
   }
+#endif

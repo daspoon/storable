@@ -9,7 +9,7 @@ import CoreData
 
 /// Storable identifies types which can be transformed to and from StorageType, and serves as the generic constraint for our Attribute property wrapper.
 
-public protocol Storable
+public protocol Storable : Codable
   {
     associatedtype EncodingType : StorageType
 

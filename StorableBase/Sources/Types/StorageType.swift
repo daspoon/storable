@@ -9,7 +9,7 @@ import CoreData
 
 /// AttributeType identifies types which are supported directly by CoreData attribute storage.
 
-public protocol StorageType
+public protocol StorageType : Codable
   {
     /// The identifier for the underlying storage type.
     static var typeId : NSAttributeDescription.AttributeType { get }

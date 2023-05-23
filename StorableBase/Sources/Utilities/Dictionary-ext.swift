@@ -37,6 +37,8 @@ extension Dictionary where Key == String, Value == Any
       }
 
 
+#if false
+// TODO: recast as custom implementation of Decoder, if necessary
     public func optionalValue<V>(of type: V.Type = V.self, for key: String, in context: @autoclosure () -> String? = {nil}()) throws -> V? where V : Ingestible
       { try optionalValue(of: type, for: key, in: context(), transformedBy: { try V(json: $0)}) }
 
@@ -68,4 +70,5 @@ extension Dictionary where Key == String, Value == Any
         guard let kvs = try optionalDictionaryValue(of: type, for: key, in: context()) else { throw Exception.missingValue(key: key, in: context()) }
         return kvs
       }
+#endif
   }
