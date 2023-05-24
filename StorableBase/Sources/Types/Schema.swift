@@ -12,15 +12,11 @@ import CoreData
 public struct Schema
   {
     /// A convenience type pairing the data structures generated on demand: the managed object model and the mapping of entity names to ClassInfo structures.
-    public typealias RuntimeInfo = (managedObjectModel: NSManagedObjectModel, classInfoByName: [String: ClassInfo])
+    public typealias RuntimeInfo = (managedObjectModel: NSManagedObjectModel, classInfoByName: [String: EntityTree])
 
 
     /// The ManagedObject classes given on initialization, organized as a tree closed under inheritance.
-    private var classTree : ClassTree<ManagedObject> = .init()
-
-    /// Map the names of defined entities to Entity instances.
-    public private(set) var entityInfoByName : [String: Entity] = [:]
-
+    private let entityTree : EntityTree
 
     /// An explicit version identifier optionally assigned on initialization.
     public let versionId : String?
@@ -33,23 +29,7 @@ public struct Schema
     public init(versionId: String? = nil, objectTypes: [ManagedObject.Type]) throws
       {
         self.versionId = versionId
-        for objectType in objectTypes {
-          try self.addObjectType(objectType)
-        }
-      }
-
-
-    /// Associate a new object type to a new instance of Entity.
-    private mutating func addObjectType(_ givenType: ManagedObject.Type, entityInfo givenInfo: Entity? = nil) throws
-      {
-        precondition(entityInfoByName[givenType.entityName] == nil && givenInfo.map({$0.managedObjectClass == givenType}) != .some(false), "invalid argument")
-
-        try classTree.add(givenType) { newType in
-          let entityName = newType.entityName
-          let existingInfo = entityInfoByName[entityName]
-          guard existingInfo == nil else { throw Exception("entity name \(entityName) is defined by both \(existingInfo!.managedObjectClass) and \(newType)") }
-          entityInfoByName[entityName] = try Entity(objectType: newType)
-        }
+        self.entityTree = try EntityTree(objectTypes: objectTypes)
       }
 
 
@@ -58,25 +38,8 @@ public struct Schema
       {
         precondition(self.versionId == nil || self.versionId == .some(versionId))
 
-        // Perform a post-order traversal of the class hierarchy to create an entity description for each class, establish inheritance between entities, and populate classInfoByName...
-        var classInfoByName : [String: ClassInfo] = [:]
-        _ = classTree.fold { (objectType: ManagedObject.Type, subentities: [NSEntityDescription]) -> NSEntityDescription in
-          // Ignore the root class (i.e. ManagedObject) which is not modeled.
-          guard objectType != ManagedObject.self else { return .init() }
-          // Get the corresponding Entity
-          guard let entityInfo = entityInfoByName[objectType.entityName] else { fatalError() }
-          // Create an NSEntityDescription
-          let entityDescription = NSEntityDescription()
-          entityDescription.name = entityInfo.name
-          entityDescription.managedObjectClassName = NSStringFromClass(objectType)
-          entityDescription.isAbstract = objectType.isAbstract
-          entityDescription.renamingIdentifier = objectType.renamingIdentifier
-          entityDescription.subentities = subentities
-          // Add a registry entry
-          classInfoByName[entityInfo.name] = ClassInfo(entityInfo, entityDescription)
-          // Return the generated entity
-          return entityDescription
-        }
+        // Complete the entity tree to construct the hierarchy of entity descriptions and obtain the mapping of entity names to subtrees.
+        let classInfoByName = try entityTree.complete()
 
         // Extend each NSEntityDescription with the specified attributes.
         for (_, classInfo) in classInfoByName {
@@ -161,13 +124,16 @@ public struct Schema
 
 
     mutating func withEntityNamed(_ entityName: String, update: (inout Entity) -> Void)
-      { update(&entityInfoByName[entityName]!) }
+      {
+        guard let subtree = entityTree.subtreesByName[entityName] else { preconditionFailure("invalid argument: \(entityName)") }
+        subtree.withEntity(update: update)
+      }
 
 
     /// Return the steps required to migrate the object model of the previous schema version to the receiver's object model.
     func migrationSteps(to targetModel: NSManagedObjectModel, from sourceModel: NSManagedObjectModel, of sourceSchema: Schema, using migration: Migration) throws -> [Migration.Step]
       {
-        var customizationInfo = try Self.customizationInfoForMigration(from: sourceSchema, to: self)
+        let customizationInfo = try Self.customizationInfoForMigration(from: sourceSchema, to: self)
 
         let steps : [Migration.Step]
         switch (customizationInfo.requiresMigrationScript, migration.script) {
@@ -177,7 +143,7 @@ public struct Schema
 
           case (_, .some(let script)) :
             // A migration script is necessary: extend the intermediate schema with a MigrationScriptMarker,
-            try customizationInfo.intermediateSchema.addObjectType(Migration.ScriptMarker.self)
+            try customizationInfo.intermediateSchema.entityTree.addObjectType(Migration.ScriptMarker.self)
             // construct a version identifier for the intermediate model,
             let versionId = sourceModel.versionId + " -> " + targetModel.versionId // NOTE: we have no means to ensure this identifier is unique
             // generate the intermediate object model,
@@ -225,17 +191,17 @@ public struct Schema
         if let schemaDiff = try targetSchema.difference(from: sourceSchema) {
           // Add each new entity to the intermediate schema; these changes don't necessarily require a migration script.
           for entityName in schemaDiff.added {
-            let entityInfo = targetSchema.entityInfoByName[entityName]!
-            try info.intermediateSchema.addObjectType(entityInfo.managedObjectClass, entityInfo: entityInfo)
+            let entityInfo = targetSchema.entityTree.subtreesByName[entityName]!
+            try info.intermediateSchema.entityTree.addObjectType(entityInfo.managedObjectClass, entity: entityInfo.entity)
           }
           // Modify the entities of the intermediate schema to reflect the additive differences between each entity common to source and target schemas.
           for (entityName, entityDiff) in schemaDiff.modified {
-            let targetObjectInfo = targetSchema.entityInfoByName[entityName]!
-            let sourceObjectInfo = sourceSchema.entityInfoByName[targetObjectInfo.renamingIdentifier ?? entityName]!
+            let targetObjectInfo = targetSchema.entityTree.subtreesByName[entityName]!
+            let sourceObjectInfo = sourceSchema.entityTree.subtreesByName[targetObjectInfo.entity.renamingIdentifier ?? entityName]!
             // Extend the intermediate entity to account for added attributes; these require migration scripts when non-optional.
             for attrName in entityDiff.attributesDifference.added {
               info.intermediateSchema.withEntityNamed(entityName) {
-                let targetAttr = targetObjectInfo.attributes[attrName]!
+                let targetAttr = targetObjectInfo.entity.attributes[attrName]!
                 $0.addAttribute(targetAttr)
                 if !(targetAttr.isOptional || targetAttr.defaultValue != nil) {
                   info.requiresMigrationScript = true
@@ -244,8 +210,8 @@ public struct Schema
             }
             // Update the intermediate entity to account for modified attributes, where necessary.
             for (attrName, changes) in entityDiff.attributesDifference.modified {
-              let targetAttr = targetObjectInfo.attributes[attrName]!
-              let sourceAttr = sourceObjectInfo.attributes[targetAttr.renamingIdentifier ?? attrName]!
+              let targetAttr = targetObjectInfo.entity.attributes[attrName]!
+              let sourceAttr = sourceObjectInfo.entity.attributes[targetAttr.renamingIdentifier ?? attrName]!
               for change in changes {
                 switch change {
                   case .isOptional where targetAttr.isOptional == false :
@@ -269,7 +235,7 @@ public struct Schema
             // Extend the intermediate entity to account for added relationships; these require migration scripts when non-optional.
             for relName in entityDiff.relationshipsDifference.added {
               info.intermediateSchema.withEntityNamed(entityName) {
-                let targetRel = targetObjectInfo.relationships[relName]!
+                let targetRel = targetObjectInfo.entity.relationships[relName]!
                 $0.addRelationship(targetRel)
                 if !(targetRel.range.contains(0)) {
                   info.requiresMigrationScript = true
@@ -278,8 +244,8 @@ public struct Schema
             }
             // Update the intermediate entity to account for modified relationships, where necessary.
             for (relName, changes) in entityDiff.relationshipsDifference.modified {
-              let targetRel = targetObjectInfo.relationships[relName]!
-              let sourceRel = sourceObjectInfo.relationships[targetRel.renamingIdentifier ?? relName]!
+              let targetRel = targetObjectInfo.entity.relationships[relName]!
+              let sourceRel = sourceObjectInfo.entity.relationships[targetRel.renamingIdentifier ?? relName]!
               for change in changes {
                 switch change {
                   case .rangeOfCount :
@@ -312,6 +278,8 @@ extension Schema : Diffable
     public func difference(from old: Schema) throws -> Dictionary<String, Entity>.Difference?
       {
         // assert: predecessor == .some(old)
-        try entityInfoByName.difference(from: old.entityInfoByName, moduloRenaming: \.renamingIdentifier)
+        let entitiesByName = entityTree.subtreesByName.mapValues { $0.entity }
+        let oldEntitiesByName = old.entityTree.subtreesByName.mapValues { $0.entity }
+        return try entitiesByName.difference(from: oldEntitiesByName, moduloRenaming: \.renamingIdentifier)
       }
   }

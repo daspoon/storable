@@ -5,7 +5,42 @@
 */
 
 
-/// Methods added to Dictionary to simplify ingestion of object property values from JSON.
+extension Dictionary
+  {
+    // The combine/combining methods enable useful error messages, unlike their counterparts in the standard library.
+
+    /// Merge the given sequence of key/value pairs, invoking the given function to combine new and existing values.
+    public mutating func combine<S: Sequence>(_ other: S, conflictResolution f: (Key, Value, Value) throws -> Value) rethrows where S.Element == (Key, Value)
+      {
+        for (key, value) in other {
+          switch self[key] {
+            case .some(let existing) :
+              self[key] = try f(key, existing, value)
+            case .none :
+              self[key] = value
+          }
+        }
+      }
+
+    /// Return the result of mergeing the given sequence of key/value pairs, invoking the given function to combine new and existing values.
+    public func combining<S: Sequence>(_ other: S, conflictResolution f: (Key, Value, Value) throws -> Value) rethrows -> Self where S.Element == (Key, Value)
+      {
+        var copy = self
+        try copy.combine(other, conflictResolution: f)
+        return copy
+      }
+
+    /// Merge the given sequence of key/value pairs, throwing if any given key already exists in the receiver.
+    public mutating func combine<S: Sequence>(_ other: S) throws where S.Element == (Key, Value)
+      { try combine(other, conflictResolution: { k,_,_ in throw Exception("multiple definitions for '\(k)'") }) }
+
+    /// Return the result of mergeing the given sequence of key/value pairs, throwing if any given key already exists in the receiver.
+    public func combining<S: Sequence>(_ other: S) throws -> Self where S.Element == (Key, Value)
+      { try combining(other, conflictResolution: { k,_,_ in throw Exception("multiple definitions for '\(k)'") }) }
+  }
+
+
+/// Methods used to simplify extraction of object property values from JSON ingest data.
 
 extension Dictionary where Key == String, Value == Any
   {
@@ -21,7 +56,6 @@ extension Dictionary where Key == String, Value == Any
         guard let v = try optionalValue(of: type, for: key, in: context()) else { throw Exception.missingValue(key: key, in: context()) }
         return v
       }
-
 
     public func optionalValue<U,V>(of type: V.Type = V.self, for key: String, in context: @autoclosure () -> String? = {nil}(), transformedBy transform: (U) throws -> V?) throws -> V?
       {
