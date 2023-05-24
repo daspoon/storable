@@ -32,58 +32,35 @@ public struct Attribute
     /// The name of the attribute in the previous entity version, if necessary.
     public var renamingIdentifier : String?
 
-    /// Determines how values are extracted from object ingest data.
-    public var ingestKey : IngestKey
-
     /// Type-aware methods for importing/exporting attribute values.
     private let decodeMethod : (inout KeyedDecodingContainer<NameCodingKey>) throws -> Any?
     private let encodeMethod : (Any, inout KeyedEncodingContainer<NameCodingKey>) throws -> Void
 
 
     /// Initialize a new instance.
-    private init<T: Codable>(
-        name: String,
-        type: T.Type,
-        attributeType: NSAttributeDescription.AttributeType,
-        isOptional: Bool = false,
-        valueTransformerName: NSValueTransformerName? = nil,
-        defaultValue: Any? = nil,
-        renamingIdentifier: String? = nil,
-        ingestKey: IngestKey? = nil
-      )
+    private init<T: Storable>(name: String, type: T.Type, isOptional: Bool, defaultValue: Any?, renamingIdentifier: String?)
       {
         self.name = name
         self.type = type
-        self.attributeType = attributeType
-        self.valueTransformerName = valueTransformerName
+        self.attributeType = T.EncodingType.typeId
+        self.valueTransformerName = T.valueTransformerName
         self.defaultValue = defaultValue
         self.isOptional = isOptional
         self.renamingIdentifier = renamingIdentifier
-        self.ingestKey = ingestKey ?? .element(name)
 
-        decodeMethod = { container in try container.decodeIfPresent(T.self, forKey: .init(name: name)) }
-        encodeMethod = { value, container in try container.encode(value as! T, forKey: .init(name: name)) }
+        decodeMethod = { try $0.decodeIfPresent(T.EncodingType.self, forKey: .init(name: name)) }
+        encodeMethod = { try $1.encode($0 as! T.EncodingType, forKey: .init(name: name)) }
       }
-
-
-    /// Declare a non-optional standard attribute.
-    public init<T: StorageType>(name: String, type t: T.Type, defaultValue v: T? = nil, renamingIdentifier id: String? = nil, ingestKey k: IngestKey? = nil)
-      { self.init(name: name, type: t, attributeType: T.typeId, valueTransformerName: T.valueTransformerName, defaultValue: v, renamingIdentifier: id, ingestKey: k) }
 
 
     /// Declare a non-optional storable attribute.
     public init<T: Storable>(name: String, type t: T.Type, defaultValue v: T? = nil, renamingIdentifier id: String? = nil, ingestKey k: IngestKey? = nil)
-      { self.init(name: name, type: t, attributeType: T.EncodingType.typeId, valueTransformerName: T.valueTransformerName, defaultValue: v?.storedValue(), renamingIdentifier: id, ingestKey: k) }
-
-
-    /// Declare an optional standard attribute.
-    public init<T: Nullable>(name: String, type t: T.Type, defaultValue v: T.Wrapped? = nil, renamingIdentifier id: String? = nil, ingestKey k: IngestKey? = nil) where T.Wrapped : StorageType
-      { self.init(name: name, type: T.Wrapped.self, attributeType: T.Wrapped.typeId, isOptional: true, valueTransformerName: T.Wrapped.valueTransformerName, defaultValue: v, renamingIdentifier: id, ingestKey: k) }
+      { self.init(name: name, type: t, isOptional: false, defaultValue: v?.storedValue(), renamingIdentifier: id) }
 
 
     /// Declare an optional storable attribute.
     public init<T: Nullable>(name: String, type t: T.Type, defaultValue v: T.Wrapped? = nil, renamingIdentifier id: String? = nil, ingestKey k: IngestKey? = nil) where T.Wrapped : Storable
-      { self.init(name: name, type: T.Wrapped.self, attributeType: T.Wrapped.EncodingType.typeId, isOptional: true, valueTransformerName: T.Wrapped.valueTransformerName, defaultValue: v?.storedValue(), renamingIdentifier: id, ingestKey: k) }
+      { self.init(name: name, type: T.Wrapped.self, isOptional: true, defaultValue: v?.storedValue(), renamingIdentifier: id) }
 
 
     /// Return a copy of the receiver with changes made by the given code block.

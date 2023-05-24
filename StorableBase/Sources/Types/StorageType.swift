@@ -13,16 +13,6 @@ public protocol StorageType : Codable
   {
     /// The identifier for the underlying storage type.
     static var typeId : NSAttributeDescription.AttributeType { get }
-
-    /// A value transformer name is required if the underlying storage type is transformable.
-    static var valueTransformerName : NSValueTransformerName? { get }
-  }
-
-
-extension StorageType
-  {
-    public static var valueTransformerName : NSValueTransformerName?
-      { precondition(typeId != .transformable); return nil }
   }
 
 
