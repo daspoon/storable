@@ -20,11 +20,11 @@ class ImageValueTransformer : ValueTransformer
     public override func transformedValue(_ any: Any?) -> Any?
       {
         guard let image = any as? OSImage else {
-          log("failed to interpret argument as \(OSImage.self)>: \(String(describing: any))")
+          log(level: .error, "failed to interpret argument as \(OSImage.self)>: \(String(describing: any))")
           return nil
         }
         guard let data = image.pngData() else {
-          log("failed to extract PNG image data")
+          log(level: .error, "failed to extract PNG image data")
           return nil
         }
         return data
@@ -33,7 +33,7 @@ class ImageValueTransformer : ValueTransformer
     public override func reverseTransformedValue(_ any: Any?) -> Any?
       {
         guard let data = any as? Data else {
-          log("failed to interpret argument as Data: \(String(describing: any))")
+          log(level: .error, "failed to interpret argument as Data: \(String(describing: any))")
           return nil
         }
         return OSImage(data: data)

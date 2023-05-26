@@ -5,11 +5,22 @@
 */
 
 import CoreData
+import OSLog
+
+
+fileprivate let logger = Logger(subsystem: "xyz.lambdasoftware.storable", category: "default")
 
 
 /// Print a message to the console which includes the name of the enclosing function.
-public func log(_ message: @autoclosure () -> String, function: String = #function)
-  { print("--- \(function) - \(message())") }
+public func log(level: OSLogType = .info, function: String = #function, _ message: @escaping @autoclosure () -> String)
+  {
+    #if false
+    logger.log(level: level, "\(function) -- \(message())")
+    #else
+    print("\(function) -- \(message())")
+    #endif
+  }
+
 
 
 /// Return the given value cast to the specified type, throwing an Exception on failure.

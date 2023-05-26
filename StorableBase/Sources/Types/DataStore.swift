@@ -50,7 +50,7 @@ public class DataStore
 
         do { try close() }
         catch let error {
-          log("failed to close \(storeURL): \(error)")
+          log(level: .error, "failed to close \(self.storeURL): \(error)")
         }
       }
 
@@ -155,7 +155,7 @@ public class DataStore
         // Perform each method, allowing closures to be registered for delayed execution.
         var delayedEffects : [() throws -> Void] = []
         for method in methods {
-          log("ingesting \(method.methodIdentifier) data" + (method.resourceKeyPath.map {" from " + $0} ?? ""))
+          log("ingesting \(method.methodIdentifier) data \(method.resourceKeyPath.map {" from " + $0} ?? "")")
           let json : Any
           switch method.resourceKeyPath?.decomposeKeyPath() {
             case .none :
@@ -272,7 +272,7 @@ public class DataStore
         let metadata : [String: Any]
         do { metadata = try getMetadata() }
         catch {
-          log("failed to get store metadata: \(error)")
+          log(level: .error, "failed to get store metadata: \(error)")
           return false
         }
         return model.isConfiguration(withName: nil, compatibleWithStoreMetadata: metadata)

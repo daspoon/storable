@@ -44,11 +44,11 @@ public final class Boxed<Value: Codable> : NSObject, NSSecureCoding, Codable
     public init?(coder: NSCoder)
       {
         guard let data = coder.decodeData() else {
-          log("failed to decode data")
+          log(level: .error, "failed to decode data")
           return nil
         }
         guard let v = try? JSONDecoder().decode(Value.self, from: data) else {
-          log("failed to decode \(Value.self) from JSON data")
+          log(level: .error, "failed to decode \(Value.self) from JSON")
           return nil
         }
         value = v
@@ -57,7 +57,7 @@ public final class Boxed<Value: Codable> : NSObject, NSSecureCoding, Codable
     public func encode(with coder: NSCoder)
       {
         guard let data = try? JSONEncoder().encode(value) else {
-          log("failed to encode \(Value.self) as JSON")
+          log(level: .error, "failed to encode \(Value.self) as JSON")
           return
         }
         coder.encode(data)

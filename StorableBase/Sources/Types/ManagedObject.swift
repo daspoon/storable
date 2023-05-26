@@ -83,14 +83,15 @@ open class ManagedObject : NSManagedObject
     func encodeProperties(_ properties: [String: Property], to container: inout KeyedEncodingContainer<NameCodingKey>) throws
       {
         let changes = changedValues()
-        log("saving \(changes.count) changes for \(objectID.uriRepresentation())")
+
+        log("saving \(changes.count) changes for \(self.objectID.uriRepresentation())")
 
         for (name, value) in changes {
           // TODO: account for NSNull used to represent nil
           switch properties[name] {
             // Attribute values are encoded w.r.t. their types, which are known only to the given Attribute instance.
             case .attribute(let attribute) :
-              log("  \(name) -> \(value)")
+              log("  \(name)")
               try attribute.encodeValue(value, to: &container)
 
             // Relationship values are decoded as lists of related object URIs.
@@ -120,14 +121,14 @@ open class ManagedObject : NSManagedObject
     /// Decode the values of the specified properties from the given container.
     func decodeProperties(_ properties: [String: Property], from container: inout KeyedDecodingContainer<NameCodingKey>, objectByURL: (URL) throws -> ManagedObject) throws
       {
-        log("restoring \(container.allKeys.count) changes for \(objectID.uriRepresentation())")
+        log("restoring changes for \(self.objectID.uriRepresentation())")
 
         for key in container.allKeys {
           switch properties[key.name] {
             // Attribute values are decoded w.r.t. their types, which are known only to the given Attribute instance.
             case .attribute(let attribute) :
               let value = try attribute.decodeValue(from: &container)
-              log("  \(key.name) <- \(value ?? "nil")")
+              log("  \(key.name)")
               setValue(value, forKey: key.name)
 
             // Relationship values are decoded as lists of object URIs, which must be mapped to object instances by the given context.

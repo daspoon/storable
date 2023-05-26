@@ -79,7 +79,7 @@ extension NSManagedObjectContext
     public func performSave(completion: ((Error?) -> Void)? = nil)
       {
         do {
-          log("saving " + (name.map {$0 + " "} ?? "") +  "context")
+          log("saving \(self.name.map {$0 + " "} ?? "") context")
           try save()
 
           switch parent {
