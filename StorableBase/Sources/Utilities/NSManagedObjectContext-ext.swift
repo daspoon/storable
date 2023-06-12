@@ -79,14 +79,30 @@ extension NSManagedObjectContext
     public func performSave(completion: ((Error?) -> Void)? = nil)
       {
         do {
-          log("saving \(self.name.map {$0 + " "} ?? "") context")
+          log("saving \(name ?? "<unnamed>") context")
+
+          // If we have a parent context then make note of the inserted objects.
+          let inserted = parent != nil ? Array(insertedObjects) : []
+
+          // Merge our changes into the parent context (or into the persistent store if parent is nil).
           try save()
 
-          switch parent {
-            case .some(let parent) :
-              parent.perform { parent.performSave(completion: completion) }
-            case .none :
-              performSaveDidComplete(with: nil, callback: completion)
+          // If we have a parent context then recursively save it, then obtain permanent ids for the inserted objects and finally invoke the completion handler; otherwise just invoke the completion handler.
+          if let parent {
+            parent.perform {
+              parent.performSave { error in
+                if error == nil {
+                  do { try self.obtainPermanentIDs(for: inserted) }
+                  catch {
+                    log("context \(self.name ?? "<unnamed>") failed to resolve inserted objects")
+                  }
+                }
+                completion?(error)
+              }
+            }
+          }
+          else {
+            performSaveDidComplete(with: nil, callback: completion)
           }
         }
         catch {
