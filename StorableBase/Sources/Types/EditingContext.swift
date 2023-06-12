@@ -80,7 +80,7 @@ public final class EditingContext : Codable
       { childContext.validationError }
 
 
-    /// Save the changes in the local context to the persistent store, invoking the given block on either completion or failure. It is expected that *validationError* on calling this method.
+    /// Save the changes in the local context to the persistent store, invoking the given block on either completion or failure. It is expected that *validationError* is *nil* on calling this method.
     public func save(onCompletion completion: ((Error?) -> Void)? = nil)
       {
         if let validationError {
