@@ -30,6 +30,9 @@ public final class EditingContext : Codable
     /// The actions to be performed on either save or cancel.
     private var actions : [(message: String, trigger: CallbackTrigger, effect: () throws -> Void)] = []
 
+    /// The mapping of URIs to managed object identifiers for temporary objects restored on decoding.
+    private var temporaryObjectsByURL : [URL: ManagedObject] = [:]
+
 
     /// Create a new editing context on the given parent context.
     public init(name: String? = nil, dataStore store: DataStore)
@@ -95,6 +98,7 @@ public final class EditingContext : Codable
           completion?(error)
         }
 
+        temporaryObjectsByURL = [:]
         actions = []
       }
 
@@ -107,7 +111,28 @@ public final class EditingContext : Codable
 
         childContext.rollback()
 
+        temporaryObjectsByURL = [:]
         actions = []
+      }
+
+
+    public func existingObject<T: ManagedObject>(of _: T.Type, with url: URL) throws -> T
+      {
+        let object : NSManagedObject
+        switch temporaryObjectsByURL[url] {
+          case .some(let restoredObject) :
+            log("resolved \(url) to \(restoredObject.objectID.uriRepresentation())")
+            object = restoredObject
+          case .none :
+            guard let id = dataStore.persistentStoreCoordinator.managedObjectID(forURIRepresentation: url)
+              else { throw Exception("failed to resolve object URI: \(url)") }
+            object = try childContext.existingObject(with: id)
+        }
+
+        guard let expected = object as? T
+          else { throw Exception("unexpected resolved object \(type(of: object)) for id \(url)") }
+
+        return expected
       }
 
 
@@ -130,11 +155,11 @@ public final class EditingContext : Codable
 
         // Get the URLs of the inserted objects and create a mapping of those URLs to new object instances.
         let insertedURLs = try container.decode([URL].self, forKey: .inserts)
-        let temporaryObjectsByURL : [URL: ManagedObject] = try Dictionary(uniqueKeysWithValues: insertedURLs.map { url in
+        temporaryObjectsByURL = try Dictionary(uniqueKeysWithValues: insertedURLs.map { url in
           guard let entityName = url.coreDataEntityName else { throw Exception("failed to interpret URL: \(url)") }
           let classInfo = try dataStore.classInfo(for: entityName)
-          log("creating replacement for \(url)")
           let object = classInfo.managedObjectClass.init(entity: classInfo.entityDescription, insertInto: childContext)
+          log("created replacement \(object.objectID.uriRepresentation()) for \(url)")
           return (url, object)
         })
 
@@ -159,7 +184,6 @@ public final class EditingContext : Codable
           let object = try objectByURL(key.url)
           let classInfo = try dataStore.classInfo(for: object)
           var propertyUpdatesContainer = try objectUpdatesByURL.nestedContainer(keyedBy: NameCodingKey.self, forKey: key)
-          log("restoring changes to \(key.url)")
           try object.decodeProperties(classInfo.allPropertiesByName, from: &propertyUpdatesContainer, objectByURL: objectByURL)
         }
 
