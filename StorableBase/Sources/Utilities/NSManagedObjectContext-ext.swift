@@ -78,6 +78,8 @@ extension NSManagedObjectContext
     /// Save the given context and each of its ancestors, invoking the given completion block, if any, on the main queue.
     public func performSave(completion: ((Error?) -> Void)? = nil)
       {
+        guard hasChanges else { completion?(nil); return }
+
         do {
           log("saving \(name ?? "<unnamed>") context")
 
