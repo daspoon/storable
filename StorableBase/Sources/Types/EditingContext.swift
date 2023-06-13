@@ -116,6 +116,13 @@ public final class EditingContext : Codable
       }
 
 
+    /// Discard the registered objects of the local context.
+    public func reset()
+      {
+        childContext.reset()
+      }
+
+
     public func existingObject<T: ManagedObject>(of _: T.Type, with url: URL) throws -> T
       {
         let object : NSManagedObject
