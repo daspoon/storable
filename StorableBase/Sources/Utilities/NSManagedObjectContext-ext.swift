@@ -58,6 +58,17 @@ extension NSManagedObjectContext
     /// Fetch the single object of the given type and name.
     public func fetchObject<T: ManagedObject>(id name: String, of type: T.Type = T.self) throws -> T
       { try fetchObject(fetchRequest(for: type, predicate: .init(format: "name = %@", name))) }
+
+
+    public func existingObject<T: ManagedObject>(of type: T.Type = T.self, with url: URL) throws -> T
+      {
+        guard let coordinator = persistentStoreCoordinator
+          else { throw Exception("no persistent store coordinator for context \(name ?? "")") }
+        guard let id = coordinator.managedObjectID(forURIRepresentation: url)
+          else { throw Exception("failed to resolve object URI: \(url)") }
+
+        return try throwingCast(try existingObject(with: id))
+      }
   }
 
 
