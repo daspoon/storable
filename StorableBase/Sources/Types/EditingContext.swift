@@ -123,7 +123,7 @@ public final class EditingContext : Codable
       }
 
 
-    public func existingObject<T: ManagedObject>(of _: T.Type, with url: URL) throws -> T
+    public func existingObject<T: ManagedObject>(of _: T.Type = T.self, with url: URL) -> T?
       {
         let object : NSManagedObject
         switch temporaryObjectsByURL[url] {
@@ -132,12 +132,14 @@ public final class EditingContext : Codable
             object = restoredObject
           case .none :
             guard let id = dataStore.persistentStoreCoordinator.managedObjectID(forURIRepresentation: url)
-              else { throw Exception("failed to resolve object URI: \(url)") }
-            object = try childContext.existingObject(with: id)
+              else { log(level: .error, "failed to resolve object URI: \(url)"); return nil }
+            guard let obj = try? childContext.existingObject(with: id)
+              else { log(level: .error, "failed to resolve object ID: \(id)"); return nil }
+            object = obj
         }
 
         guard let expected = object as? T
-          else { throw Exception("unexpected resolved object \(type(of: object)) for id \(url)") }
+          else { log(level: .error, "unexpected resolved object \(type(of: object)) for id \(url)"); return nil }
 
         return expected
       }
