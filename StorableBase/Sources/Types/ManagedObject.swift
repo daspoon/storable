@@ -27,6 +27,10 @@ open class ManagedObject : NSManagedObject
       { [:] }
 
 
+    open class func propertyName(for keyPath: AnyKeyPath) -> String?
+      { nil }
+
+
     /// Return the name of the defined entity.
     public class var entityName : String
       { entityNameAndVersion.entityName }
