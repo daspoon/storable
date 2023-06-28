@@ -66,7 +66,12 @@ extension NSManagedObjectContext
           else { throw Exception("no persistent store coordinator for context \(name ?? "")") }
         guard let id = coordinator.managedObjectID(forURIRepresentation: url)
           else { throw Exception("failed to resolve object URI: \(url)") }
+        return try existingObject(of: type, with: id)
+      }
 
+
+    public func existingObject<T: ManagedObject>(of type: T.Type = T.self, with id: NSManagedObjectID) throws -> T
+      {
         return try throwingCast(try existingObject(with: id))
       }
   }
