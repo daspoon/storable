@@ -76,6 +76,11 @@ open class ManagedObject : NSManagedObject
       { Self.self == abstractClass }
 
 
+    /// Create an instance of the receiving class.
+    @objc open dynamic class func createInstance(in context: NSManagedObjectContext) throws -> Self
+      { try context.create(Self.self) }
+
+
     /// Override init(entity:insertInto:) to be 'required' in order to create instances from class objects. This method is not intended to be overidden.
     public required override init(entity: NSEntityDescription, insertInto context: NSManagedObjectContext?)
       { super.init(entity: entity, insertInto: context) }
