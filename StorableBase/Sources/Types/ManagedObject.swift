@@ -96,10 +96,10 @@ open class ManagedObject : NSManagedObject
         log("saving \(changes.count) changes for \(self.objectID.uriRepresentation())")
 
         for (name, value) in changes {
-          // TODO: account for NSNull used to represent nil
           switch properties[name] {
             // Attribute values are encoded w.r.t. their types, which are known only to the given Attribute instance.
             case .attribute(let attribute) :
+              if value is NSNull { break }
               log("  \(name)")
               try attribute.encodeValue(value, to: &container)
 
@@ -108,8 +108,14 @@ open class ManagedObject : NSManagedObject
               let urls : [URL]
               switch relationship.range {
                 case .toOptional, .toOne :
-                  guard let object = value as? ManagedObject else { throw Exception("unexpected value type for \(type(of: self)).\(name): \(type(of: value))") }
-                  urls = [object.objectID.uriRepresentation()]
+                  switch value {
+                    case let object as ManagedObject :
+                      urls = [object.objectID.uriRepresentation()]
+                    case is NSNull :
+                      urls = []
+                    default :
+                      throw Exception("unexpected value type for \(type(of: self)).\(name): \(type(of: value))")
+                  }
                 default :
                   guard let objects = value as? Set<ManagedObject> else { throw Exception("unexpected value type for \(type(of: self)).\(name): \(type(of: value))") }
                   urls = objects.map { $0.objectID.uriRepresentation() }
