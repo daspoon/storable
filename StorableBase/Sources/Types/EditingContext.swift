@@ -10,7 +10,7 @@ import CoreData
 /// *EditingContext* is a convenience class intended to simplify editing of a managed object graph, providing a child context to maintain editing changes along with a list of actions to be perform on either save or rollback.
 /// The created child context is associated with the main queue in order to serve UI elements.
 
-public final class EditingContext : Codable
+public final class EditingContext
   {
     public struct CallbackTrigger : OptionSet
       {
@@ -145,29 +145,58 @@ public final class EditingContext : Codable
       }
 
 
-    // MARK: - Codable
+    // State restoration
 
-    enum EditingContextCodingKey : String, CodingKey
+    struct RestorationState
+      {
+        static let editingContextCodingKey = CodingUserInfoKey(rawValue: "xyz.lambdasoftware.Storable.EditingContext")!
+        init() { }
+      }
+
+    /// Return data encoding the changes to the receiver's child context.
+    public func encodeRestorationState() throws -> Data
+      {
+        let coder = JSONEncoder()
+        coder.userInfo = [RestorationState.editingContextCodingKey: self]
+        return try coder.encode(RestorationState())
+      }
+
+
+    /// Apply the changes encoded in the given data to the receiver's child context.
+    public func decodeRestorationState(from data: Data) throws
+      {
+        let coder = JSONDecoder()
+        coder.userInfo = [RestorationState.editingContextCodingKey: self]
+        _ = try coder.decode(RestorationState.self, from: data)
+      }
+  }
+
+
+extension EditingContext.RestorationState : Codable
+  {
+    enum CodingKey : String, Swift.CodingKey
       { case name, inserts, updates, deletes }
 
-
-    public convenience init(from coder: Decoder) throws
+    init(from coder: Decoder) throws
       {
-        guard let dataStore = coder.userInfo[.dataStore] as? DataStore
-          else { throw Exception("decoder userInfo must provide a DataStore") }
+        guard let editingContext = coder.userInfo[Self.editingContextCodingKey] as? EditingContext
+          else { throw Exception("no editing context") }
 
-        let container = try coder.container(keyedBy: EditingContextCodingKey.self)
+        guard editingContext.childContext.hasChanges == false
+          else { throw Exception("editing context has changes") }
 
-        let name = try container.decodeIfPresent(String.self, forKey: .name)
+        let container = try coder.container(keyedBy: CodingKey.self)
 
-        self.init(name: name, dataStore: dataStore)
+        // Restore the name of the child context
+        editingContext.childContext.name = try container.decodeIfPresent(String.self, forKey: .name)
 
         // Get the URLs of the inserted objects and create a mapping of those URLs to new object instances.
         let insertedURLs = try container.decode([URL].self, forKey: .inserts)
-        temporaryObjectsByURL = try Dictionary(uniqueKeysWithValues: insertedURLs.map { url in
-          guard let entityName = url.coreDataEntityName else { throw Exception("failed to interpret URL: \(url)") }
-          let classInfo = try dataStore.classInfo(for: entityName)
-          let object = classInfo.managedObjectClass.init(entity: classInfo.entityDescription, insertInto: childContext)
+         editingContext.temporaryObjectsByURL = try Dictionary(uniqueKeysWithValues: insertedURLs.map { url in
+          guard let entityName = url.coreDataEntityName
+            else { throw Exception("failed to interpret URL: \(url)") }
+          let classInfo = try editingContext.dataStore.classInfo(for: entityName)
+          let object = classInfo.managedObjectClass.init(entity: classInfo.entityDescription, insertInto: editingContext.childContext)
           log("created replacement \(object.objectID.uriRepresentation()) for \(url)")
           return (url, object)
         })
@@ -176,11 +205,14 @@ public final class EditingContext : Codable
         func objectByURL(_ url: URL) throws -> ManagedObject {
           switch url.coreDataResidenceType {
             case .some(.permanent) :
-              guard let id = dataStore.persistentStoreCoordinator.managedObjectID(forURIRepresentation: url) else { throw Exception("uknown object URI: \(url)") }
-              guard let object = try childContext.existingObject(with: id) as? ManagedObject else { throw Exception("failed to retrieve existing object for URI: \(url)") }
+              guard let id = editingContext.dataStore.persistentStoreCoordinator.managedObjectID(forURIRepresentation: url)
+                else { throw Exception("uknown object URI: \(url)") }
+              guard let object = try editingContext.childContext.existingObject(with: id) as? ManagedObject
+                else { throw Exception("failed to retrieve existing object for URI: \(url)") }
               return object
             case .some(.temporary) :
-              guard let object = temporaryObjectsByURL[url] else { throw Exception("failed to retrieve new object for URI: \(url)") }
+              guard let object = editingContext.temporaryObjectsByURL[url]
+                else { throw Exception("failed to retrieve new object for URI: \(url)") }
               return object
             case .none :
               throw Exception("unexpected object URI: \(url)")
@@ -191,7 +223,7 @@ public final class EditingContext : Codable
         let objectUpdatesByURL = try container.nestedContainer(keyedBy: URLCodingKey.self, forKey: .updates)
         for key in objectUpdatesByURL.allKeys {
           let object = try objectByURL(key.url)
-          let classInfo = try dataStore.classInfo(for: object)
+          let classInfo = try editingContext.dataStore.classInfo(for: object)
           var propertyUpdatesContainer = try objectUpdatesByURL.nestedContainer(keyedBy: NameCodingKey.self, forKey: key)
           try object.decodeProperties(classInfo.allPropertiesByName, from: &propertyUpdatesContainer, objectByURL: objectByURL)
         }
@@ -199,40 +231,42 @@ public final class EditingContext : Codable
         // Delete the specified objects.
         let deletedURLs = try container.decode([URL].self, forKey: .deletes)
         for url in deletedURLs {
-          guard let objectID = dataStore.persistentStoreCoordinator.managedObjectID(forURIRepresentation: url) else { throw Exception("uknown object URI: \(url)") }
+          guard let objectID = editingContext.dataStore.persistentStoreCoordinator.managedObjectID(forURIRepresentation: url)
+            else { throw Exception("uknown object URI: \(url)") }
           log("deleting \(url)")
-          childContext.delete(try childContext.existingObject(with: objectID))
+          editingContext.childContext.delete(try editingContext.childContext.existingObject(with: objectID))
         }
       }
 
 
-    public func encode(to coder: Encoder) throws
+    func encode(to coder: Encoder) throws
       {
-        guard let dataStore = coder.userInfo[.dataStore] as? DataStore
-          else { throw Exception("decoder userInfo must provide a DataStore") }
+        guard let editingContext = coder.userInfo[Self.editingContextCodingKey] as? EditingContext
+          else { throw Exception("no editing context") }
 
-        var container = coder.container(keyedBy: EditingContextCodingKey.self)
+        var container = coder.container(keyedBy: CodingKey.self)
 
         // Encode the context name, if any
-        try childContext.name.map { try container.encode($0, forKey: .name) }
+        try editingContext.childContext.name.map { try container.encode($0, forKey: .name) }
 
         // Encode an array the inserted object URLs.
-        try container.encode(childContext.insertedObjects.map { $0.objectID.uriRepresentation() }, forKey: .inserts)
+        try container.encode(editingContext.childContext.insertedObjects.map { $0.objectID.uriRepresentation() }, forKey: .inserts)
 
         // Encode the updated objects in a keyed container mapping object URI to a separate container encoding property value changes.
         var objectUpdatesByURL = container.nestedContainer(keyedBy: URLCodingKey.self, forKey: .updates)
-        for objects in [childContext.insertedObjects, childContext.updatedObjects] {
+        for objects in [editingContext.childContext.insertedObjects, editingContext.childContext.updatedObjects] {
           for object in objects {
-            guard let object = object as? ManagedObject else { throw Exception("unsupported object type: \(type(of: object))") }
+            guard let object = object as? ManagedObject
+              else { throw Exception("unsupported object type: \(type(of: object))") }
             let key = URLCodingKey(url: object.objectID.uriRepresentation())
             var propertyUpdatesContainer = objectUpdatesByURL.nestedContainer(keyedBy: NameCodingKey.self, forKey: key)
-            let classInfo = try dataStore.classInfo(for: object)
+            let classInfo = try editingContext.dataStore.classInfo(for: object)
             log("saving changes to \(key.url)")
             try object.encodeProperties(classInfo.allPropertiesByName, to: &propertyUpdatesContainer)
           }
         }
 
         // Encode an array the deleted object URLs.
-        try container.encode(childContext.deletedObjects.map { $0.objectID.uriRepresentation() }, forKey: .deletes)
+        try container.encode(editingContext.childContext.deletedObjects.map { $0.objectID.uriRepresentation() }, forKey: .deletes)
       }
   }
