@@ -116,13 +116,6 @@ public final class EditingContext
       }
 
 
-    /// Discard the registered objects of the local context.
-    public func reset()
-      {
-        childContext.reset()
-      }
-
-
     public func existingObject<T: ManagedObject>(of _: T.Type = T.self, with url: URL) -> T?
       {
         let object : NSManagedObject
