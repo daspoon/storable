@@ -13,6 +13,24 @@ extension ClosedRange
   }
 
 
+extension ClosedRange where Bound : FloatingPoint
+  {
+    /// Return the value at the given offset/ratio.
+    public subscript (_ offset: Bound) -> Bound
+      {
+        guard upperBound != lowerBound else { return .nan }
+        return lowerBound + offset * (upperBound - lowerBound)
+      }
+
+    /// Return the offset/ratio at which the given value lies.
+    public func offset(of value: Bound) -> Bound
+      {
+        guard upperBound != lowerBound else { return .nan }
+        return (value - lowerBound) / (upperBound - lowerBound)
+      }
+  }
+
+
 extension ClosedRange where Bound == Int
   {
     /// Convenience method for defining the range of a to-one relationship
