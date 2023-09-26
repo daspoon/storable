@@ -27,10 +27,17 @@ extension StringCodingKey
   }
 
 
+extension StringCodingKey
+  {
+    public static func == (lhs: Self, rhs: Self) -> Bool
+      { lhs.stringValue == rhs.stringValue }
+  }
+
+
 // MARK: -
 
 /// A convenience type to enable using strings as coding keys.
-public struct NameCodingKey : StringCodingKey
+public struct NameCodingKey : StringCodingKey, Equatable
   {
     public let name : String
 
@@ -48,7 +55,7 @@ public struct NameCodingKey : StringCodingKey
 // MARK: -
 
 /// A convenience type to enable using URLs as coding keys.
-public struct URLCodingKey : StringCodingKey
+public struct URLCodingKey : StringCodingKey, Equatable
   {
     public let url : URL
 
