@@ -9,7 +9,7 @@ import CoreData
 
 /// ManagedObject is the base class of NSManagedObject which supports model generation and ingestion through managed property wrappers.
 
-open class ManagedObject : NSManagedObject
+open class ManagedObject : NSManagedObject, Codable
   {
     /// The notion of instance identity (within class).
     public enum Identity : String
@@ -206,4 +206,122 @@ open class ManagedObject : NSManagedObject
     /// Set the value of an optional attribute.
     public func setAttributeValue<Value: Nullable>(_ value: Value, forKey key: String) where Value.Wrapped : Storable
       { setValue(Value.project(value)?.storedValue(), forKey: key) }
+
+
+    // MARK: - Decodable
+
+    public required init(from coder: Decoder) throws
+      {
+        // Get the required context from the coder's userInfo
+        guard let decodingContext = coder.userInfo[ImportContext.codingUserInfoKey] as? ImportContext
+          else { throw Exception("decoder's userInfo must contain a ImportContext instance for key ImportContext.codingUserInfoKey") }
+
+        // Note: for generic subclasses of ManagedObject, Self.self == ManagedObject.self; thus we take the receiver's entity description and dynamic type from the decoding state.
+        guard let entity = decodingContext.allocatingEntity
+          else { throw Exception("allocatingEntity is nil") }
+
+        super.init(entity: entity.entityDescription, insertInto: decodingContext.managedObjectContext)
+
+        // Get the keyed container from which to decode our properties
+        var container = try coder.container(keyedBy: NameCodingKey.self)
+
+        // Iterate over the declared properties to initialize our property values
+        for (name, property) in entity.objectType.declaredPropertiesByName {
+          switch property {
+            case .attribute(let attribute) :
+              // Attribute instances are responsible for decoding their values as CoreData-native types
+              guard let value = try attribute.decodeValue(from: &container) else { break }
+              setValue(value, forKey: name)
+
+            case .relationship(let relationship) :
+              // Do nothing if the relationship is not encoded
+              guard case .some(let encoding) = relationship.ingest
+                else { break }
+              // Get the related class
+              guard let relatedInfo = decodingContext.dataStore.classInfoByName[relationship.relatedEntityName]
+                else { throw Exception("failed to resolve related entity name of \(type(of: self)).\(relationship.name): \(relationship.relatedEntityName)") }
+              // Decode and assign the related objects
+              decodingContext.pushAllocatingEntity(relatedInfo)
+              switch relationship.range {
+                case .toOptional, .toOne :
+                  switch encoding.mode {
+                    case .reference :
+                      guard let url = try container.decodeIfPresent(URL.self, forKey: .init(name: name)) else { break }
+                      decodingContext.delayedAddObject(with: url, to: relationship, of: self)
+                    case .create(_) : // TODO: account for format
+                      guard let object = try container.decodeIfPresent(relatedInfo.objectType, forKey: .init(name: name)) else { break }
+                      setValue(object, forKey: name)
+                      decodingContext.callback?(object)
+                  }
+                default :
+                  var subcontainer = try container.nestedUnkeyedContainer(forKey: .init(name: name))
+                  while subcontainer.isAtEnd == false {
+                    switch encoding.mode {
+                      case .reference :
+                        let url = try subcontainer.decode(URL.self)
+                        decodingContext.delayedAddObject(with: url, to: relationship, of: self)
+                      case .create(_) : // TODO: account for format; enture mutableSetValue(forKey:) is cached
+                        let object = try subcontainer.decode(relatedInfo.objectType)
+                        mutableSetValue(forKey: name).add(object)
+                        decodingContext.callback?(object)
+                    }
+                  }
+              }
+              decodingContext.popAllocatingEntity()
+
+            default :
+              break
+          }
+        }
+      }
+
+
+    // MARK: - Encodable
+
+    public func encode(to encoder: Encoder) throws
+      {
+        // Create a keyed container to encode object properties
+        var container = encoder.container(keyedBy: NameCodingKey.self)
+
+        // Iterate over declared properties to encode relationships and non-transient attributes; ignore fetched properties.
+        for (name, property) in Self.declaredPropertiesByName {
+          let value = value(forKey: name)
+
+          switch property {
+            case .attribute(let attribute) :
+              guard let value else { break }
+              try attribute.encodeValue(value, to: &container)
+
+            case .relationship(let relationship) :
+              // Do nothing if the relationship is not encoded
+              guard case .some(let encoding) = relationship.ingest
+                else { break }
+
+              // Extract the set of related objects
+              switch (relationship.range, value) {
+                case (.toOptional, .none) :
+                  break
+                case (.toOne, .some(let object as ManagedObject)), (.toOptional, .some(let object as ManagedObject)) :
+                  switch encoding.mode {
+                    case .reference :
+                      try container.encode(object.objectID.uriRepresentation(), forKey: NameCodingKey(name: name))
+                    case .create(_) : // TODO: account for format
+                      try container.encode(object, forKey: NameCodingKey(name: name))
+                  }
+                case (_, .some(let objects as Set<ManagedObject>)) :
+                  switch encoding.mode {
+                    case .reference :
+                      try container.encode(objects.map {$0.objectID.uriRepresentation()}, forKey: NameCodingKey(name: name))
+                    case .create(_) : // TODO: account for format
+                      try container.encode(objects, forKey: NameCodingKey(name: name))
+                  }
+                default :
+                  throw Exception("unexpected value type for \(type(of: self)).\(name): \(type(of: value))")
+              }
+
+            case .fetched(_) :
+              break
+          }
+        }
+      }
   }

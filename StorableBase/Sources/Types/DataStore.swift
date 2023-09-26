@@ -174,6 +174,27 @@ public class DataStore
       }
 
 
+    public func exportObjects(of types: [ManagedObject.Type], to url: URL) throws
+      {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        let exportedData = try encoder.encode(ExportCodingProxy(dataStore: self, rootTypes: types))
+        try exportedData.write(to: url)
+      }
+
+
+    public func importObjects(from url: URL, callback: ((ManagedObject) -> Void)? = nil) throws
+      {
+        let context = try ImportContext(dataStore: self, callback: callback)
+        let decoder = JSONDecoder()
+        decoder.userInfo[ImportContext.codingUserInfoKey] = context
+        let data = try Data(contentsOf: url)
+        _ = try decoder.decode(ExportCodingProxy.self, from: data)
+        try context.resolvePendingRelationshipAssignments()
+        try context.managedObjectContext.save()
+      }
+
+
     public func classInfo(for entityName: String) throws -> EntityTree
       {
         guard let info = classInfoByName[entityName] else { throw Exception("unknown entity name '\(entityName)'") }
