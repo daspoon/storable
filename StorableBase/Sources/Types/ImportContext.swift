@@ -22,6 +22,8 @@ class ImportContext
 
     private var pendingRelationshipAssignments : [(source: ManagedObject, relationship: Relationship, relatedURI: URL)] = []
 
+    private var createdObjectsByURL : [URL: ManagedObject] = [:]
+
 
     /// Create a new instance for the given data store. The *managedObjectContext* specifies the context in which objects are created; it defaults to the main context of the data store.
     init(dataStore: DataStore, managedObjectContext: NSManagedObjectContext? = nil, callback: ((ManagedObject) -> Void)? = nil, temporaryObjectsByURL: [URL: ManagedObject] = [:]) throws
@@ -76,9 +78,19 @@ class ImportContext
       }
 
 
+    func registerCreatedObject(_ object: ManagedObject, forURI url: URL)
+      {
+        assert(createdObjectsByURL[url] == nil)
+        createdObjectsByURL[url] = object
+      }
+
+
     private func objectByURL(_ url: URL) throws -> ManagedObject {
       switch url.coreDataResidenceType {
         case .some(.permanent) :
+          if let object = createdObjectsByURL[url] {
+            return object
+          }
           guard let id = persistentStoreCoordinator.managedObjectID(forURIRepresentation: url)
             else { throw Exception("uknown object URI: \(url)") }
           guard let object = try managedObjectContext.existingObject(with: id) as? ManagedObject

@@ -204,20 +204,20 @@ public class DataStore
       }
 
 
-    /// Import the application data previously exported to the directory at the given security-scoped URL.
-    public func importObjects(from sourceURL: URL, callback: ((ManagedObject) -> Void)? = nil) throws
+    /// Import the application data previously exported to the directory at the given security-scoped URL into the given context (defaulting to the main context).
+    public func importObjects(from sourceURL: URL, into childContext: NSManagedObjectContext? = nil, callback: ((ManagedObject) -> Void)? = nil) throws
       {
         // Bracket access to security-scoped source URL
         try sourceURL.withSecurityScopedAccess { _ in
           // Import the store from db.json
           try sourceURL.appendingPathComponent(exportJsonFileName).withSecurityScopedAccess { jsonURL in
-            let context = try ImportContext(dataStore: self, callback: callback)
+            let context = try ImportContext(dataStore: self, managedObjectContext: childContext ?? managedObjectContext, callback: callback)
             let decoder = JSONDecoder()
             decoder.userInfo[ImportContext.codingUserInfoKey] = context
             let data = try Data(contentsOf: jsonURL)
             _ = try decoder.decode(ExportCodingProxy.self, from: data)
             try context.resolvePendingRelationshipAssignments()
-            try context.managedObjectContext.save()
+            context.managedObjectContext.performSave()
           }
 
           // Copy all items from the source directory (except db.json) to the documents directory, skipping those which already exist.

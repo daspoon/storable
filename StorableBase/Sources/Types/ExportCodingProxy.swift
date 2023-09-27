@@ -52,19 +52,18 @@ public struct ExportCodingProxy : Codable
             else { log("ignoring unexpected key: \(key.name)"); continue }
 
           decodingContext.pushAllocatingEntity(rootInfo)
-//        switch rootType.codingContainerFormat {
-//          case .array :
-              var subcontainer = try topLevelContainer.nestedUnkeyedContainer(forKey: .init(name: rootInfo.objectType.entityName))
-              while subcontainer.isAtEnd == false {
-                let object = try subcontainer.decode(rootInfo.objectType)
+          let subcontainer = try topLevelContainer.nestedContainer(keyedBy: URLCodingKey.self, forKey: .init(name: rootInfo.objectType.entityName))
+          for key in subcontainer.allKeys {
+            switch managedObjectContext.persistentStoreCoordinator?.managedObjectID(forURIRepresentation: key.url) {
+              case .some :
+                log("skipping existing object: \(key.url)")
+              case .none :
+                log("creating new object for \(key.url)")
+                let object = try subcontainer.decode(rootInfo.objectType, forKey: key)
+                decodingContext.registerCreatedObject(object, forURI: key.url)
                 decodingContext.callback?(object)
-              }
-//          case .dictionary(let codingNameKeyPath) :
-//            var subcontainer = try topLevelContainer.nestedContainer(keyedBy: NameCodingKey.self, forKey: .init(name: rootType.entityName))
-//            for key in subcontainer.allKeys {
-//              _ = try subcontainer.decode(rootType.self, forKey: key)
-//            }
-//        }
+            }
+          }
           decodingContext.popAllocatingEntity()
 
           rootTypes += [rootInfo.objectType]
@@ -85,19 +84,10 @@ public struct ExportCodingProxy : Codable
         for rootType in rootTypes {
           // Retrieve the model objects // TODO: using a batched request
           let rootObjects = try managedObjectContext.fetchObjects(fetchRequest(for: rootType/*, fetchBatchSize: 20*/))
-          // Create a nested container as specified by the type
-//        switch rootType.codingContainerFormat {
-//          case .array :
-              var subcontainer = topLevelContainer.nestedUnkeyedContainer(forKey: .init(name: rootType.entityName))
-              for object in rootObjects {
-                try subcontainer.encode(object)
-              }
-//          case .dictionary(let codingNameKeyPath) :
-//            var subcontainer = topLevelContainer.nestedContainer(keyedBy: NameCodingKey.self, forKey: .init(name: rootType.entityName))
-//            for object in rootObjects {
-//              subcontainer.encode(object, forKey: NameCodingKey(name: object[keyPath: codingNameKeyPath]))
-//            }
-//        }
+          var subcontainer = topLevelContainer.nestedContainer(keyedBy: URLCodingKey.self, forKey: .init(name: rootType.entityName))
+          for object in rootObjects {
+            try subcontainer.encode(object, forKey: .init(url: object.objectID.uriRepresentation()))
+          }
         }
       }
   }
