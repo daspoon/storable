@@ -5,6 +5,7 @@
 */
 
 import CoreData
+import UniformTypeIdentifiers
 
 
 /// DataStore creates and maintains a persistent store for an object model generated from a given Schema.
@@ -174,24 +175,83 @@ public class DataStore
       }
 
 
-    public func exportObjects(of types: [ManagedObject.Type], to url: URL) throws
+    let exportJsonFileName = "db.json"
+
+
+    /// Export the application data as a directory (at the given *URL*) containing the contents of the document directory and an encoding of the data store (named "db.json").
+    public func exportObjects(of types: [ManagedObject.Type], to targetURL: URL) throws
       {
+        // Ensure no item exists at the target URL
+        if FileManager.default.fileExists(atPath: targetURL.path()) {
+          try FileManager.default.removeItem(at: targetURL)
+        }
+
+        // Create a folder at the given URL; the parent directory is expected to exist.
+        try FileManager.default.createDirectory(at: targetURL, withIntermediateDirectories: false, attributes: [:])
+
+        // Encode the store as JSON and write as db.json into the target URL.
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         let exportedData = try encoder.encode(ExportCodingProxy(dataStore: self, rootTypes: types))
-        try exportedData.write(to: url)
+        try exportedData.write(to: targetURL.appendingPathComponent(exportJsonFileName))
+
+        // Copy all items in the documents directory, except those related to the sqlite db, into the given URL...
+        let documentsURL = storeURL.deletingLastPathComponent()
+        for itemURL in try FileManager.default.contentsOfDirectory(at: documentsURL, includingPropertiesForKeys: nil) {
+          guard !itemURL.lastPathComponent.contains(storeURL.lastPathComponent) else { continue }
+          try FileManager.default.copyItem(at: itemURL, to: targetURL.appendingPathComponent(itemURL.lastPathComponent))
+        }
       }
 
 
-    public func importObjects(from url: URL, callback: ((ManagedObject) -> Void)? = nil) throws
+    /// Import the application data previously exported to the directory at the given security-scoped URL.
+    public func importObjects(from sourceURL: URL, callback: ((ManagedObject) -> Void)? = nil) throws
       {
-        let context = try ImportContext(dataStore: self, callback: callback)
-        let decoder = JSONDecoder()
-        decoder.userInfo[ImportContext.codingUserInfoKey] = context
-        let data = try Data(contentsOf: url)
-        _ = try decoder.decode(ExportCodingProxy.self, from: data)
-        try context.resolvePendingRelationshipAssignments()
-        try context.managedObjectContext.save()
+        // Bracket access to security-scoped source URL
+        try sourceURL.withSecurityScopedAccess { _ in
+          // Import the store from db.json
+          try sourceURL.appendingPathComponent(exportJsonFileName).withSecurityScopedAccess { jsonURL in
+            let context = try ImportContext(dataStore: self, callback: callback)
+            let decoder = JSONDecoder()
+            decoder.userInfo[ImportContext.codingUserInfoKey] = context
+            let data = try Data(contentsOf: jsonURL)
+            _ = try decoder.decode(ExportCodingProxy.self, from: data)
+            try context.resolvePendingRelationshipAssignments()
+            try context.managedObjectContext.save()
+          }
+
+          // Copy all items from the source directory (except db.json) to the documents directory, skipping those which already exist.
+          let fileManager = FileManager()
+          let delegate = FileImportDelegate()
+          fileManager.delegate = delegate
+          try withExtendedLifetime(fileManager.delegate) {
+            let documentsURL = storeURL.deletingLastPathComponent()
+            for itemURL in try fileManager.contentsOfDirectory(at: sourceURL, includingPropertiesForKeys: nil) {
+              guard itemURL.lastPathComponent != exportJsonFileName else { continue }
+              try itemURL.withSecurityScopedAccess { _ in
+                try fileManager.copyItem(at: itemURL, to: documentsURL.appendingPathComponent(itemURL.lastPathComponent))
+              }
+            }
+          }
+        }
+      }
+
+
+    class FileImportDelegate : NSObject, FileManagerDelegate
+      {
+        /// Skip files which already exist.
+        func fileManager(_ sender: FileManager, shouldCopyItemAt srcURL: URL, to dstURL: URL) -> Bool
+          {
+            var isDirectory : ObjCBool = false
+            return sender.fileExists(atPath: dstURL.path(), isDirectory: &isDirectory) == false || isDirectory.boolValue
+          }
+
+        /// Proceed to copy contents of directories which already exist.
+        func fileManager(_ sender: FileManager, shouldProceedAfterError error: Error, copyingItemAt srcURL: URL, to dstURL: URL) -> Bool
+          {
+            var isDirectory : ObjCBool = false
+            return sender.fileExists(atPath: dstURL.path(), isDirectory: &isDirectory) == true && isDirectory.boolValue
+          }
       }
 
 

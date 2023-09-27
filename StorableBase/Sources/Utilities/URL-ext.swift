@@ -30,3 +30,14 @@ extension URL
     var coreDataEntityName : String?
       { coreDataPathComponents?.entityName }
   }
+
+
+extension URL
+  {
+    public func withSecurityScopedAccess(execute block: (URL) throws -> Void) throws
+      {
+        guard startAccessingSecurityScopedResource() else { throw Exception("failed to access \(self)") }
+        defer { stopAccessingSecurityScopedResource() }
+        try block(self)
+      }
+  }
