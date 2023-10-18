@@ -29,7 +29,7 @@ public class DataStore
       }
 
     /// The mapping of entity names to ClassInfo structures which maintain their metadata.
-    public private(set) var classInfoByName : [String: EntityTree] = [:]
+    public private(set) var classInfoByName : [String: ClassInfo] = [:]
 
 
     /// Create an instance with the given name in the given directory, which defaults to the application's document directory.
@@ -255,14 +255,14 @@ public class DataStore
       }
 
 
-    public func classInfo(for entityName: String) throws -> EntityTree
+    public func classInfo(for entityName: String) throws -> ClassInfo
       {
         guard let info = classInfoByName[entityName] else { throw Exception("unknown entity name '\(entityName)'") }
         return info
       }
 
 
-    public func classInfo(for object: ManagedObject) throws -> EntityTree
+    public func classInfo(for object: ManagedObject) throws -> ClassInfo
       {
         guard let entityName = object.entity.name else { throw Exception("\(type(of: object)) has unnamed entity") }
         return try classInfo(for: entityName)

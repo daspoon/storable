@@ -39,12 +39,12 @@ class ImportContext
       }
 
 
-    private var decodingState : [EntityTree] = []
+    private var decodingState : [ClassInfo] = []
 
-    var allocatingEntity : EntityTree?
+    var allocatingEntity : ClassInfo?
       { decodingState.last }
 
-    func pushAllocatingEntity(_ entity: EntityTree)
+    func pushAllocatingEntity(_ entity: ClassInfo)
       { decodingState.append(entity) }
 
     func popAllocatingEntity()
