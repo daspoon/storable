@@ -39,6 +39,10 @@ public final class EditingContext
       {
         dataStore = store
         childContext = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
+
+        guard dataStore.isOpen
+          else { log(level: .error, "data store is not open"); return }
+
         childContext.name = name
         childContext.parent = dataStore.managedObjectContext
         childContext.automaticallyMergesChangesFromParent = true
