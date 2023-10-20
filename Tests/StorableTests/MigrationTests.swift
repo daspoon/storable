@@ -109,6 +109,7 @@ extension MigrationTests
           },
         ])
         let objects = try store.managedObjectContext.fetch(makeFetchRequest(for: Attributed_v2.self))
+        if objects.count != objectCount { XCTFail() }
         for object in objects {
           if object.value(forKey: "a") as? String == nil { XCTFail("expecting string value") }
         }
