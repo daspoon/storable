@@ -4,7 +4,6 @@
 
 #if swift(>=5.9)
 
-import Storable
 import CoreData
 
 
@@ -12,7 +11,7 @@ import CoreData
 
 /// The ManagedObject macro, when applied to definitions of ManagedObject subclasses, generates instances of the ManagedObject struct.
 
-@attached(member, names: named(declaredPropertiesByName))
+@attached(member, names: named(declaredPropertiesByName), named(propertyName(for:)))
 public macro ManagedObject() = #externalMacro(module: "StorableMacros", type: "EntityMacro")
 
 

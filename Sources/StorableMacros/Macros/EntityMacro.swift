@@ -30,8 +30,9 @@ public struct EntityMacro : MemberMacro
           throw Exception("@Entity is applicable only to class definitions")
         }
 
-        var text = "public override class var declaredPropertiesByName : [String: Property] {\n"
-        text.append("  return [")
+        var declaredPropertiesByName = "public override class var declaredPropertiesByName : [String: Property] {\n  return [\n"
+        var propertyNameFor = "public override class func propertyName(for keyPath: AnyKeyPath) -> String? {\n  switch keyPath {\n"
+
         var count = 0
         for member in dcl.memberBlock.members {
           // Ignore member declarations which are not stored properties
@@ -44,12 +45,16 @@ public struct EntityMacro : MemberMacro
           guard macroAttrs.count == 1 else { throw Exception("cannot intermix attributes among \(propertyMacroNames)") }
           // Generate a dictionary entry mapping the declared member name to a managed property descriptor
           let macroType = propertyMacroTypesByName[macroAttrs[0].trimmedName]!
-          text.append("    \"\(info.name)\" : \(macroType.metadataConstructorExpr(for: info, with: macroAttrs[0])),\n")
+
+          declaredPropertiesByName.append("    \"\(info.name)\" : \(macroType.metadataConstructorExpr(for: info, with: macroAttrs[0])),\n")
+          propertyNameFor.append("    case \\\(dcl.name.trimmed).\(info.name) : return \"\(info.name)\"\n")
+
           count += 1
         }
-        text.append((count == 0 ? ":]" : "  ]") + "\n")
-        text.append("}\n")
 
-        return [DeclSyntax(stringLiteral: text)]
+        declaredPropertiesByName.append((count == 0 ? ":]" : "  ]") + "\n}\n")
+        propertyNameFor.append("    default : return super.propertyName(for: keyPath)\n  }\n}\n")
+
+        return [DeclSyntax(stringLiteral: declaredPropertiesByName), DeclSyntax(stringLiteral: propertyNameFor)]
       }
   }
