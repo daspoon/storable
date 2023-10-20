@@ -285,7 +285,7 @@ public class DataStore
     /// Close the persistent store, discarding any outstanding changes.
     public func close() throws
       {
-        guard let state else { preconditionFailure("not open") }
+        guard let state else { throw Exception("store is not open") }
 
         try state.persistentStore.persistentStoreCoordinator?.remove(state.persistentStore)
 
@@ -298,7 +298,7 @@ public class DataStore
     /// Delete the persistent store if it exists. The store must not be open.
     public func reset() throws
       {
-        precondition(state == nil, "store is open")
+        guard state == nil else { throw Exception("store is not open") }
 
         guard FileManager.default.fileExists(atPath: storeURL.path) else { return }
 
