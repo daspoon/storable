@@ -17,6 +17,9 @@ fileprivate var activeStores : [String: DataStore] = [:]
 // Control access to the activeStores dictionary.
 fileprivate let activeStoresSemaphore = DispatchSemaphore(value: 1)
 
+// The directory in which DataStore instances are persisted while testing.
+fileprivate let activeStoresDirectory = FileManager.default.temporaryDirectory
+
 
 extension XCTestCase
   {
@@ -39,11 +42,7 @@ extension XCTestCase
 
         let storeName = "\(Self.self)"
         guard activeStores[storeName] == nil else { throw Exception("store name in use: \(storeName)") }
-        let directory = ProcessInfo.processInfo.argument(forKey: "storeDirectory")
-        if let directory {
-          try FileManager.default.createDirectory(atPath: directory, withIntermediateDirectories: true)
-        }
-        let store = DataStore(name: storeName, directoryURL: directory.map { URL(fileURLWithPath: $0) })
+        let store = DataStore(name: storeName, directoryURL: activeStoresDirectory)
         activeStores[storeName] = store
 
         addTeardownBlock {
