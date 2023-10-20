@@ -269,12 +269,16 @@ public class DataStore
       }
 
 
-    /// Save the managed object context's changes to the persistent store. Invoke the given block, if any, on the main queue upon completion.
-    public func save(onCompletion: ((Error?) -> Void)? = nil)
+    /// Save the main context's changes to the persistent store synchronously.
+    public func save() throws
       {
-        guard let state else { preconditionFailure("not open") }
+        guard let state else { throw Exception("store is not open") }
 
-        state.mainContext.performSave(completion: onCompletion)
+        var context : NSManagedObjectContext! = state.mainContext
+        while context != nil {
+          try context!.save()
+          context = context!.parent
+        }
       }
 
 
