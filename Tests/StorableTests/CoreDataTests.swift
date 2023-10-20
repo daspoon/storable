@@ -256,7 +256,7 @@ final class CoreDataTests : XCTestCase
         for _ in 0 ..< objectCount {
           _ = NSManagedObject(entity: E, insertInto: store.managedObjectContext)
         }
-        try store.close()
+        try store.saveAndClose()
 
         // Migrate the store to model M1, open it, assign values to all property instances, and save/close it.
         try store.migrate(from: E, to: E1)
@@ -266,7 +266,7 @@ final class CoreDataTests : XCTestCase
         for (i, object) in objects1.enumerated() {
           object.setValue(i, forKey: "a")
         }
-        try store.close()
+        try store.saveAndClose()
 
         // Migrate the store to model M2 and open it.
         try store.migrate(from: E1, to: E2)
@@ -291,7 +291,7 @@ final class CoreDataTests : XCTestCase
           let obj = NSManagedObject(entity: Es, insertInto: store.managedObjectContext)
           obj.setValue(i, forKey: "a")
         }
-        try store.close()
+        try store.saveAndClose()
 
         // We must first rename the affected attribute (preserving its type) and add a new attribute (distinctly named) with the new type, but optional.
         let Ei = NSEntityDescription(name: "E") {$0.properties = [

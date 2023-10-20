@@ -24,6 +24,10 @@ extension DataStore
     func fetchObject<T: ManagedObject>(of type: T.Type = T.self, satisfying predicate: NSPredicate) throws -> T
       { try managedObjectContext.fetchObject(makeFetchRequest(for: type, predicate: predicate)) }
 
+    /// Save and close the store, for convenience.
+    func saveAndClose() throws
+      { try save(); try close() }
+
     /// Migrate the store from a model consisting only of the given source entity to a model consisting only of the given target entity.
     func migrate(from sourceEntity: NSEntityDescription, to targetEntity: NSEntityDescription) throws
       {

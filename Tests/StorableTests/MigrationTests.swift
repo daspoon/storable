@@ -53,7 +53,7 @@ extension MigrationTests
         for name in personNames {
           _ = try store.create(Person_v1.self) { $0.name = name }
         }
-        try store.close()
+        try store.saveAndClose()
 
         // Re-open the store using v2, create a Place and assign it to the existing Person objects.
         try store.openWith(schema: schema_v2, migrations: [
@@ -94,7 +94,7 @@ extension MigrationTests
         for i in 0 ..< objectCount {
           _ = try store.create(Attributed_v1.self) { $0.a = i }
         }
-        try store.close()
+        try store.saveAndClose()
 
         // Create another schema with the modified entity definition and a migration script...
         let schema_v2 = try Schema(objectTypes: [Attributed_v2.self])
@@ -144,7 +144,7 @@ extension MigrationTests
         for i in 0 ..< objectCount {
           _ = try store.create(Thing_v2.self) { $0.point = Point2d(x: i, y: i) }
         }
-        try store.close()
+        try store.saveAndClose()
 
         // Re-open the store for the 3d schema, performing the custom migration to convert attribute values from 2d to 3d :)
         try store.openWith(schema: schema_v3, migrations: [
@@ -190,11 +190,11 @@ extension MigrationTests
         for i in 0 ..< objectCount {
           _ = try store.create(Entity_v1.self) { $0.a = i }
         }
-        try store.close()
+        try store.saveAndClose()
 
         // Re-open the store with the alternate schema, with implicit lightweight migration
         try store.openWith(schema: schema_v2, migrations: [.init(from: schema_v1)])
-        try store.close()
+        try store.saveAndClose()
 
         // Re-create and populate the store using the schema in which the attribute is optional.
         try store.reset()
@@ -202,7 +202,7 @@ extension MigrationTests
         for _ in 0 ..< objectCount {
           _ = try store.create(Entity_v2.self)
         }
-        try store.close()
+        try store.saveAndClose()
 
         // Attempting to re-open the store with the alternate schema must now fail without a migration script.
         do {
@@ -264,7 +264,7 @@ extension MigrationTests
         for _ in 1 ..< thingCount {
           _ = try store.create(Thing.self)
         }
-        try store.close()
+        try store.saveAndClose()
 
         // Re-open the store for the evolved schema, performing the specified migration.
         try store.openWith(schema: schema_v2, migrations: [
