@@ -15,6 +15,7 @@ public struct Entity
     public private(set) var attributes : [String: Attribute] = [:]
     public private(set) var relationships : [String: Relationship] = [:]
     public private(set) var fetchedProperties : [String: Fetched] = [:]
+    public private(set) var transients : [String: Transient] = [:]
     public let managedObjectClass : ManagedObject.Type
 
 
@@ -32,6 +33,8 @@ public struct Entity
               relationships[name] = info
             case .fetched(let info) :
               fetchedProperties[name] = info
+            case .transient(let info) :
+              transients[name] = info
           }
         }
       }

@@ -16,5 +16,6 @@ struct StorableMacroPlugin : CompilerPlugin
       EntityMacro.self,
       FetchedMacro.self,
       RelationshipMacro.self,
+      TransientMacro.self,
     ]
   }

@@ -208,6 +208,19 @@ open class ManagedObject : NSManagedObject, Codable
       { setValue(Value.project(value)?.storedValue(), forKey: key) }
 
 
+    public func transientValue<Value>(forKey key: String) -> Value
+      { value(forKey: key) as! Value }
+
+    public func transientValue<Value: Nullable>(forKey key: String) -> Value?
+      { value(forKey: key) as? Value }
+
+    public func setTransientValue<Value>(_ value: Value, forKey key: String)
+      { setValue(value, forKey: key) }
+
+    public func setTransientValue<Value>(_ value: Value?, forKey key: String)
+      { setValue(value, forKey: key) }
+
+
     // MARK: - Decodable
 
     public required init(from coder: Decoder) throws
@@ -387,6 +400,9 @@ open class ManagedObject : NSManagedObject, Codable
               }
 
             case .fetched(_) :
+              break
+
+            case .transient :
               break
           }
         }

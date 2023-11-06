@@ -89,6 +89,15 @@ public struct Schema
             attributeDescription.renamingIdentifier = attribute.renamingIdentifier
             classInfo.entityDescription.properties.append(attributeDescription)
           }
+          for (name, transient) in classInfo.transients {
+            let transientDescription = NSAttributeDescription()
+            transientDescription.name = name
+            transientDescription.type = .undefined
+            transientDescription.isTransient = true
+            transientDescription.isOptional = transient.isOptional
+            transientDescription.defaultValue = transient.defaultValue
+            classInfo.entityDescription.properties.append(transientDescription)
+          }
         }
 
         // Extend each NSEntityDescription with the specified relationships and their inverses, which must be given explicitly.

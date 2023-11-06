@@ -13,7 +13,7 @@ public struct EntityMacro : MemberMacro
   {
     /// The types of macros which correspond to managed property declarations.
     static let propertyMacroTypes : [ManagedPropertyMacro.Type]
-      = [AttributeMacro.self, FetchedMacro.self, RelationshipMacro.self]
+      = [AttributeMacro.self, FetchedMacro.self, RelationshipMacro.self, TransientMacro.self]
 
     static let propertyMacroNames : Set<String>
       = Set(propertyMacroTypes.map {$0.attributeName})

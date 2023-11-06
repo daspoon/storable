@@ -48,6 +48,12 @@ public macro Attribute<V>(defaultValue: V, renamingIdentifier: String, ingestKey
 
 // MARK: --
 
+@attached(accessor)
+public macro Transient() = #externalMacro(module: "StorableMacros", type: "TransientMacro")
+
+
+// MARK: --
+
 /// The Relationship macro, when applied to member variables of an ManagedObject subclass, generates instances of the Relationship struct.
 /// Note that a separate macro definition is required for each combination of optional parameter to corresponding init method of struct Relationship.
 

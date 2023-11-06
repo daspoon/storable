@@ -14,4 +14,5 @@ public enum Property
     case attribute(Attribute)
     case relationship(Relationship)
     case fetched(Fetched)
+    case transient(Transient)
   }
