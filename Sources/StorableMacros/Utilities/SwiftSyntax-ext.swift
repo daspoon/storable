@@ -45,12 +45,13 @@ extension TypeSyntaxProtocol
     /// Return the type name with verbose spelling if necessary to ensure "\(longName).self" can be parsed as a type instance.
     var longName : String
       {
-        switch self.as(OptionalTypeSyntax.self) {
-          case .some(let optional) :
-            return "Optional<\(optional.wrappedType.description)>"
-          case .none :
-            return self.description
+        if case .some(let optional) = self.as(OptionalTypeSyntax.self) {
+          return "Optional<\(optional.wrappedType.description)>"
         }
+        if case .some = self.as(SomeOrAnyTypeSyntax.self) {
+          return "(" + self.description + ")"
+        }
+        return self.description
       }
 
 
