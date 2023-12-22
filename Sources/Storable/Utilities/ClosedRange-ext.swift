@@ -10,6 +10,14 @@ extension ClosedRange
     /// Return true iff the receiving range contains the given range.
     public func contains(_ other: Self) -> Bool
       { contains(other.lowerBound) && contains(other.upperBound) }
+
+    /// Clamp the given value to this range if necessary.
+    public func clamp(_ value: Bound) -> Bound
+      {
+        guard value >= lowerBound else { return lowerBound }
+        guard value <= upperBound else { return upperBound }
+        return value
+      }
   }
 
 
