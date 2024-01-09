@@ -11,11 +11,19 @@ import Foundation
 
 public struct Exception : LocalizedError
   {
-    public let localizedDescription : String
+    public let errorDescription : String?
+    public let failureReason : String?
 
-    public init(_ description: String)
+    public init(_ reason: String)
       {
-        localizedDescription = description
+        errorDescription = nil
+        failureReason = reason
+      }
+
+    public init(description d: String, failureReason r: String)
+      {
+        errorDescription = d
+        failureReason = r
       }
   }
 
