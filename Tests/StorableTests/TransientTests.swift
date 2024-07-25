@@ -4,8 +4,6 @@
 
 */
 
-#if swift(>=5.9)
-
 import XCTest
 import Storable
 
@@ -53,5 +51,3 @@ final class TransientTests : XCTestCase
         if success == false { XCTFail("") }
       }
   }
-
-#endif

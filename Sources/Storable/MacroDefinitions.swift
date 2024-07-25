@@ -2,8 +2,6 @@
 
 */
 
-#if swift(>=5.9)
-
 import CoreData
 
 
@@ -120,5 +118,3 @@ public macro Fetched<T: ManagedObject>(dictionariesOf: T.Type, predicate: NSPred
 public macro Fetched<T: ManagedObject>(dictionariesOf: T.Type, sortDescriptors: [NSSortDescriptor]) = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
 @attached(accessor)
 public macro Fetched<T: ManagedObject>(dictionariesOf: T.Type, predicate: NSPredicate, sortDescriptors: [NSSortDescriptor]) = #externalMacro(module: "StorableMacros", type: "FetchedMacro")
-
-#endif

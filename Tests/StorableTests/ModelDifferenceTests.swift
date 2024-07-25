@@ -6,10 +6,8 @@
 
 */
 
-#if swift(>=5.9)
-
 import XCTest
-import Storable
+@testable import Storable
 
 
 final class ModelDifferenceTests : XCTestCase
@@ -305,5 +303,3 @@ final class ModelDifferenceTests : XCTestCase
         try checkDifference(from: s1, to: s2, matches: .init(modified: ["E": .init(descriptorChanges: [.isAbstract])!]))
       }
   }
-
-#endif

@@ -8,7 +8,7 @@
 
 import XCTest
 import CoreData
-import Storable
+@testable import Storable
 
 
 // Map test class names to DataStore instances.

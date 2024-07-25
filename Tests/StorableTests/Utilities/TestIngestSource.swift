@@ -5,7 +5,7 @@
 */
 
 import Foundation
-import Storable
+@testable import Storable
 
 
 /// An IngestSource for testing purposes. Initialized with a mapping of resource names to JSON values.

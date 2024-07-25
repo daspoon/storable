@@ -6,7 +6,7 @@
 
 */
 
-#if swift(>=5.9) && false
+#if false
 
 import XCTest
 import Storable

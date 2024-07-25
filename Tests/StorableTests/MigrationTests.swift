@@ -4,8 +4,6 @@
 
 */
 
-#if swift(>=5.9)
-
 import XCTest
 import Storable
 import CoreData
@@ -283,5 +281,3 @@ extension MigrationTests
         if things.count != thingCount { XCTFail("") }
       }
   }
-
-#endif

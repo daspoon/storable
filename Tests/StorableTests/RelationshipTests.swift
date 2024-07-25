@@ -6,8 +6,6 @@
 
 */
 
-#if swift(>=5.9)
-
 import XCTest
 import Storable
 
@@ -53,5 +51,3 @@ final class RelationshipTests : XCTestCase
         if broken.box != nil { XCTFail("") }
       }
   }
-
-#endif
