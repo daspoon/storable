@@ -97,7 +97,7 @@ extension NSManagedObjectContext
         guard hasChanges else { completion?(nil); return }
 
         do {
-          log("saving \(name ?? "<unnamed>") context")
+          log("saving \(self.name ?? "<unnamed>") context")
 
           // If we have a parent context then make note of the inserted objects.
           let inserted = parent != nil ? Array(insertedObjects) : []
